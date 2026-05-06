@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>記録タブ モック</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: #0a0c10; display: flex; justify-content: center; padding: 20px; font-family: 'Noto Sans JP', sans-serif; }
+
+.wa {
+  background: #111318; color: #eef0f4;
+  max-width: 390px; width: 100%;
+  border-radius: 16px; overflow: hidden;
+  height: 660px; display: flex; flex-direction: column;
+  border: 1px solid #2e3244;
+}
+.wa-header {
+  padding: 16px 20px 12px;
+  background: rgba(17,19,24,0.97);
+  border-bottom: 1px solid #2e3244; flex-shrink: 0;
+}
+.wa-header-row { display: flex; align-items: center; gap: 10px; }
+.wa-back-btn { background: none !important; border: none !important; color: #9ba3b5 !important; font-size: 18px; cursor: pointer; padding: 2px 4px; line-height: 1; flex-shrink: 0; }
+.wa-header-title { font-family: 'Bebas Neue', sans-serif; font-size: 22px; letter-spacing: 2px; color: #d4f53c; line-height: 1; flex: 1; }
+.wa-app-title { font-family: 'Bebas Neue', sans-serif; font-size: 28px; letter-spacing: 3px; color: #d4f53c; line-height: 1; flex: 1; }
+.wa-date { font-size: 12px; color: #b0b8c8; padding-bottom: 2px; }
+.wa-header-sub { font-size: 11px; color: #b0b8c8; }
+
+.wa-body { flex: 1; overflow-y: auto; padding: 16px 16px 8px; }
+.wa-section-label { font-size: 10px; letter-spacing: 2px; color: #b0b8c8; text-transform: uppercase; margin-bottom: 10px; }
+
+/* メニューアイテム */
+.wa-menu-item { display: flex; align-items: center; background: #1c1f2a; border: 1px solid #2e3244; border-radius: 12px; padding: 14px 16px; margin-bottom: 8px; cursor: pointer; transition: border-color 0.15s, background 0.15s; gap: 14px; }
+.wa-menu-item:hover { border-color: #d4f53c; background: #1e2230; }
+.wa-menu-icon { font-size: 22px; width: 32px; text-align: center; flex-shrink: 0; }
+.wa-menu-info { flex: 1; }
+.wa-menu-name { font-size: 15px; font-weight: 700; color: #eef0f4; margin-bottom: 2px; }
+.wa-menu-meta { font-size: 11px; color: #b0b8c8; }
+.wa-menu-chevron { font-size: 12px; color: #b0b8c8; }
+
+/* 固定ボタンエリア */
+.wa-fixed-btn-wrap { flex-shrink: 0; padding: 10px 16px; border-top: 1px solid #2e3244; background: #111318; }
+
+.wa-single-btn { display: flex !important; align-items: center !important; justify-content: center !important; gap: 10px; width: 100% !important; background: #1c1f2a !important; border: 1px solid #2e3244 !important; border-radius: 12px !important; padding: 14px 16px !important; color: #b0b8c8 !important; font-size: 15px !important; font-weight: 700 !important; font-family: 'Noto Sans JP', sans-serif !important; cursor: pointer; transition: all 0.15s; min-height: 52px; }
+.wa-single-btn:hover { border-color: #d4f53c !important; color: #d4f53c !important; background: #1e2230 !important; }
+
+/* アクションボタン（黄緑2px枠） */
+.wa-action-btn { width: 100% !important; padding: 14px !important; background: none !important; border: 2px solid #d4f53c !important; border-radius: 12px !important; color: #d4f53c !important; font-size: 14px !important; font-weight: 700 !important; font-family: 'Noto Sans JP', sans-serif !important; cursor: pointer; transition: all 0.15s; }
+.wa-action-btn:hover { background: rgba(212,245,60,0.08) !important; }
+
+/* 保存ボタン（黄緑塗りつぶし） */
+.wa-save-btn { width: 100% !important; padding: 14px !important; background: #d4f53c !important; border: none !important; border-radius: 12px !important; color: #111318 !important; font-size: 15px !important; font-weight: 700 !important; font-family: 'Noto Sans JP', sans-serif !important; cursor: pointer; }
+.wa-save-btn:hover { opacity: 0.88; }
+
+/* タイマーバー */
+.wa-timer-bar { display: flex; align-items: center; justify-content: space-between; padding: 8px 20px; background: #1c1f2a; border-bottom: 1px solid #2e3244; flex-shrink: 0; }
+.wa-timer-label { font-size: 11px; color: #b0b8c8; letter-spacing: 1px; }
+.wa-timer-val { font-family: 'Bebas Neue', sans-serif; font-size: 22px; color: #d4f53c; letter-spacing: 2px; line-height: 1; }
+
+/* 種目リスト */
+.wa-ex-item { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 12px; margin-bottom: 6px; cursor: pointer; border: 1px solid transparent; transition: all 0.15s; }
+.wa-ex-item:hover { background: #1c1f2a; border-color: #2e3244; }
+.wa-ex-item.done { opacity: 0.4; }
+.wa-ex-item.active { background: rgba(212,245,60,0.08); border-color: rgba(212,245,60,0.3); }
+.wa-ex-status { width: 22px; text-align: center; flex-shrink: 0; }
+.wa-ex-status.check { color: #d4f53c; font-size: 16px; }
+.wa-ex-status.play { color: #d4f53c; font-size: 13px; }
+.wa-ex-status.pending { color: #2e3244; font-size: 18px; }
+.wa-ex-info { flex: 1; min-width: 0; }
+.wa-ex-name { font-size: 14px; font-weight: 700; color: #eef0f4; }
+.wa-ex-item.active .wa-ex-name { color: #d4f53c; }
+.wa-ex-item.done .wa-ex-name { color: #6e7789; }
+.wa-ex-prev { font-size: 11px; color: #b0b8c8; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.wa-ex-chevron { font-size: 11px; color: #3a3f52; flex-shrink: 0; }
+.wa-add-ex-btn { display: flex !important; align-items: center !important; gap: 8px; background: none !important; border: none !important; color: #b0b8c8 !important; font-size: 13px !important; font-family: 'Noto Sans JP', sans-serif !important; padding: 10px 14px !important; cursor: pointer; border-radius: 8px; transition: color 0.15s; width: 100% !important; }
+.wa-add-ex-btn:hover { color: #eef0f4 !important; }
+
+/* 種目入力 */
+.wa-info-bar { display: flex; align-items: center; justify-content: space-between; padding: 8px 20px; background: #1c1f2a; border-bottom: 1px solid #2e3244; flex-shrink: 0; }
+.wa-info-start { font-size: 11px; color: #b0b8c8; }
+.wa-interval-row { display: flex; align-items: center; gap: 6px; }
+.wa-interval-label { font-size: 11px; color: #b0b8c8; }
+.wa-interval-input { font-family: 'Bebas Neue', sans-serif; font-size: 18px; color: #eef0f4; width: 48px; text-align: center; background: #272b38; border: 1px solid #2e3244; border-radius: 6px; padding: 2px 4px; letter-spacing: 1px; }
+.wa-prev-box { background: #1c1f2a; border-left: 2px solid #d4f53c; border-radius: 0 8px 8px 0; padding: 10px 12px; margin-bottom: 14px; }
+.wa-prev-label { font-size: 10px; color: #b0b8c8; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 4px; }
+.wa-prev-memo { font-size: 12px; color: #c8d0dc; margin-bottom: 4px; line-height: 1.5; }
+.wa-prev-sets { font-size: 12px; color: #b0b8c8; margin-bottom: 2px; }
+.wa-prev-stats { font-size: 11px; color: #b0b8c8; }
+.wa-set-row { display: flex; align-items: center; gap: 6px; margin-bottom: 6px; }
+.wa-set-num { font-size: 11px; color: #b0b8c8; width: 24px; text-align: right; flex-shrink: 0; }
+.wa-set-input { font-family: 'Bebas Neue', sans-serif; font-size: 22px; color: #eef0f4; width: 64px; text-align: center; background: #1c1f2a; border: 1px solid #2e3244; border-radius: 8px; padding: 6px 4px; letter-spacing: 1px; }
+.wa-set-input:focus { outline: none; border-color: #d4f53c; }
+.wa-set-unit { font-size: 11px; color: #b0b8c8; flex-shrink: 0; width: 14px; }
+.wa-set-cross { font-size: 13px; color: #6e7789; flex-shrink: 0; }
+.wa-record-btn { flex: 1 !important; padding: 8px 6px !important; border-radius: 8px !important; border: 1px solid #2e3244 !important; background: none !important; color: #b0b8c8 !important; font-size: 12px !important; font-weight: 700 !important; font-family: 'Noto Sans JP', sans-serif !important; cursor: pointer; transition: all 0.15s; white-space: nowrap; }
+.wa-record-btn:hover { border-color: #d4f53c !important; color: #d4f53c !important; }
+.wa-record-btn.recorded { background: rgba(212,245,60,0.1) !important; border-color: rgba(212,245,60,0.4) !important; color: #d4f53c !important; }
+.wa-interval-auto { font-size: 10px; color: #7a8394; margin: -2px 0 4px 30px; }
+.wa-add-row { display: flex; gap: 12px; margin-top: 6px; margin-bottom: 4px; }
+.wa-add-btn { background: none !important; border: none !important; color: #b0b8c8 !important; font-size: 12px !important; font-family: 'Noto Sans JP', sans-serif !important; cursor: pointer; padding: 4px 0; transition: color 0.15s; }
+.wa-add-btn:hover { color: #eef0f4 !important; }
+.wa-divider { height: 1px; background: #2e3244; margin: 12px 0; }
+.wa-injury-toggle { display: flex !important; align-items: center !important; gap: 8px; background: none !important; border: 1px solid #2e3244 !important; border-radius: 8px !important; padding: 9px 12px !important; color: #b0b8c8 !important; font-size: 12px !important; font-family: 'Noto Sans JP', sans-serif !important; cursor: pointer; width: 100% !important; transition: all 0.15s; }
+.wa-injury-toggle.open { border-color: rgba(212,245,60,0.3) !important; color: #c8d0dc !important; }
+.wa-injury-chevron { margin-left: auto; transition: transform 0.2s; font-size: 10px; }
+.wa-injury-body { display: none; padding: 10px 0 4px; }
+.wa-injury-body.open { display: block; }
+.wa-injury-row { display: flex; gap: 8px; margin-bottom: 8px; }
+.wa-injury-select { flex: 1; font-size: 13px; background: #1c1f2a; border: 1px solid #2e3244; border-radius: 8px; padding: 8px 10px; color: #eef0f4; font-family: 'Noto Sans JP', sans-serif; }
+.wa-memo-label { font-size: 10px; color: #b0b8c8; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 6px; }
+.wa-memo-input { width: 100%; background: #1c1f2a; border: 1px solid #2e3244; border-radius: 8px; padding: 10px 12px; color: #eef0f4; font-family: 'Noto Sans JP', sans-serif; font-size: 13px; resize: none; outline: none; line-height: 1.6; }
+.wa-memo-input::placeholder { color: #3a3f52; }
+.wa-memo-input:focus { border-color: #d4f53c; }
+
+/* 終了画面 */
+.wa-finish-msg { text-align: center; margin-bottom: 24px; }
+.wa-finish-emoji { font-size: 40px; margin-bottom: 10px; }
+.wa-finish-title { font-family: 'Bebas Neue', sans-serif; font-size: 28px; letter-spacing: 3px; color: #eef0f4; margin-bottom: 6px; }
+.wa-finish-time { font-size: 13px; color: #b0b8c8; }
+.wa-finish-time span { font-family: 'Bebas Neue', sans-serif; font-size: 22px; color: #d4f53c; letter-spacing: 2px; margin: 0 4px; }
+.wa-summary-row { display: flex; gap: 8px; margin-bottom: 20px; }
+.wa-summary-card { flex: 1; background: #1c1f2a; border: 1px solid #2e3244; border-radius: 10px; padding: 12px; text-align: center; }
+.wa-summary-num { font-family: 'Bebas Neue', sans-serif; font-size: 26px; color: #eef0f4; line-height: 1; }
+.wa-summary-num em { font-family: 'Noto Sans JP', sans-serif; font-size: 11px; color: #b0b8c8; font-style: normal; }
+.wa-summary-label { font-size: 10px; color: #b0b8c8; margin-top: 4px; }
+.wa-choice-row { display: flex; gap: 8px; margin-bottom: 20px; }
+.wa-choice-btn { flex: 1 !important; padding: 12px 6px !important; background: #1c1f2a !important; border: 1px solid #2e3244 !important; border-radius: 10px !important; color: #b0b8c8 !important; font-size: 13px !important; font-weight: 700 !important; font-family: 'Noto Sans JP', sans-serif !important; cursor: pointer; transition: all 0.15s; text-align: center; }
+.wa-choice-btn.selected { background: rgba(212,245,60,0.1) !important; border-color: rgba(212,245,60,0.5) !important; color: #d4f53c !important; }
+
+/* ナビ */
+.wa-bottom-nav { flex-shrink: 0; background: rgba(17,19,24,0.97); border-top: 1px solid #2e3244; display: flex; justify-content: space-around; padding: 10px 0 16px; }
+.wa-nav-item { display: flex; flex-direction: column; align-items: center; gap: 4px; cursor: pointer; padding: 4px 16px; }
+.wa-nav-icon { font-size: 20px; opacity: 0.3; }
+.wa-nav-label { font-size: 10px; color: #6e7789; letter-spacing: 0.5px; }
+.wa-nav-item.active .wa-nav-icon { opacity: 1; }
+.wa-nav-item.active .wa-nav-label { color: #d4f53c; }
+.wa-divider-line { height: 1px; background: #2e3244; margin: 8px 0; }
+.screen { display: none; flex-direction: column; flex: 1; overflow: hidden; }
+.screen.active { display: flex; }
+</style>
+</head>
+<body>
+<div class="wa">
+
+  <!-- 画面1：メニュー選択 -->
+  <div class="screen active" id="s1">
+    <div class="wa-header">
+      <div class="wa-header-row">
+        <div class="wa-app-title">WORKOUT LOG</div>
+        <div class="wa-date" id="wa-today"></div>
+      </div>
+    </div>
+    <div class="wa-body">
+      <div class="wa-section-label">メニューを選ぶ</div>
+      <div class="wa-menu-item" onclick="goS2()"><div class="wa-menu-icon">💪</div><div class="wa-menu-info"><div class="wa-menu-name">胸メニュー</div><div class="wa-menu-meta">前回 4/28（8日前）</div></div><div class="wa-menu-chevron">▶</div></div>
+      <div class="wa-menu-item" onclick="goS2()"><div class="wa-menu-icon">🦾</div><div class="wa-menu-info"><div class="wa-menu-name">腕メニュー</div><div class="wa-menu-meta">前回 4/29（7日前）</div></div><div class="wa-menu-chevron">▶</div></div>
+      <div class="wa-menu-item" onclick="goS2()"><div class="wa-menu-icon">🏋️</div><div class="wa-menu-info"><div class="wa-menu-name">背中メニュー</div><div class="wa-menu-meta">前回 4/30（6日前）</div></div><div class="wa-menu-chevron">▶</div></div>
+      <div class="wa-menu-item" onclick="goS2()"><div class="wa-menu-icon">🔝</div><div class="wa-menu-info"><div class="wa-menu-name">肩メニュー</div><div class="wa-menu-meta">前回 5/1（5日前）</div></div><div class="wa-menu-chevron">▶</div></div>
+      <div class="wa-menu-item" onclick="goS2()"><div class="wa-menu-icon">⚡</div><div class="wa-menu-info"><div class="wa-menu-name">補助メニュー</div><div class="wa-menu-meta">前回 4/25（11日前）</div></div><div class="wa-menu-chevron">▶</div></div>
+    </div>
+    <div class="wa-fixed-btn-wrap">
+      <button class="wa-single-btn" onclick="goS2()">＋　単発記録</button>
+    </div>
+    <div class="wa-bottom-nav">
+      <div class="wa-nav-item active"><div class="wa-nav-icon">📝</div><div class="wa-nav-label">記録</div></div>
+      <div class="wa-nav-item"><div class="wa-nav-icon">📋</div><div class="wa-nav-label">履歴</div></div>
+      <div class="wa-nav-item"><div class="wa-nav-icon">📊</div><div class="wa-nav-label">分析</div></div>
+      <div class="wa-nav-item"><div class="wa-nav-icon">⚙️</div><div class="wa-nav-label">設定</div></div>
+    </div>
+  </div>
+
+  <!-- 画面2：種目リスト -->
+  <div class="screen" id="s2">
+    <div class="wa-header">
+      <div class="wa-header-row">
+        <button class="wa-back-btn" onclick="goS1()">◀</button>
+        <div class="wa-header-title">胸メニュー</div>
+        <div class="wa-date" id="wa-today2"></div>
+      </div>
+    </div>
+    <div class="wa-timer-bar">
+      <span class="wa-timer-label">経過時間</span>
+      <span class="wa-timer-val" id="wa-timer">00:00</span>
+    </div>
+    <div class="wa-body" style="padding:12px 16px 8px;">
+      <div class="wa-ex-item done"><div class="wa-ex-status check">✓</div><div class="wa-ex-info"><div class="wa-ex-name">ストレッチ-トレーニング前</div></div><div class="wa-ex-chevron">▶</div></div>
+      <div class="wa-ex-item done"><div class="wa-ex-status check">✓</div><div class="wa-ex-info"><div class="wa-ex-name">チンタック</div></div><div class="wa-ex-chevron">▶</div></div>
+      <div class="wa-ex-item active" onclick="goS3()"><div class="wa-ex-status play">▶</div><div class="wa-ex-info"><div class="wa-ex-name">ダンベルプレス</div><div class="wa-ex-prev">前回 17.5kg×14 / 15kg×12 / 15kg×10</div></div><div class="wa-ex-chevron">▶</div></div>
+      <div class="wa-ex-item" onclick="goS3()"><div class="wa-ex-status pending">○</div><div class="wa-ex-info"><div class="wa-ex-name">ダンベルフライ</div><div class="wa-ex-prev">前回 12kg×12 / 12kg×10 / 10kg×12</div></div><div class="wa-ex-chevron">▶</div></div>
+      <div class="wa-ex-item" onclick="goS3()"><div class="wa-ex-status pending">○</div><div class="wa-ex-info"><div class="wa-ex-name">クランチ</div></div><div class="wa-ex-chevron">▶</div></div>
+      <div class="wa-ex-item" onclick="goS3()"><div class="wa-ex-status pending">○</div><div class="wa-ex-info"><div class="wa-ex-name">スーパーマン</div></div><div class="wa-ex-chevron">▶</div></div>
+      <div class="wa-ex-item" onclick="goS3()"><div class="wa-ex-status pending">○</div><div class="wa-ex-info"><div class="wa-ex-name">カーフレイズ</div></div><div class="wa-ex-chevron">▶</div></div>
+      <div class="wa-ex-item" onclick="goS3()"><div class="wa-ex-status pending">○</div><div class="wa-ex-info"><div class="wa-ex-name">ストレッチ-トレーニング後</div></div><div class="wa-ex-chevron">▶</div></div>
+      <div class="wa-divider-line"></div>
+      <button class="wa-add-ex-btn">＋　種目を追加</button>
+    </div>
+    <div class="wa-fixed-btn-wrap">
+      <button class="wa-action-btn" onclick="goFinish()">トレーニングを終了する</button>
+    </div>
+    <div class="wa-bottom-nav">
+      <div class="wa-nav-item active"><div class="wa-nav-icon">📝</div><div class="wa-nav-label">記録</div></div>
+      <div class="wa-nav-item"><div class="wa-nav-icon">📋</div><div class="wa-nav-label">履歴</div></div>
+      <div class="wa-nav-item"><div class="wa-nav-icon">📊</div><div class="wa-nav-label">分析</div></div>
+      <div class="wa-nav-item"><div class="wa-nav-icon">⚙️</div><div class="wa-nav-label">設定</div></div>
+    </div>
+  </div>
+
+  <!-- 画面3：種目入力 -->
+  <div class="screen" id="s3">
+    <div class="wa-header">
+      <div class="wa-header-row">
+        <button class="wa-back-btn" onclick="goS2()">◀</button>
+        <div class="wa-header-title">ダンベルプレス</div>
+        <div class="wa-header-sub" id="wa-start-time"></div>
+      </div>
+    </div>
+    <div class="wa-info-bar">
+      <span class="wa-info-start">開始済み</span>
+      <div class="wa-interval-row">
+        <span class="wa-interval-label">目標インターバル</span>
+        <input class="wa-interval-input" type="number" value="90" min="0" max="999">
+        <span class="wa-interval-label">秒</span>
+      </div>
+    </div>
+    <div class="wa-body" style="padding:12px 16px;">
+      <div class="wa-prev-box">
+        <div class="wa-prev-label">前回のメモ</div>
+        <div class="wa-prev-memo">① 左肩に若干違和感　③ 次回は腰ベルト試す</div>
+        <div class="wa-prev-sets">前回 4/28: 17.5kg×14 / 15kg×12 / 15kg×10</div>
+        <div class="wa-prev-stats">累計 234回　前回から8日</div>
+      </div>
+      <div class="wa-section-label">ウォームアップ</div>
+      <div class="wa-set-row"><span class="wa-set-num">準①</span><input class="wa-set-input" type="number" value="7.5"><span class="wa-set-unit">kg</span><span class="wa-set-cross">×</span><input class="wa-set-input" type="number" value="10"><span class="wa-set-unit">回</span><button class="wa-record-btn recorded">✓ 記録済</button></div>
+      <div class="wa-set-row"><span class="wa-set-num">準②</span><input class="wa-set-input" type="number" value="12.5"><span class="wa-set-unit">kg</span><span class="wa-set-cross">×</span><input class="wa-set-input" type="number" value="5"><span class="wa-set-unit">回</span><button class="wa-record-btn recorded">✓ 記録済</button></div>
+      <div class="wa-section-label">メイン</div>
+      <div class="wa-set-row"><span class="wa-set-num">①</span><input class="wa-set-input" type="number" value="17.5"><span class="wa-set-unit">kg</span><span class="wa-set-cross">×</span><input class="wa-set-input" type="number" value="14"><span class="wa-set-unit">回</span><button class="wa-record-btn recorded">✓ 記録済</button></div>
+      <div class="wa-interval-auto">①→② 92秒</div>
+      <div class="wa-set-row"><span class="wa-set-num">②</span><input class="wa-set-input" type="number" value="15"><span class="wa-set-unit">kg</span><span class="wa-set-cross">×</span><input class="wa-set-input" type="number" value="12"><span class="wa-set-unit">回</span><button class="wa-record-btn recorded">✓ 記録済</button></div>
+      <div class="wa-interval-auto">②→③ 88秒</div>
+      <div class="wa-set-row"><span class="wa-set-num">③</span><input class="wa-set-input" type="number" value="15"><span class="wa-set-unit">kg</span><span class="wa-set-cross">×</span><input class="wa-set-input" type="number" value="10"><span class="wa-set-unit">回</span><button class="wa-record-btn" onclick="this.classList.add('recorded');this.textContent='✓ 記録済'">記録</button></div>
+      <div class="wa-add-row"><button class="wa-add-btn">＋ セット追加</button><button class="wa-add-btn">＋ ウォームアップ追加</button></div>
+      <div class="wa-divider"></div>
+      <div style="margin-bottom:10px;">
+        <button class="wa-injury-toggle" id="injury-toggle" onclick="toggleInjury()">🩹 怪我の記録（任意）<span class="wa-injury-chevron" id="injury-chev">▼</span></button>
+        <div class="wa-injury-body" id="injury-body">
+          <div class="wa-injury-row">
+            <select class="wa-injury-select"><option value="">部位を選択</option><option>右肩</option><option>左肩</option><option>右肘</option><option>左肘</option><option>腰</option><option>右膝</option><option>左膝</option><option>右手首</option><option>左手首</option><option>その他</option></select>
+            <select class="wa-injury-select"><option value="">程度</option><option>違和感</option><option>支障あり</option><option>中断レベル</option></select>
+          </div>
+          <textarea class="wa-memo-input" rows="2" placeholder="怪我メモ（任意）"></textarea>
+        </div>
+      </div>
+      <div><div class="wa-memo-label">メモ</div><textarea class="wa-memo-input" rows="2" placeholder="自由記述"></textarea></div>
+    </div>
+    <div class="wa-fixed-btn-wrap">
+      <button class="wa-action-btn" onclick="goS2()">この種目を完了　→　次の種目へ</button>
+    </div>
+    <div class="wa-bottom-nav">
+      <div class="wa-nav-item active"><div class="wa-nav-icon">📝</div><div class="wa-nav-label">記録</div></div>
+      <div class="wa-nav-item"><div class="wa-nav-icon">📋</div><div class="wa-nav-label">履歴</div></div>
+      <div class="wa-nav-item"><div class="wa-nav-icon">📊</div><div class="wa-nav-label">分析</div></div>
+      <div class="wa-nav-item"><div class="wa-nav-icon">⚙️</div><div class="wa-nav-label">設定</div></div>
+    </div>
+  </div>
+
+  <!-- 終了画面 -->
+  <div class="screen" id="sFinish">
+    <div class="wa-header">
+      <div class="wa-header-row">
+        <button class="wa-back-btn" onclick="goS2()">◀</button>
+        <div class="wa-header-title">トレーニング完了</div>
+      </div>
+    </div>
+    <div class="wa-body" style="padding:24px 16px 16px;">
+      <div class="wa-finish-msg">
+        <div class="wa-finish-emoji">💪</div>
+        <div class="wa-finish-title">お疲れ様でした</div>
+        <div class="wa-finish-time">総時間<span>43</span>分</div>
+      </div>
+      <div class="wa-summary-row">
+        <div class="wa-summary-card"><div class="wa-summary-num">7<em>種目</em></div><div class="wa-summary-label">実施種目数</div></div>
+        <div class="wa-summary-card"><div class="wa-summary-num">18<em>セット</em></div><div class="wa-summary-label">総セット数</div></div>
+        <div class="wa-summary-card"><div class="wa-summary-num">17:30</div><div class="wa-summary-label">開始時刻</div></div>
+      </div>
+      <div class="wa-section-label">コンディション</div>
+      <div class="wa-choice-row">
+        <button class="wa-choice-btn" onclick="selectChoice(this,'cond')">好調</button>
+        <button class="wa-choice-btn selected" onclick="selectChoice(this,'cond')">普通</button>
+        <button class="wa-choice-btn" onclick="selectChoice(this,'cond')">不調</button>
+      </div>
+      <div class="wa-section-label">満足度</div>
+      <div class="wa-choice-row">
+        <button class="wa-choice-btn" onclick="selectChoice(this,'satis')">よくできた</button>
+        <button class="wa-choice-btn selected" onclick="selectChoice(this,'satis')">まあまあ</button>
+        <button class="wa-choice-btn" onclick="selectChoice(this,'satis')">いまいち</button>
+      </div>
+      <div><div class="wa-memo-label">感想</div><textarea class="wa-memo-input" rows="3" placeholder="今日のトレーニングについて自由記述"></textarea></div>
+    </div>
+    <div class="wa-fixed-btn-wrap">
+      <button class="wa-save-btn" onclick="goS1()">保存して終了</button>
+    </div>
+    <div class="wa-bottom-nav">
+      <div class="wa-nav-item active"><div class="wa-nav-icon">📝</div><div class="wa-nav-label">記録</div></div>
+      <div class="wa-nav-item"><div class="wa-nav-icon">📋</div><div class="wa-nav-label">履歴</div></div>
+      <div class="wa-nav-item"><div class="wa-nav-icon">📊</div><div class="wa-nav-label">分析</div></div>
+      <div class="wa-nav-item"><div class="wa-nav-icon">⚙️</div><div class="wa-nav-label">設定</div></div>
+    </div>
+  </div>
+
+</div>
+<script>
+const d = new Date();
+const days = ['日','月','火','水','木','金','土'];
+const dateStr = (d.getMonth()+1) + '/' + d.getDate() + '（' + days[d.getDay()] + '）';
+document.getElementById('wa-today').textContent = dateStr;
+document.getElementById('wa-today2').textContent = dateStr;
+document.getElementById('wa-start-time').textContent = String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0') + ' 開始';
+
+let timerInterval = null, sec = 0;
+function show(id) { document.querySelectorAll('.screen').forEach(s => s.classList.remove('active')); document.getElementById(id).classList.add('active'); }
+function goS1() { clearInterval(timerInterval); timerInterval = null; sec = 0; document.getElementById('wa-timer').textContent = '00:00'; show('s1'); }
+function goS2() { if (!timerInterval) { timerInterval = setInterval(() => { sec++; const el = document.getElementById('wa-timer'); if(el) el.textContent = String(Math.floor(sec/60)).padStart(2,'0')+':'+String(sec%60).padStart(2,'0'); }, 1000); } show('s2'); }
+function goS3() { show('s3'); }
+function goFinish() { show('sFinish'); }
+function toggleInjury() {
+  const toggle = document.getElementById('injury-toggle');
+  const body = document.getElementById('injury-body');
+  const chev = document.getElementById('injury-chev');
+  toggle.classList.toggle('open'); body.classList.toggle('open');
+  chev.style.transform = body.classList.contains('open') ? 'rotate(180deg)' : '';
+}
+function selectChoice(btn, group) {
+  btn.closest('.wa-choice-row').querySelectorAll('.wa-choice-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+}
+</script>
+</body>
+</html>

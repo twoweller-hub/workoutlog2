@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>履歴タブ モック</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: #0a0c10; display: flex; justify-content: center; padding: 20px; font-family: 'Noto Sans JP', sans-serif; }
+.wa { background: #111318; color: #eef0f4; max-width: 390px; width: 100%; border-radius: 16px; overflow: hidden; height: 660px; display: flex; flex-direction: column; border: 1px solid #2e3244; }
+.wa-header { padding: 16px 20px 12px; background: rgba(17,19,24,0.97); border-bottom: 1px solid #2e3244; flex-shrink: 0; }
+.wa-header-row { display: flex; align-items: center; gap: 10px; }
+.wa-app-title { font-family: 'Bebas Neue', sans-serif; font-size: 28px; letter-spacing: 3px; color: #d4f53c; line-height: 1; flex: 1; }
+.wa-back-btn { background: none !important; border: none !important; color: #9ba3b5 !important; font-size: 18px; cursor: pointer; padding: 2px 4px; line-height: 1; flex-shrink: 0; }
+.wa-ex-hist-title { font-family: 'Bebas Neue', sans-serif; font-size: 20px; letter-spacing: 2px; color: #d4f53c; margin-bottom: 12px; }
+
+/* サブタブ */
+.wa-subtab-bar { display: flex; padding: 10px 16px; gap: 8px; border-bottom: 1px solid #2e3244; flex-shrink: 0; background: #111318; }
+.wa-subtab { flex: 1; padding: 8px !important; background: #1c1f2a !important; border: 1px solid #2e3244 !important; border-radius: 8px !important; color: #b0b8c8 !important; font-size: 13px !important; font-weight: 700 !important; font-family: 'Noto Sans JP', sans-serif !important; cursor: pointer; transition: all 0.15s; text-align: center; }
+.wa-subtab.active { background: rgba(212,245,60,0.1) !important; border-color: rgba(212,245,60,0.5) !important; color: #d4f53c !important; }
+
+.wa-body { flex: 1; overflow-y: auto; padding: 12px 16px; }
+
+/* 日付軸 */
+.wa-session-item { border: 1px solid #2e3244; border-radius: 12px; margin-bottom: 8px; overflow: hidden; }
+.wa-session-item.expanded { border-color: rgba(212,245,60,0.3); }
+.wa-session-header { display: flex; align-items: center; gap: 12px; padding: 13px 14px; cursor: pointer; background: #1c1f2a; transition: background 0.15s; }
+.wa-session-header:hover { background: #1e2230; }
+.wa-session-date { font-size: 13px; font-weight: 700; color: #eef0f4; flex-shrink: 0; width: 110px; }
+.wa-session-date span { font-size: 11px; color: #b0b8c8; font-weight: 400; margin-left: 4px; }
+.wa-session-menu { font-size: 13px; color: #d4f53c; flex: 1; }
+.wa-session-dur { font-size: 11px; color: #b0b8c8; flex-shrink: 0; }
+.wa-session-chev { font-size: 10px; color: #b0b8c8; margin-left: 6px; transition: transform 0.2s; }
+.wa-session-item.expanded .wa-session-chev { transform: rotate(180deg); }
+.wa-session-body { display: none; background: #161920; padding: 10px 14px 12px; }
+.wa-session-item.expanded .wa-session-body { display: block; }
+.wa-session-cond { display: flex; gap: 12px; margin-bottom: 10px; font-size: 11px; color: #b0b8c8; }
+.wa-session-cond span { color: #eef0f4; }
+.wa-session-feeling { font-size: 11px; color: #b0b8c8; margin-bottom: 10px; line-height: 1.5; }
+.wa-ex-row { padding: 8px 0; border-top: 1px solid #2e3244; }
+.wa-ex-row-name { font-size: 13px; font-weight: 700; color: #eef0f4; cursor: pointer; margin-bottom: 2px; transition: color 0.15s; }
+.wa-ex-row-name:hover { color: #d4f53c; }
+.wa-ex-row-main { font-size: 12px; color: #b0b8c8; margin-bottom: 2px; }
+.wa-ex-row-warm { font-size: 11px; color: #6e7789; margin-bottom: 2px; }
+.wa-ex-row-injury { font-size: 11px; color: #ff9f40; margin-bottom: 2px; }
+.wa-ex-row-memo { font-size: 11px; color: #9ba3b5; }
+
+/* 種目軸 */
+.wa-ex-search-wrap { background: #1c1f2a; border: 1px solid #2e3244; border-radius: 10px; padding: 10px 12px; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+.wa-ex-search-wrap input { flex: 1; background: none; border: none; outline: none; color: #eef0f4; font-size: 14px; font-family: 'Noto Sans JP', sans-serif; }
+.wa-ex-search-wrap input::placeholder { color: #3a3f52; }
+.wa-ex-list-item { display: flex; align-items: center; justify-content: space-between; padding: 12px 4px; border-bottom: 1px solid #2e3244; cursor: pointer; transition: color 0.15s; }
+.wa-ex-list-item:hover .wa-ex-list-name { color: #d4f53c; }
+.wa-ex-list-name { font-size: 14px; font-weight: 700; color: #eef0f4; }
+.wa-ex-list-meta { font-size: 11px; color: #b0b8c8; margin-left: auto; margin-right: 8px; }
+.wa-ex-list-chev { font-size: 11px; color: #3a3f52; }
+
+/* 種目履歴詳細 */
+.wa-back-to { display: flex !important; align-items: center !important; gap: 6px; font-size: 12px; color: #b0b8c8 !important; background: none !important; border: none !important; cursor: pointer; padding: 0 0 10px !important; font-family: 'Noto Sans JP', sans-serif !important; transition: color 0.15s; }
+.wa-back-to:hover { color: #d4f53c !important; }
+.wa-ex-hist-item { border: 1px solid #2e3244; border-radius: 12px; margin-bottom: 8px; overflow: hidden; }
+.wa-ex-hist-item.expanded { border-color: rgba(212,245,60,0.3); }
+.wa-ex-hist-header { display: flex; align-items: center; gap: 10px; padding: 12px 14px; cursor: pointer; background: #1c1f2a; transition: background 0.15s; }
+.wa-ex-hist-header:hover { background: #1e2230; }
+.wa-ex-hist-date { font-size: 13px; font-weight: 700; color: #eef0f4; flex-shrink: 0; width: 80px; }
+.wa-ex-hist-sets { font-size: 12px; color: #b0b8c8; flex: 1; }
+.wa-ex-hist-chev { font-size: 10px; color: #b0b8c8; transition: transform 0.2s; }
+.wa-ex-hist-item.expanded .wa-ex-hist-chev { transform: rotate(180deg); }
+.wa-ex-hist-body { display: none; background: #161920; padding: 10px 14px 12px; }
+.wa-ex-hist-item.expanded .wa-ex-hist-body { display: block; }
+.wa-ex-hist-detail { font-size: 12px; color: #b0b8c8; margin-bottom: 4px; }
+.wa-ex-hist-injury { font-size: 11px; color: #ff9f40; margin-bottom: 4px; }
+.wa-ex-hist-memo { font-size: 11px; color: #9ba3b5; }
+
+.subscreen { display: none; }
+.subscreen.active { display: block; }
+
+.wa-bottom-nav { flex-shrink: 0; background: rgba(17,19,24,0.97); border-top: 1px solid #2e3244; display: flex; justify-content: space-around; padding: 10px 0 16px; }
+.wa-nav-item { display: flex; flex-direction: column; align-items: center; gap: 4px; cursor: pointer; padding: 4px 16px; }
+.wa-nav-icon { font-size: 20px; opacity: 0.3; }
+.wa-nav-label { font-size: 10px; color: #6e7789; letter-spacing: 0.5px; }
+.wa-nav-item.active .wa-nav-icon { opacity: 1; }
+.wa-nav-item.active .wa-nav-label { color: #d4f53c; }
+</style>
+</head>
+<body>
+<div class="wa">
+  <div class="wa-header">
+    <div class="wa-header-row"><div class="wa-app-title">HISTORY</div></div>
+  </div>
+  <div class="wa-subtab-bar">
+    <button class="wa-subtab active" id="tab-date" onclick="switchTab('date')">日付</button>
+    <button class="wa-subtab" id="tab-ex" onclick="switchTab('ex')">種目</button>
+  </div>
+  <div class="wa-body">
+
+    <!-- 日付軸ビュー -->
+    <div class="subscreen active" id="view-date">
+      <div class="wa-session-item" id="sess1">
+        <div class="wa-session-header" onclick="toggleSession('sess1')">
+          <div class="wa-session-date">5/6（水）<span>17:30</span></div>
+          <div class="wa-session-menu">胸メニュー</div>
+          <div class="wa-session-dur">43分</div>
+          <div class="wa-session-chev">▼</div>
+        </div>
+        <div class="wa-session-body">
+          <div class="wa-session-cond"><div>コンディション：<span>好調</span></div><div>満足度：<span>よくできた</span></div></div>
+          <div class="wa-session-feeling">全体的に調子よかった。ダンベルプレスで重量更新。</div>
+          <div class="wa-ex-row"><div class="wa-ex-row-name" onclick="goExDetail('ストレッチ-トレーニング前','sess1')">ストレッチ-トレーニング前</div></div>
+          <div class="wa-ex-row">
+            <div class="wa-ex-row-name" onclick="goExDetail('ダンベルプレス','sess1')">ダンベルプレス</div>
+            <div class="wa-ex-row-warm">ウォームアップ: 7.5kg×10 / 12.5kg×5</div>
+            <div class="wa-ex-row-main">17.5kg×14 / 15kg×12 / 15kg×10</div>
+            <div class="wa-ex-row-injury">①右肩・違和感</div>
+            <div class="wa-ex-row-memo">次回は腰ベルト試す</div>
+          </div>
+          <div class="wa-ex-row">
+            <div class="wa-ex-row-name" onclick="goExDetail('ダンベルフライ','sess1')">ダンベルフライ</div>
+            <div class="wa-ex-row-warm">ウォームアップ: 8kg×10</div>
+            <div class="wa-ex-row-main">12kg×12 / 12kg×10 / 10kg×12</div>
+          </div>
+          <div class="wa-ex-row"><div class="wa-ex-row-name" onclick="goExDetail('クランチ','sess1')">クランチ</div><div class="wa-ex-row-main">20回 / 20回 / 15回</div></div>
+          <div class="wa-ex-row"><div class="wa-ex-row-name" onclick="goExDetail('ストレッチ-トレーニング後','sess1')">ストレッチ-トレーニング後</div></div>
+        </div>
+      </div>
+      <div class="wa-session-item" id="sess2">
+        <div class="wa-session-header" onclick="toggleSession('sess2')">
+          <div class="wa-session-date">5/5（火）<span>11:05</span></div>
+          <div class="wa-session-menu">クランチ</div>
+          <div class="wa-session-dur">8分</div>
+          <div class="wa-session-chev">▼</div>
+        </div>
+        <div class="wa-session-body">
+          <div class="wa-ex-row"><div class="wa-ex-row-name" onclick="goExDetail('クランチ','sess2')">クランチ</div><div class="wa-ex-row-main">20回 / 20回 / 20回</div></div>
+        </div>
+      </div>
+      <div class="wa-session-item" id="sess3">
+        <div class="wa-session-header" onclick="toggleSession('sess3')">
+          <div class="wa-session-date">4/28（月）<span>16:45</span></div>
+          <div class="wa-session-menu">腕メニュー</div>
+          <div class="wa-session-dur">51分</div>
+          <div class="wa-session-chev">▼</div>
+        </div>
+        <div class="wa-session-body">
+          <div class="wa-session-cond"><div>コンディション：<span>普通</span></div><div>満足度：<span>まあまあ</span></div></div>
+          <div class="wa-ex-row"><div class="wa-ex-row-name" onclick="goExDetail('アームカール-ダンベル','sess3')">アームカール-ダンベル</div><div class="wa-ex-row-main">12kg×12 / 12kg×10 / 10kg×10</div></div>
+          <div class="wa-ex-row"><div class="wa-ex-row-name" onclick="goExDetail('フレンチプレス','sess3')">フレンチプレス</div><div class="wa-ex-row-main">8kg×12 / 8kg×10 / 8kg×10</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 種目軸ビュー -->
+    <div class="subscreen" id="view-ex">
+      <div id="ex-list-view">
+        <div class="wa-ex-search-wrap">
+          <span>🔍</span>
+          <input type="text" placeholder="絞り込み…" oninput="filterEx(this.value)">
+        </div>
+        <div id="ex-list">
+          <div class="wa-ex-list-item" onclick="goExDetail('ダンベルプレス',null)"><span class="wa-ex-list-name">ダンベルプレス</span><span class="wa-ex-list-meta">前回 5/6（0日前）</span><span class="wa-ex-list-chev">▶</span></div>
+          <div class="wa-ex-list-item" onclick="goExDetail('ダンベルフライ',null)"><span class="wa-ex-list-name">ダンベルフライ</span><span class="wa-ex-list-meta">前回 5/6（0日前）</span><span class="wa-ex-list-chev">▶</span></div>
+          <div class="wa-ex-list-item" onclick="goExDetail('クランチ',null)"><span class="wa-ex-list-name">クランチ</span><span class="wa-ex-list-meta">前回 5/6（0日前）</span><span class="wa-ex-list-chev">▶</span></div>
+          <div class="wa-ex-list-item" onclick="goExDetail('アームカール-ダンベル',null)"><span class="wa-ex-list-name">アームカール-ダンベル</span><span class="wa-ex-list-meta">前回 4/28（8日前）</span><span class="wa-ex-list-chev">▶</span></div>
+          <div class="wa-ex-list-item" onclick="goExDetail('フレンチプレス',null)"><span class="wa-ex-list-name">フレンチプレス</span><span class="wa-ex-list-meta">前回 4/28（8日前）</span><span class="wa-ex-list-chev">▶</span></div>
+          <div class="wa-ex-list-item" onclick="goExDetail('懸垂',null)"><span class="wa-ex-list-name">懸垂</span><span class="wa-ex-list-meta">前回 4/25（11日前）</span><span class="wa-ex-list-chev">▶</span></div>
+          <div class="wa-ex-list-item" onclick="goExDetail('チンタック',null)"><span class="wa-ex-list-name">チンタック</span><span class="wa-ex-list-meta">前回 5/6（0日前）</span><span class="wa-ex-list-chev">▶</span></div>
+          <div class="wa-ex-list-item" onclick="goExDetail('カーフレイズ',null)"><span class="wa-ex-list-name">カーフレイズ</span><span class="wa-ex-list-meta">前回 5/6（0日前）</span><span class="wa-ex-list-chev">▶</span></div>
+        </div>
+      </div>
+      <div id="ex-detail-view" style="display:none;">
+        <button class="wa-back-to" onclick="backFromDetail()">◀ <span id="back-label"></span></button>
+        <div class="wa-ex-hist-title" id="ex-detail-title"></div>
+        <div class="wa-ex-hist-item" id="exh1">
+          <div class="wa-ex-hist-header" onclick="document.getElementById('exh1').classList.toggle('expanded')">
+            <div class="wa-ex-hist-date">5/6（水）</div>
+            <div class="wa-ex-hist-sets">17.5kg×14 / 15kg×12 / 15kg×10</div>
+            <div class="wa-ex-hist-chev">▼</div>
+          </div>
+          <div class="wa-ex-hist-body"><div class="wa-ex-hist-detail">ウォームアップ: 7.5kg×10 / 12.5kg×5</div><div class="wa-ex-hist-injury">①右肩・違和感</div><div class="wa-ex-hist-memo">次回は腰ベルト試す</div></div>
+        </div>
+        <div class="wa-ex-hist-item" id="exh2">
+          <div class="wa-ex-hist-header" onclick="document.getElementById('exh2').classList.toggle('expanded')">
+            <div class="wa-ex-hist-date">4/21（月）</div>
+            <div class="wa-ex-hist-sets">17.5kg×12 / 15kg×10 / 15kg×8</div>
+            <div class="wa-ex-hist-chev">▼</div>
+          </div>
+          <div class="wa-ex-hist-body"><div class="wa-ex-hist-detail">ウォームアップ: 7.5kg×10 / 12.5kg×5</div><div class="wa-ex-hist-memo">調子まあまあ</div></div>
+        </div>
+        <div class="wa-ex-hist-item" id="exh3">
+          <div class="wa-ex-hist-header" onclick="document.getElementById('exh3').classList.toggle('expanded')">
+            <div class="wa-ex-hist-date">4/14（月）</div>
+            <div class="wa-ex-hist-sets">15kg×14 / 15kg×12 / 15kg×10</div>
+            <div class="wa-ex-hist-chev">▼</div>
+          </div>
+          <div class="wa-ex-hist-body"><div class="wa-ex-hist-detail">ウォームアップ: 7.5kg×10</div></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+  <div class="wa-bottom-nav">
+    <div class="wa-nav-item"><div class="wa-nav-icon">📝</div><div class="wa-nav-label">記録</div></div>
+    <div class="wa-nav-item active"><div class="wa-nav-icon">📋</div><div class="wa-nav-label">履歴</div></div>
+    <div class="wa-nav-item"><div class="wa-nav-icon">📊</div><div class="wa-nav-label">分析</div></div>
+    <div class="wa-nav-item"><div class="wa-nav-icon">⚙️</div><div class="wa-nav-label">設定</div></div>
+  </div>
+</div>
+<script>
+let currentFromSession = null;
+function switchTab(tab) {
+  document.getElementById('tab-date').classList.toggle('active', tab==='date');
+  document.getElementById('tab-ex').classList.toggle('active', tab==='ex');
+  document.getElementById('view-date').classList.toggle('active', tab==='date');
+  document.getElementById('view-ex').classList.toggle('active', tab==='ex');
+}
+function toggleSession(id) { document.getElementById(id).classList.toggle('expanded'); }
+function goExDetail(name, fromSession) {
+  currentFromSession = fromSession;
+  document.getElementById('ex-detail-title').textContent = name;
+  const backLabel = document.getElementById('back-label');
+  if (fromSession) {
+    const dateEl = document.querySelector('#'+fromSession+' .wa-session-date');
+    backLabel.textContent = dateEl ? dateEl.textContent.trim()+'の記録に戻る' : '戻る';
+  } else { backLabel.textContent = '種目一覧に戻る'; }
+  document.getElementById('ex-list-view').style.display = 'none';
+  document.getElementById('ex-detail-view').style.display = 'block';
+  switchTab('ex');
+}
+function backFromDetail() {
+  if (currentFromSession) {
+    switchTab('date');
+    const el = document.getElementById(currentFromSession);
+    if (el && !el.classList.contains('expanded')) el.classList.add('expanded');
+  }
+  document.getElementById('ex-list-view').style.display = 'block';
+  document.getElementById('ex-detail-view').style.display = 'none';
+  currentFromSession = null;
+}
+function filterEx(val) {
+  document.querySelectorAll('#ex-list .wa-ex-list-item').forEach(el => {
+    el.style.display = el.querySelector('.wa-ex-list-name').textContent.includes(val) ? 'flex' : 'none';
+  });
+}
+</script>
+</body>
+</html>

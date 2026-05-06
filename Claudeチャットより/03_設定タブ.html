@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>設定タブ モック</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: #0a0c10; display: flex; justify-content: center; padding: 20px; font-family: 'Noto Sans JP', sans-serif; }
+.wa { background: #111318; color: #eef0f4; max-width: 390px; width: 100%; border-radius: 16px; overflow: hidden; height: 660px; display: flex; flex-direction: column; border: 1px solid #2e3244; }
+.wa-header { padding: 16px 20px 12px; background: rgba(17,19,24,0.97); border-bottom: 1px solid #2e3244; flex-shrink: 0; }
+.wa-header-row { display: flex; align-items: center; gap: 10px; }
+.wa-app-title { font-family: 'Bebas Neue', sans-serif; font-size: 28px; letter-spacing: 3px; color: #d4f53c; line-height: 1; flex: 1; }
+.wa-header-title { font-family: 'Bebas Neue', sans-serif; font-size: 22px; letter-spacing: 2px; color: #d4f53c; line-height: 1; flex: 1; }
+.wa-back-btn { background: none !important; border: none !important; color: #9ba3b5 !important; font-size: 18px; cursor: pointer; padding: 2px 4px; line-height: 1; flex-shrink: 0; }
+
+.wa-body { flex: 1; overflow-y: auto; padding: 12px 16px; }
+.wa-section-label { font-size: 10px; letter-spacing: 2px; color: #b0b8c8; text-transform: uppercase; margin: 4px 0 8px; }
+.wa-setting-section { margin-bottom: 20px; }
+.wa-setting-card { background: #1c1f2a; border: 1px solid #2e3244; border-radius: 12px; overflow: hidden; }
+.wa-setting-row { display: flex; align-items: center; gap: 12px; padding: 13px 14px; border-bottom: 1px solid #2e3244; cursor: pointer; transition: background 0.15s; }
+.wa-setting-row:last-child { border-bottom: none; }
+.wa-setting-row:hover { background: #1e2230; }
+.wa-setting-icon { font-size: 16px; width: 24px; text-align: center; flex-shrink: 0; }
+.wa-setting-name { font-size: 14px; font-weight: 700; color: #eef0f4; flex: 1; }
+.wa-setting-meta { font-size: 11px; color: #b0b8c8; }
+.wa-setting-chevron { font-size: 11px; color: #3a3f52; }
+
+.wa-add-row-btn { display: flex !important; align-items: center !important; gap: 8px; width: 100% !important; padding: 11px 14px !important; background: none !important; border: none !important; border-top: 1px solid #2e3244 !important; color: #b0b8c8 !important; font-size: 13px !important; font-family: 'Noto Sans JP', sans-serif !important; cursor: pointer; transition: color 0.15s; border-radius: 0 !important; }
+.wa-add-row-btn:hover { color: #d4f53c !important; }
+
+/* 削除ボタン（赤） */
+.wa-delete-btn { width: 100% !important; padding: 13px !important; margin-top: 12px !important; background: none !important; border: 1px solid #ff4d3a !important; border-radius: 12px !important; color: #ff4d3a !important; font-size: 14px !important; font-weight: 700 !important; font-family: 'Noto Sans JP', sans-serif !important; cursor: pointer; }
+
+/* モーダル */
+.wa-modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 200; align-items: flex-end; justify-content: center; }
+.wa-modal-overlay.open { display: flex; }
+.wa-modal { background: #1c1f2a; border: 1px solid #2e3244; border-radius: 16px 16px 0 0; width: 100%; max-width: 390px; padding: 20px 20px 32px; }
+.wa-modal-title { font-family: 'Bebas Neue', sans-serif; font-size: 20px; letter-spacing: 2px; color: #d4f53c; margin-bottom: 16px; }
+.wa-modal-label { font-size: 10px; color: #b0b8c8; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 6px; }
+.wa-modal-input { width: 100%; background: #111318; border: 1px solid #2e3244; border-radius: 8px; padding: 10px 12px; color: #eef0f4; font-family: 'Noto Sans JP', sans-serif; font-size: 14px; outline: none; margin-bottom: 14px; }
+.wa-modal-input:focus { border-color: #d4f53c; }
+.wa-toggle-row { display: flex; gap: 8px; margin-bottom: 14px; }
+.wa-toggle-btn { flex: 1 !important; padding: 9px !important; background: #111318 !important; border: 1px solid #2e3244 !important; border-radius: 8px !important; color: #b0b8c8 !important; font-size: 12px !important; font-weight: 700 !important; font-family: 'Noto Sans JP', sans-serif !important; cursor: pointer; transition: all 0.15s; text-align: center; }
+.wa-toggle-btn.active { background: rgba(212,245,60,0.1) !important; border-color: rgba(212,245,60,0.5) !important; color: #d4f53c !important; }
+.wa-modal-btn-row { display: flex; gap: 8px; margin-top: 4px; }
+.wa-modal-cancel { flex: 1 !important; padding: 12px !important; background: none !important; border: 1px solid #2e3244 !important; border-radius: 10px !important; color: #b0b8c8 !important; font-size: 13px !important; font-weight: 700 !important; font-family: 'Noto Sans JP', sans-serif !important; cursor: pointer; }
+.wa-modal-save { flex: 2 !important; padding: 12px !important; background: #d4f53c !important; border: none !important; border-radius: 10px !important; color: #111318 !important; font-size: 13px !important; font-weight: 700 !important; font-family: 'Noto Sans JP', sans-serif !important; cursor: pointer; }
+.wa-modal-delete { width: 100% !important; padding: 12px !important; margin-top: 8px !important; background: none !important; border: 1px solid #ff4d3a !important; border-radius: 10px !important; color: #ff4d3a !important; font-size: 13px !important; font-weight: 700 !important; font-family: 'Noto Sans JP', sans-serif !important; cursor: pointer; }
+
+.wa-bottom-nav { flex-shrink: 0; background: rgba(17,19,24,0.97); border-top: 1px solid #2e3244; display: flex; justify-content: space-around; padding: 10px 0 16px; }
+.wa-nav-item { display: flex; flex-direction: column; align-items: center; gap: 4px; cursor: pointer; padding: 4px 16px; }
+.wa-nav-icon { font-size: 20px; opacity: 0.3; }
+.wa-nav-label { font-size: 10px; color: #6e7789; letter-spacing: 0.5px; }
+.wa-nav-item.active .wa-nav-icon { opacity: 1; }
+.wa-nav-item.active .wa-nav-label { color: #d4f53c; }
+.screen { display: none; flex-direction: column; flex: 1; overflow: hidden; }
+.screen.active { display: flex; }
+</style>
+</head>
+<body>
+<div class="wa">
+
+  <!-- 設定トップ -->
+  <div class="screen active" id="s-top">
+    <div class="wa-header"><div class="wa-header-row"><div class="wa-app-title">SETTINGS</div></div></div>
+    <div class="wa-body">
+      <div class="wa-setting-section">
+        <div class="wa-section-label">種目</div>
+        <div class="wa-setting-card">
+          <div class="wa-setting-row" onclick="goScreen('s-ex')"><div class="wa-setting-icon">🏋️</div><div class="wa-setting-name">種目の管理</div><div class="wa-setting-meta">35種目</div><div class="wa-setting-chevron">▶</div></div>
+        </div>
+      </div>
+      <div class="wa-setting-section">
+        <div class="wa-section-label">メニュー</div>
+        <div class="wa-setting-card">
+          <div class="wa-setting-row" onclick="goScreen('s-menu')"><div class="wa-setting-icon">📋</div><div class="wa-setting-name">メニューの管理</div><div class="wa-setting-meta">5メニュー</div><div class="wa-setting-chevron">▶</div></div>
+        </div>
+      </div>
+      <div class="wa-setting-section">
+        <div class="wa-section-label">怪我部位</div>
+        <div class="wa-setting-card">
+          <div class="wa-setting-row" onclick="goScreen('s-injury')"><div class="wa-setting-icon">🩹</div><div class="wa-setting-name">怪我部位の管理</div><div class="wa-setting-meta">10部位</div><div class="wa-setting-chevron">▶</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="wa-bottom-nav">
+      <div class="wa-nav-item"><div class="wa-nav-icon">📝</div><div class="wa-nav-label">記録</div></div>
+      <div class="wa-nav-item"><div class="wa-nav-icon">📋</div><div class="wa-nav-label">履歴</div></div>
+      <div class="wa-nav-item"><div class="wa-nav-icon">📊</div><div class="wa-nav-label">分析</div></div>
+      <div class="wa-nav-item active"><div class="wa-nav-icon">⚙️</div><div class="wa-nav-label">設定</div></div>
+    </div>
+  </div>
+
+  <!-- 種目管理 -->
+  <div class="screen" id="s-ex">
+    <div class="wa-header"><div class="wa-header-row"><button class="wa-back-btn" onclick="goScreen('s-top')">◀</button><div class="wa-header-title">種目の管理</div></div></div>
+    <div class="wa-body">
+      <div class="wa-setting-card">
+        <div class="wa-setting-row" onclick="openModal('ex-edit','ダンベルプレス')"><div class="wa-setting-icon">💪</div><div class="wa-setting-name">ダンベルプレス</div><div class="wa-setting-meta">胸・回・120秒</div><div class="wa-setting-chevron">▶</div></div>
+        <div class="wa-setting-row" onclick="openModal('ex-edit','ダンベルフライ')"><div class="wa-setting-icon">💪</div><div class="wa-setting-name">ダンベルフライ</div><div class="wa-setting-meta">胸・回・120秒</div><div class="wa-setting-chevron">▶</div></div>
+        <div class="wa-setting-row" onclick="openModal('ex-edit','クランチ')"><div class="wa-setting-icon">🔥</div><div class="wa-setting-name">クランチ</div><div class="wa-setting-meta">体幹・回・60秒</div><div class="wa-setting-chevron">▶</div></div>
+        <div class="wa-setting-row" onclick="openModal('ex-edit','カーフレイズ')"><div class="wa-setting-icon">🦵</div><div class="wa-setting-name">カーフレイズ</div><div class="wa-setting-meta">脚・回・左右あり</div><div class="wa-setting-chevron">▶</div></div>
+        <div class="wa-setting-row" onclick="openModal('ex-edit','チンタック')"><div class="wa-setting-icon">🧠</div><div class="wa-setting-name">チンタック</div><div class="wa-setting-meta">体幹・回・30秒</div><div class="wa-setting-chevron">▶</div></div>
+        <button class="wa-add-row-btn" onclick="openModal('ex-add','')">＋ 種目を追加</button>
+      </div>
+    </div>
+    <div class="wa-bottom-nav">
+      <div class="wa-nav-item"><div class="wa-nav-icon">📝</div><div class="wa-nav-label">記録</div></div>
+      <div class="wa-nav-item"><div class="wa-nav-icon">📋</div><div class="wa-nav-label">履歴</div></div>
+      <div class="wa-nav-item"><div class="wa-nav-icon">📊</div><div class="wa-nav-label">分析</div></div>
+      <div class="wa-nav-item active"><div class="wa-nav-icon">⚙️</div><div class="wa-nav-label">設定</div></div>
+    </div>
+  </div>
+
+  <!-- メニュー管理 -->
+  <div class="screen" id="s-menu">
+    <div class="wa-header"><div class="wa-header-row"><button class="wa-back-btn" onclick="goScreen('s-top')">◀</button><div class="wa-header-title">メニューの管理</div></div></div>
+    <div class="wa-body">
+      <div class="wa-setting-card">
+        <div class="wa-setting-row" onclick="goScreen('s-menu-detail')"><div class="wa-setting-icon">💪</div><div class="wa-setting-name">胸メニュー</div><div class="wa-setting-meta">8種目</div><div class="wa-setting-chevron">▶</div></div>
+        <div class="wa-setting-row" onclick="goScreen('s-menu-detail')"><div class="wa-setting-icon">🦾</div><div class="wa-setting-name">腕メニュー</div><div class="wa-setting-meta">8種目</div><div class="wa-setting-chevron">▶</div></div>
+        <div class="wa-setting-row" onclick="goScreen('s-menu-detail')"><div class="wa-setting-icon">🏋️</div><div class="wa-setting-name">背中メニュー</div><div class="wa-setting-meta">8種目</div><div class="wa-setting-chevron">▶</div></div>
+        <div class="wa-setting-row" onclick="goScreen('s-menu-detail')"><div class="wa-setting-icon">🔝</div><div class="wa-setting-name">肩メニュー</div><div class="wa-setting-meta">8種目</div><div class="wa-setting-chevron">▶</div></div>
+        <div class="wa-setting-row" onclick="goScreen('s-menu-detail')"><div class="wa-setting-icon">🦵</div><div class="wa-setting-name">脚メニュー</div><div class="wa-setting-meta">7種目</div><div class="wa-setting-chevron">▶</div></div>
+        <button class="wa-add-row-btn" onclick="openModal('menu-add','')">＋ メニューを追加</button>
+      </div>
+    </div>
+    <div class="wa-bottom-nav">
+      <div class="wa-nav-item"><div class="wa-nav-icon">📝</div><div class="wa-nav-label">記録</div></div>
+      <div class="wa-nav-item"><div class="wa-nav-icon">📋</div><div class="wa-nav-label">履歴</div></div>
+      <div class="wa-nav-item"><div class="wa-nav-icon">📊</div><div class="wa-nav-label">分析</div></div>
+      <div class="wa-nav-item active"><div class="wa-nav-icon">⚙️</div><div class="wa-nav-label">設定</div></div>
+    </div>
+  </div>
+
+  <!-- メニュー詳細 -->
+  <div class="screen" id="s-menu-detail">
+    <div class="wa-header"><div class="wa-header-row"><button class="wa-back-btn" onclick="goScreen('s-menu')">◀</button><div class="wa-header-title">胸メニュー</div></div></div>
+    <div class="wa-body">
+      <div class="wa-section-label">種目の順番（長押しで並び替え）</div>
+      <div class="wa-setting-card">
+        <div class="wa-setting-row"><div class="wa-setting-icon" style="color:#3a3f52;font-size:14px;">☰</div><div class="wa-setting-name">ストレッチ-トレーニング前</div><div class="wa-setting-chevron">▶</div></div>
+        <div class="wa-setting-row"><div class="wa-setting-icon" style="color:#3a3f52;font-size:14px;">☰</div><div class="wa-setting-name">チンタック</div><div class="wa-setting-chevron">▶</div></div>
+        <div class="wa-setting-row"><div class="wa-setting-icon" style="color:#3a3f52;font-size:14px;">☰</div><div class="wa-setting-name">ダンベルプレス</div><div class="wa-setting-chevron">▶</div></div>
+        <div class="wa-setting-row"><div class="wa-setting-icon" style="color:#3a3f52;font-size:14px;">☰</div><div class="wa-setting-name">ダンベルフライ</div><div class="wa-setting-chevron">▶</div></div>
+        <div class="wa-setting-row"><div class="wa-setting-icon" style="color:#3a3f52;font-size:14px;">☰</div><div class="wa-setting-name">クランチ</div><div class="wa-setting-chevron">▶</div></div>
+        <div class="wa-setting-row"><div class="wa-setting-icon" style="color:#3a3f52;font-size:14px;">☰</div><div class="wa-setting-name">スーパーマン</div><div class="wa-setting-chevron">▶</div></div>
+        <div class="wa-setting-row"><div class="wa-setting-icon" style="color:#3a3f52;font-size:14px;">☰</div><div class="wa-setting-name">カーフレイズ</div><div class="wa-setting-chevron">▶</div></div>
+        <div class="wa-setting-row"><div class="wa-setting-icon" style="color:#3a3f52;font-size:14px;">☰</div><div class="wa-setting-name">ストレッチ-トレーニング後</div><div class="wa-setting-chevron">▶</div></div>
+        <button class="wa-add-row-btn">＋ 種目を追加</button>
+      </div>
+      <!-- このメニューを削除ボタン（赤枠・画面下部） -->
+      <button class="wa-delete-btn" onclick="alert('削除確認ダイアログ')">このメニューを削除</button>
+    </div>
+    <div class="wa-bottom-nav">
+      <div class="wa-nav-item"><div class="wa-nav-icon">📝</div><div class="wa-nav-label">記録</div></div>
+      <div class="wa-nav-item"><div class="wa-nav-icon">📋</div><div class="wa-nav-label">履歴</div></div>
+      <div class="wa-nav-item"><div class="wa-nav-icon">📊</div><div class="wa-nav-label">分析</div></div>
+      <div class="wa-nav-item active"><div class="wa-nav-icon">⚙️</div><div class="wa-nav-label">設定</div></div>
+    </div>
+  </div>
+
+  <!-- 怪我部位管理 -->
+  <div class="screen" id="s-injury">
+    <div class="wa-header"><div class="wa-header-row"><button class="wa-back-btn" onclick="goScreen('s-top')">◀</button><div class="wa-header-title">怪我部位の管理</div></div></div>
+    <div class="wa-body">
+      <div class="wa-setting-card">
+        <div class="wa-setting-row" onclick="openModal('injury-edit','右肩')"><div class="wa-setting-name">右肩</div><div class="wa-setting-chevron">▶</div></div>
+        <div class="wa-setting-row" onclick="openModal('injury-edit','左肩')"><div class="wa-setting-name">左肩</div><div class="wa-setting-chevron">▶</div></div>
+        <div class="wa-setting-row" onclick="openModal('injury-edit','右肘')"><div class="wa-setting-name">右肘</div><div class="wa-setting-chevron">▶</div></div>
+        <div class="wa-setting-row" onclick="openModal('injury-edit','左肘')"><div class="wa-setting-name">左肘</div><div class="wa-setting-chevron">▶</div></div>
+        <div class="wa-setting-row" onclick="openModal('injury-edit','腰')"><div class="wa-setting-name">腰</div><div class="wa-setting-chevron">▶</div></div>
+        <div class="wa-setting-row" onclick="openModal('injury-edit','右膝')"><div class="wa-setting-name">右膝</div><div class="wa-setting-chevron">▶</div></div>
+        <div class="wa-setting-row" onclick="openModal('injury-edit','左膝')"><div class="wa-setting-name">左膝</div><div class="wa-setting-chevron">▶</div></div>
+        <div class="wa-setting-row" onclick="openModal('injury-edit','右手首')"><div class="wa-setting-name">右手首</div><div class="wa-setting-chevron">▶</div></div>
+        <div class="wa-setting-row" onclick="openModal('injury-edit','左手首')"><div class="wa-setting-name">左手首</div><div class="wa-setting-chevron">▶</div></div>
+        <div class="wa-setting-row" onclick="openModal('injury-edit','その他')"><div class="wa-setting-name">その他</div><div class="wa-setting-chevron">▶</div></div>
+        <button class="wa-add-row-btn" onclick="openModal('injury-add','')">＋ 部位を追加</button>
+      </div>
+    </div>
+    <div class="wa-bottom-nav">
+      <div class="wa-nav-item"><div class="wa-nav-icon">📝</div><div class="wa-nav-label">記録</div></div>
+      <div class="wa-nav-item"><div class="wa-nav-icon">📋</div><div class="wa-nav-label">履歴</div></div>
+      <div class="wa-nav-item"><div class="wa-nav-icon">📊</div><div class="wa-nav-label">分析</div></div>
+      <div class="wa-nav-item active"><div class="wa-nav-icon">⚙️</div><div class="wa-nav-label">設定</div></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- 種目編集モーダル -->
+<div class="wa-modal-overlay" id="modal-ex-edit">
+  <div class="wa-modal">
+    <div class="wa-modal-title">種目を編集</div>
+    <div class="wa-modal-label">種目名</div>
+    <input class="wa-modal-input" type="text" id="modal-ex-name">
+    <div class="wa-modal-label">部位</div>
+    <input class="wa-modal-input" type="text" placeholder="胸・背中・肩・腕・脚・体幹など">
+    <div class="wa-modal-label">単位</div>
+    <div class="wa-toggle-row"><button class="wa-toggle-btn active" onclick="toggle(this)">回</button><button class="wa-toggle-btn" onclick="toggle(this)">秒</button></div>
+    <div class="wa-modal-label">左右</div>
+    <div class="wa-toggle-row"><button class="wa-toggle-btn active" onclick="toggle(this)">なし</button><button class="wa-toggle-btn" onclick="toggle(this)">あり</button></div>
+    <div class="wa-modal-label">デフォルトインターバル（秒）</div>
+    <input class="wa-modal-input" type="number" value="120">
+    <div class="wa-modal-btn-row">
+      <button class="wa-modal-cancel" onclick="closeModal('modal-ex-edit')">キャンセル</button>
+      <button class="wa-modal-save" onclick="closeModal('modal-ex-edit')">保存</button>
+    </div>
+    <button class="wa-modal-delete" onclick="closeModal('modal-ex-edit')">この種目を削除</button>
+  </div>
+</div>
+
+<!-- 種目追加モーダル -->
+<div class="wa-modal-overlay" id="modal-ex-add">
+  <div class="wa-modal">
+    <div class="wa-modal-title">種目を追加</div>
+    <div class="wa-modal-label">種目名</div>
+    <input class="wa-modal-input" type="text" placeholder="例：ダンベルカール">
+    <div class="wa-modal-label">部位</div>
+    <input class="wa-modal-input" type="text" placeholder="胸・背中・肩・腕・脚・体幹など">
+    <div class="wa-modal-label">単位</div>
+    <div class="wa-toggle-row"><button class="wa-toggle-btn active" onclick="toggle(this)">回</button><button class="wa-toggle-btn" onclick="toggle(this)">秒</button></div>
+    <div class="wa-modal-label">左右</div>
+    <div class="wa-toggle-row"><button class="wa-toggle-btn active" onclick="toggle(this)">なし</button><button class="wa-toggle-btn" onclick="toggle(this)">あり</button></div>
+    <div class="wa-modal-label">デフォルトインターバル（秒）</div>
+    <input class="wa-modal-input" type="number" placeholder="90">
+    <div class="wa-modal-btn-row">
+      <button class="wa-modal-cancel" onclick="closeModal('modal-ex-add')">キャンセル</button>
+      <button class="wa-modal-save" onclick="closeModal('modal-ex-add')">追加</button>
+    </div>
+  </div>
+</div>
+
+<!-- メニュー追加モーダル -->
+<div class="wa-modal-overlay" id="modal-menu-add">
+  <div class="wa-modal">
+    <div class="wa-modal-title">メニューを追加</div>
+    <div class="wa-modal-label">メニュー名</div>
+    <input class="wa-modal-input" type="text" placeholder="例：脚メニュー">
+    <div class="wa-modal-btn-row">
+      <button class="wa-modal-cancel" onclick="closeModal('modal-menu-add')">キャンセル</button>
+      <button class="wa-modal-save" onclick="closeModal('modal-menu-add')">追加</button>
+    </div>
+  </div>
+</div>
+
+<!-- 怪我部位編集モーダル -->
+<div class="wa-modal-overlay" id="modal-injury-edit">
+  <div class="wa-modal">
+    <div class="wa-modal-title" id="modal-injury-title">怪我部位を編集</div>
+    <div class="wa-modal-label">部位名</div>
+    <input class="wa-modal-input" type="text" id="modal-injury-name">
+    <div class="wa-modal-btn-row">
+      <button class="wa-modal-cancel" onclick="closeModal('modal-injury-edit')">キャンセル</button>
+      <button class="wa-modal-save" onclick="closeModal('modal-injury-edit')">保存</button>
+    </div>
+    <button class="wa-modal-delete" id="modal-injury-delete" onclick="closeModal('modal-injury-edit')">この部位を削除</button>
+  </div>
+</div>
+
+<script>
+function goScreen(id) { document.querySelectorAll('.screen').forEach(s => s.classList.remove('active')); document.getElementById(id).classList.add('active'); }
+function openModal(type, name) {
+  if (type === 'ex-edit') { document.getElementById('modal-ex-name').value = name; document.getElementById('modal-ex-edit').classList.add('open'); }
+  else if (type === 'ex-add') { document.getElementById('modal-ex-add').classList.add('open'); }
+  else if (type === 'menu-add') { document.getElementById('modal-menu-add').classList.add('open'); }
+  else if (type === 'injury-edit') {
+    document.getElementById('modal-injury-title').textContent = '怪我部位を編集';
+    document.getElementById('modal-injury-name').value = name;
+    document.getElementById('modal-injury-delete').style.display = 'block';
+    document.getElementById('modal-injury-edit').classList.add('open');
+  } else if (type === 'injury-add') {
+    document.getElementById('modal-injury-title').textContent = '部位を追加';
+    document.getElementById('modal-injury-name').value = '';
+    document.getElementById('modal-injury-delete').style.display = 'none';
+    document.getElementById('modal-injury-edit').classList.add('open');
+  }
+}
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+function toggle(btn) { btn.closest('.wa-toggle-row').querySelectorAll('.wa-toggle-btn').forEach(b => b.classList.remove('active')); btn.classList.add('active'); }
+</script>
+</body>
+</html>
