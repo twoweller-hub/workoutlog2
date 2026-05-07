@@ -364,6 +364,11 @@ function renderS2() {
     el.addEventListener('click', () => enterEx(parseInt(el.dataset.idx)));
   });
   container.querySelector('#btn-s2-add-ex')?.addEventListener('click', openSessionExAdd);
+
+  const hasAnyRecord = S.session.exercises.some(e => e.done);
+  const endBtn = document.getElementById('btn-end-training');
+  endBtn.disabled = !hasAnyRecord;
+  endBtn.style.opacity = hasAnyRecord ? '' : '0.3';
 }
 
 // =====================================================================
