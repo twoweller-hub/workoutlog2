@@ -1603,8 +1603,26 @@ function setupEventListeners() {
   document.getElementById('s1s-search').addEventListener('input', function () { renderS1Single(this.value); });
 
   document.getElementById('btn-s2-back').addEventListener('click', () => {
-    if (S.session?.menu) { showRecordScreen('s1'); }
-    else { showRecordScreen('s1'); }
+    const hasCompleted = S.session?.exercises.some(e => e.done);
+    if (hasCompleted) {
+      showConfirm('セッションを破棄', 'セッションを破棄してトップに戻りますか？', () => {
+        stopTimer();
+        S.session = null;
+        S.currentExIdx = null;
+        S.s3ExData = null;
+        S.s3ExCache = {};
+        renderS1();
+        showRecordScreen('s1');
+      });
+    } else {
+      stopTimer();
+      S.session = null;
+      S.currentExIdx = null;
+      S.s3ExData = null;
+      S.s3ExCache = {};
+      renderS1();
+      showRecordScreen('s1');
+    }
   });
   document.getElementById('btn-end-training').addEventListener('click', goFinish);
 
