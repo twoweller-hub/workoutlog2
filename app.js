@@ -1240,29 +1240,19 @@ function renderAnalysis(rows) {
     <div class="analysis-stat-card"><div class="analysis-stat-num">${totalSets}<em>set</em></div><div class="analysis-stat-label">累計セット数</div></div>
     <div class="analysis-stat-card"><div class="analysis-stat-num">${rows.length}<em>回</em></div><div class="analysis-stat-label">実施回数</div></div>`;
 
-  const labels = rows.map(r => dateLabel(r.date));
-  const xTickCallback = function(value, index, ticks) {
-    try {
-      const i = typeof value === 'number' ? value : labels.indexOf(String(value));
-      if (i < 0 || i >= rows.length) return value;
-      const curr     = new Date(rows[i].date + 'T00:00:00');
-      const currYear = curr.getFullYear();
-      const base     = `${curr.getMonth() + 1}/${curr.getDate()}（${DAY_JA[curr.getDay()]}）`;
-      if (index === 0) return `${currYear}/${base}`;
-      const pi = typeof ticks[index - 1].value === 'number'
-        ? ticks[index - 1].value
-        : labels.indexOf(String(ticks[index - 1].value));
-      if (pi < 0 || pi >= rows.length) return base;
-      const prevYear = new Date(rows[pi].date + 'T00:00:00').getFullYear();
-      return currYear !== prevYear ? `${currYear}/${base}` : base;
-    } catch (_) { return value; }
-  };
+  const labels = rows.map((r, i) => {
+    const d    = new Date(r.date + 'T00:00:00');
+    const base = `${d.getMonth() + 1}/${d.getDate()}（${DAY_JA[d.getDay()]}）`;
+    if (i === 0) return `${d.getFullYear()}/${base}`;
+    const prev = new Date(rows[i - 1].date + 'T00:00:00');
+    return d.getFullYear() !== prev.getFullYear() ? `${d.getFullYear()}/${base}` : base;
+  });
 
   const chartOpts = {
     responsive: true,
     plugins: { legend: { display: false } },
     scales: {
-      x: { ticks: { color: '#b0b8c8', maxTicksLimit: 8, font: { size: 10 }, callback: xTickCallback }, grid: { color: '#2e3244' } },
+      x: { ticks: { color: '#b0b8c8', maxTicksLimit: 8, font: { size: 10 } }, grid: { color: '#2e3244' } },
       y: { ticks: { color: '#b0b8c8', font: { size: 10 } }, grid: { color: '#2e3244' } },
     },
   };
