@@ -1240,7 +1240,13 @@ function renderAnalysis(rows) {
     <div class="analysis-stat-card"><div class="analysis-stat-num">${totalSets}<em>set</em></div><div class="analysis-stat-label">累計セット数</div></div>
     <div class="analysis-stat-card"><div class="analysis-stat-num">${rows.length}<em>回</em></div><div class="analysis-stat-label">実施回数</div></div>`;
 
-  const labels = rows.map(r => dateLabel(r.date));
+  const labels = rows.map((r, i) => {
+    const curr     = new Date(r.date + 'T00:00:00');
+    const currYear = curr.getFullYear();
+    const showYear = i === 0 || currYear !== new Date(rows[i - 1].date + 'T00:00:00').getFullYear();
+    if (showYear) return `${currYear}/${curr.getMonth() + 1}/${curr.getDate()}（${DAY_JA[curr.getDay()]}）`;
+    return dateLabel(r.date);
+  });
   const chartOpts = {
     responsive: true,
     plugins: { legend: { display: false } },
