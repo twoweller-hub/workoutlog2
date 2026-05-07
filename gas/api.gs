@@ -686,7 +686,7 @@ function fmtDate(val) {
 function fmtTime(val) {
   if (!val && val !== 0) return '';
   return typeof val.getTime === 'function'
-    ? Utilities.formatDate(val, 'Asia/Tokyo', 'HH:mm')
+    ? Utilities.formatDate(val, 'UTC', 'HH:mm')
     : String(val);
 }
 
