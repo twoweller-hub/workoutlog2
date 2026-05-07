@@ -15,6 +15,7 @@ const S = {
   timerInterval: null,
   timerStart: null,
   s3ExData: null,      // result of getExerciseData
+  s3ExCache: {},       // {exerciseName: getExerciseData result} — cache within a session
   s3Sections: [],      // [{side, warmup:[{weight,reps,recorded,recordedAt}], main:[...]}]
   histDateOffset: 0,
   histDateItems: [],
@@ -251,7 +252,7 @@ function startSession(menuName) {
 function openSingleRecord() {
   if (S.session && S.session.menu !== '') {
     showConfirm('確認', '進行中のセッションがあります。破棄して単発記録に切り替えますか？', () => {
-      stopTimer(); S.session = null; renderS1Single(); showRecordScreen('s1-single');
+      stopTimer(); S.session = null; S.s3ExCache = {}; renderS1Single(); showRecordScreen('s1-single');
     });
     return;
   }
@@ -372,13 +373,17 @@ async function enterEx(idx) {
 
   showRecordScreen('s3');
 
-  const body = document.getElementById('s3-body');
-  body.innerHTML = '<div class="loading-msg">前回データを読み込み中…</div>';
-
-  try {
-    S.s3ExData = await gasGet({ action: 'getExerciseData', exercise: ex.name });
-  } catch (e) {
-    S.s3ExData = null;
+  if (S.s3ExCache[ex.name]) {
+    S.s3ExData = S.s3ExCache[ex.name];
+  } else {
+    const body = document.getElementById('s3-body');
+    body.innerHTML = '<div class="loading-msg">前回データを読み込み中…</div>';
+    try {
+      S.s3ExData = await gasGet({ action: 'getExerciseData', exercise: ex.name });
+      S.s3ExCache[ex.name] = S.s3ExData;
+    } catch (e) {
+      S.s3ExData = null;
+    }
   }
 
   initS3Sections(exMaster);
@@ -679,15 +684,18 @@ async function saveSession() {
   S.session = null;
   S.currentExIdx = null;
   S.s3ExData = null;
+  S.s3ExCache = {};
   S.histDateItems = [];
   S.histDateOffset = 0;
-  try {
-    const data = await gasGet({ action: 'getInitialData' });
-    S.menuLastDates = data.menuLastDates || {};
-    S.recentSingle = data.recentSingle || [];
-  } catch (_) {}
   renderS1();
   showRecordScreen('s1');
+
+  // 「前回〇日前」表示を更新するためバックグラウンドで再取得
+  gasGet({ action: 'getInitialData' }).then(data => {
+    S.menuLastDates = data.menuLastDates || {};
+    S.recentSingle = data.recentSingle || [];
+    renderS1();
+  }).catch(() => {});
 }
 
 function stopTimer() {
