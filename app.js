@@ -670,6 +670,10 @@ function goFinish() {
 }
 
 async function saveSession() {
+  const btn = document.getElementById('btn-save-session');
+  btn.textContent = '保存中…';
+  btn.disabled = true;
+
   const endTime = timeNow();
   const cond = document.querySelector('.wa-choice-btn[data-group="cond"].selected')?.dataset.val || '';
   const satis = document.querySelector('.wa-choice-btn[data-group="satis"].selected')?.dataset.val || '';
