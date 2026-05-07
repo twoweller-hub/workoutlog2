@@ -1026,6 +1026,33 @@ body {
   .toast { bottom: 20px; }
 }
 
+.wa-ex-row-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.wa-ex-row-edit {
+  background: transparent;
+  border: 1px solid #2e3244;
+  border-radius: 6px;
+  color: #b0b8c8;
+  font-size: 11px;
+  padding: 3px 8px;
+  cursor: pointer;
+  font-family: 'Noto Sans JP', sans-serif;
+  flex-shrink: 0;
+}
+
+.wa-rec-del-btn {
+  background: transparent;
+  border: none;
+  color: #ff4d3a;
+  font-size: 14px;
+  cursor: pointer;
+  padding: 4px 6px;
+}
+
 .wa-session-edit-btn {
   display: block;
   width: 100%;

@@ -57,8 +57,9 @@ function doPost(e) {
       case 'addInjurySite':        return addInjurySite(d);
       case 'updateInjurySite':     return updateInjurySite(d);
       case 'deleteInjurySite':     return deleteInjurySite(d);
-      case 'updateSession':        return updateSession(d);
-      case 'deleteSession':        return deleteSession(d);
+      case 'updateSession':          return updateSession(d);
+      case 'deleteSession':          return deleteSession(d);
+      case 'updateExerciseRecords':  return updateExerciseRecords(d);
       default: return errorRes('Unknown action: ' + action);
     }
   } catch (err) {
@@ -489,6 +490,56 @@ function deleteSession(d) {
   for (let i = 1; i < sessRows.length; i++) {
     if (Number(sessRows[i][0]) === Number(d.id)) { sessSheet.deleteRow(i + 1); break; }
   }
+  return okRes();
+}
+
+// ============================================================
+//  記録の更新・削除（種目単位）
+// ============================================================
+function updateExerciseRecords(d) {
+  const ss    = SpreadsheetApp.openById(SPREADSHEET_ID);
+  const sheet = ss.getSheetByName(SHEET_RECORDS);
+  const rows  = sheet.getDataRange().getValues();
+
+  for (let i = rows.length - 1; i >= 1; i--) {
+    if (String(rows[i][4]) !== String(d.exercise)) continue;
+    const byId       = d.sessionId && String(rows[i][15]) === String(d.sessionId);
+    const byFallback = !d.sessionId &&
+                       fmtDate(rows[i][1]) === String(d.date) &&
+                       String(rows[i][3]) === String(d.menu || '');
+    if (byId || byFallback) sheet.deleteRow(i + 1);
+  }
+
+  const sets = d.sets || [];
+  if (sets.length === 0) return okRes();
+
+  const last = sheet.getLastRow();
+  let baseId = 1;
+  if (last >= 2) {
+    const lastId = sheet.getRange(last, 1).getValue();
+    baseId = (typeof lastId === 'number' && lastId > 0 ? lastId : last - 1) + 1;
+  }
+
+  const newRows = sets.map((s, i) => [
+    baseId + i,
+    d.date,
+    '',
+    d.menu        || '',
+    d.exercise,
+    s.type,
+    s.setNum,
+    s.side        || '',
+    s.weight != null ? s.weight : '',
+    s.reps   != null ? s.reps   : '',
+    '',
+    s.injurySite  || '',
+    s.injuryLevel || '',
+    s.injuryMemo  || '',
+    s.memo        || '',
+    d.sessionId   || ''
+  ]);
+
+  sheet.getRange(last + 1, 1, newRows.length, 16).setValues(newRows);
   return okRes();
 }
 

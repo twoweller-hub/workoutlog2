@@ -34,6 +34,7 @@ const S = {
   editingExName: null,
   editingInjuryOld: null,
   editingSession: null,
+  editingRecord: null,
   confirmCb: null,
 };
 
@@ -767,7 +768,7 @@ function renderHistoryDate(sessions, clear) {
           ${sess.satisfaction ? `<div>満足度：<span>${esc(sess.satisfaction)}</span></div>` : ''}
         </div>` : ''}
         ${sess.comment ? `<div class="wa-session-feeling">${esc(sess.comment)}</div>` : ''}
-        ${buildSessionExRows(sess, id)}
+        ${buildSessionExRows(sess, id, idx)}
       <button class="wa-session-edit-btn" data-sess-idx="${idx}">セッションを編集</button>
       </div>`;
     div.querySelector('.wa-session-header').addEventListener('click', () => div.classList.toggle('expanded'));
@@ -778,11 +779,17 @@ function renderHistoryDate(sessions, clear) {
       e.stopPropagation();
       openSessionEditModal(parseInt(e.currentTarget.dataset.sessIdx));
     });
+    div.querySelectorAll('.wa-ex-row-edit').forEach(el => {
+      el.addEventListener('click', e => {
+        e.stopPropagation();
+        openRecordEditModal(parseInt(el.dataset.sessIdx), el.dataset.name);
+      });
+    });
     list.appendChild(div);
   });
 }
 
-function buildSessionExRows(sess, sessId) {
+function buildSessionExRows(sess, sessId, sessIdx) {
   const exes = sess.exercises || {};
   return Object.entries(exes).map(([name, sets]) => {
     const warmSets = sets.filter(s => s.setType === 'ウォームアップ');
@@ -793,7 +800,10 @@ function buildSessionExRows(sess, sessId) {
     const injuries = sets.filter(s => s.injurySite).map(s => `${setNumLabel(s.setNum - 1, false)}${s.injurySite}・${s.injuryLevel}`).join('、');
     const memo = sets.find(s => s.memo)?.memo || '';
     return `<div class="wa-ex-row">
-      <div class="wa-ex-row-name" data-name="${esc(name)}">${esc(name)}</div>
+      <div class="wa-ex-row-header">
+        <div class="wa-ex-row-name" data-name="${esc(name)}">${esc(name)}</div>
+        <button class="wa-ex-row-edit" data-sess-idx="${sessIdx}" data-name="${esc(name)}">編集</button>
+      </div>
       ${warmLine ? `<div class="wa-ex-row-warm">${esc(warmLine)}</div>` : ''}
       ${mainLine ? `<div class="wa-ex-row-main">${esc(mainLine)}</div>` : ''}
       ${injuries ? `<div class="wa-ex-row-injury">${esc(injuries)}</div>` : ''}
@@ -926,6 +936,192 @@ function backFromHistExDetail() {
   document.getElementById('hist-ex-detail-view').style.display = 'none';
   S.histCurrentEx = null;
   S.histFromSession = null;
+}
+
+function openRecordEditModal(sessIdx, exName) {
+  const sess = S.histDateItems[sessIdx];
+  if (!sess) return;
+  const sets     = (sess.exercises || {})[exName] || [];
+  const exMaster = S.exercises.find(e => e.name === exName);
+  const unit     = exMaster?.unit || '回';
+  const hasSides = exMaster?.hasSides || false;
+
+  const buildSide = side => ({
+    side,
+    warmup: sets.filter(s => s.setType === 'ウォームアップ' && s.side === side)
+                .map(s => ({ weight: s.weight, reps: s.reps })),
+    main:   sets.filter(s => s.setType === 'メイン' && s.side === side)
+                .map(s => ({ weight: s.weight, reps: s.reps })),
+  });
+
+  const sections = hasSides ? [buildSide('右'), buildSide('左')] : [buildSide('')];
+
+  const firstInjury = sets.find(s => s.injurySite) || {};
+  S.editingRecord = {
+    sessIdx, exName,
+    date:      sess.date,
+    menu:      sess.menu,
+    sessionId: sess.sessionId,
+    unit, hasSides, sections,
+    injurySite:  firstInjury.injurySite  || '',
+    injuryLevel: firstInjury.injuryLevel || '',
+    injuryMemo:  firstInjury.injuryMemo  || '',
+    memo:        sets.find(s => s.memo)?.memo || '',
+  };
+
+  document.getElementById('modal-rec-title').textContent = exName + 'を編集';
+  document.getElementById('modal-rec-datetime').textContent = dateLabel(sess.date);
+  renderRecordEditBody();
+  openModal('modal-record-edit');
+}
+
+function renderRecordEditBody() {
+  const { sections, unit, hasSides, injurySite, injuryLevel, injuryMemo, memo } = S.editingRecord;
+  const body = document.getElementById('modal-rec-body');
+  let html = '';
+
+  sections.forEach((sec, si) => {
+    if (hasSides) html += `<div class="wa-side-section-label">${esc(sec.side)}セクション</div>`;
+    if (sec.warmup.length > 0) {
+      html += `<div class="wa-section-label">ウォームアップ</div>`;
+      sec.warmup.forEach((set, i) => { html += buildRecordSetRow(si, 'warmup', i, set, unit); });
+    }
+    html += `<button class="wa-add-btn" data-si="${si}" data-type="warmup">＋ ウォームアップ追加</button>`;
+    html += `<div class="wa-section-label">メイン</div>`;
+    sec.main.forEach((set, i) => { html += buildRecordSetRow(si, 'main', i, set, unit); });
+    html += `<button class="wa-add-btn" data-si="${si}" data-type="main">＋ セット追加</button>`;
+    if (si < sections.length - 1) html += '<div class="wa-divider"></div>';
+  });
+
+  html += `<div class="wa-divider"></div>
+    <div class="wa-memo-label">メモ</div>
+    <textarea class="wa-modal-input" id="modal-rec-memo" rows="2" placeholder="自由記述">${esc(memo)}</textarea>
+    <button class="wa-injury-toggle" id="modal-rec-injury-toggle" style="margin-top:8px">
+      🩹 怪我の記録（任意）<span id="modal-rec-injury-chev">▼</span>
+    </button>
+    <div class="wa-injury-body" id="modal-rec-injury-body">
+      <div class="wa-injury-row">
+        <select class="wa-injury-select" id="modal-rec-injury-site">
+          <option value="">部位を選択</option>
+          ${S.injurySites.map(s => `<option${s === injurySite ? ' selected' : ''}>${esc(s)}</option>`).join('')}
+        </select>
+        <select class="wa-injury-select" id="modal-rec-injury-level">
+          <option value="">程度</option>
+          <option${injuryLevel === '違和感' ? ' selected' : ''}>違和感</option>
+          <option${injuryLevel === '支障あり' ? ' selected' : ''}>支障あり</option>
+          <option${injuryLevel === '中断レベル' ? ' selected' : ''}>中断レベル</option>
+        </select>
+      </div>
+      <textarea class="wa-modal-input" id="modal-rec-injury-memo" rows="2" placeholder="怪我メモ">${esc(injuryMemo)}</textarea>
+    </div>`;
+
+  body.innerHTML = html;
+
+  body.querySelectorAll('.wa-add-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      syncRecordEditState();
+      S.editingRecord.sections[parseInt(btn.dataset.si)][btn.dataset.type].push({ weight: null, reps: null });
+      renderRecordEditBody();
+    });
+  });
+  body.querySelectorAll('.wa-rec-del-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      syncRecordEditState();
+      S.editingRecord.sections[parseInt(btn.dataset.si)][btn.dataset.type].splice(parseInt(btn.dataset.i), 1);
+      renderRecordEditBody();
+    });
+  });
+  document.getElementById('modal-rec-injury-toggle').addEventListener('click', () => {
+    const b    = document.getElementById('modal-rec-injury-body');
+    const open = b.classList.toggle('open');
+    document.getElementById('modal-rec-injury-chev').style.transform = open ? 'rotate(180deg)' : '';
+  });
+  if (injurySite) document.getElementById('modal-rec-injury-body').classList.add('open');
+}
+
+function buildRecordSetRow(si, type, i, set, unit) {
+  const isWarm = type === 'warmup';
+  const label  = setNumLabel(i, isWarm);
+  const wVal   = set.weight != null ? set.weight : '';
+  const rVal   = set.reps   != null ? set.reps   : '';
+  return `<div class="wa-set-row" data-si="${si}" data-type="${type}" data-i="${i}">
+    <span class="wa-set-num">${label}</span>
+    <input class="wa-set-input weight-input" type="number" value="${wVal}" placeholder="-">
+    <span class="wa-set-unit">kg</span>
+    <span class="wa-set-cross">×</span>
+    <input class="wa-set-input reps-input" type="number" value="${rVal}" placeholder="-">
+    <span class="wa-set-unit">${unit === '秒' ? '秒' : '回'}</span>
+    <button class="wa-rec-del-btn" data-si="${si}" data-type="${type}" data-i="${i}">✕</button>
+  </div>`;
+}
+
+function syncRecordEditState() {
+  const body = document.getElementById('modal-rec-body');
+  if (!body || !S.editingRecord) return;
+  S.editingRecord.memo        = document.getElementById('modal-rec-memo')?.value || '';
+  S.editingRecord.injurySite  = document.getElementById('modal-rec-injury-site')?.value || '';
+  S.editingRecord.injuryLevel = document.getElementById('modal-rec-injury-level')?.value || '';
+  S.editingRecord.injuryMemo  = document.getElementById('modal-rec-injury-memo')?.value || '';
+  S.editingRecord.sections.forEach((sec, si) => {
+    ['warmup', 'main'].forEach(type => {
+      sec[type].forEach((set, i) => {
+        const row = body.querySelector(`.wa-set-row[data-si="${si}"][data-type="${type}"][data-i="${i}"]`);
+        if (!row) return;
+        const w = row.querySelector('.weight-input').value;
+        const r = row.querySelector('.reps-input').value;
+        set.weight = w !== '' ? parseFloat(w) : null;
+        set.reps   = r !== '' ? parseFloat(r) : null;
+      });
+    });
+  });
+}
+
+async function saveRecordModal() {
+  if (!S.editingRecord) return;
+  syncRecordEditState();
+  const { sections, exName, date, menu, sessionId, memo, injurySite, injuryLevel, injuryMemo } = S.editingRecord;
+
+  const sets = [];
+  sections.forEach(sec => {
+    sec.warmup.forEach((set, i) => {
+      sets.push({ type: 'ウォームアップ', setNum: i + 1, side: sec.side,
+        weight: set.weight, reps: set.reps,
+        injurySite: '', injuryLevel: '', injuryMemo: '', memo: i === 0 ? memo : '' });
+    });
+    sec.main.forEach((set, i) => {
+      sets.push({ type: 'メイン', setNum: i + 1, side: sec.side,
+        weight: set.weight, reps: set.reps,
+        injurySite:  i === 0 ? injurySite  : '',
+        injuryLevel: i === 0 ? injuryLevel : '',
+        injuryMemo:  i === 0 ? injuryMemo  : '',
+        memo: i === 0 ? memo : '' });
+    });
+  });
+
+  await gasPost({ action: 'updateExerciseRecords', date, menu: menu || '', exercise: exName, sessionId, sets });
+  closeModal('modal-record-edit');
+  S.editingRecord = null;
+  showToast('保存しました');
+  S.histDateItems = [];
+  S.histDateOffset = 0;
+  loadHistoryDate();
+}
+
+function deleteExerciseRecordsConfirm() {
+  if (!S.editingRecord) return;
+  const { exName, date, menu, sessionId } = S.editingRecord;
+  showConfirm('記録を削除',
+    `「${exName}」の記録を削除しますか？\nこのセッションのログは残ります。`,
+    async () => {
+      await gasPost({ action: 'updateExerciseRecords', date, menu: menu || '', exercise: exName, sessionId, sets: [] });
+      closeModal('modal-record-edit');
+      S.editingRecord = null;
+      showToast('削除しました');
+      S.histDateItems = [];
+      S.histDateOffset = 0;
+      loadHistoryDate();
+    }
+  );
 }
 
 function openSessionEditModal(idx) {
@@ -1416,6 +1612,10 @@ function setupEventListeners() {
   document.getElementById('modal-sess-cancel').addEventListener('click', () => closeModal('modal-session-edit'));
   document.getElementById('modal-sess-save').addEventListener('click', saveSessionModal);
   document.getElementById('modal-sess-delete').addEventListener('click', deleteSessionConfirm);
+
+  document.getElementById('modal-rec-cancel').addEventListener('click', () => closeModal('modal-record-edit'));
+  document.getElementById('modal-rec-save').addEventListener('click', saveRecordModal);
+  document.getElementById('modal-rec-delete').addEventListener('click', deleteExerciseRecordsConfirm);
 
   // toggle-btn ロジック（モーダル内）
   document.querySelectorAll('.wa-toggle-row').forEach(row => {
