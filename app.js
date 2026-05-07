@@ -1240,12 +1240,9 @@ function renderAnalysis(rows) {
     <div class="analysis-stat-card"><div class="analysis-stat-num">${totalSets}<em>set</em></div><div class="analysis-stat-label">累計セット数</div></div>
     <div class="analysis-stat-card"><div class="analysis-stat-num">${rows.length}<em>回</em></div><div class="analysis-stat-label">実施回数</div></div>`;
 
-  const labels = rows.map((r, i) => {
-    const d    = new Date(r.date + 'T00:00:00');
-    const base = `${d.getMonth() + 1}/${d.getDate()}（${DAY_JA[d.getDay()]}）`;
-    if (i === 0) return `${d.getFullYear()}/${base}`;
-    const prev = new Date(rows[i - 1].date + 'T00:00:00');
-    return d.getFullYear() !== prev.getFullYear() ? `${d.getFullYear()}/${base}` : base;
+  const labels = rows.map(r => {
+    const d = new Date(r.date + 'T00:00:00');
+    return `${d.getFullYear()}/${d.getMonth() + 1}/${d.getDate()}`;
   });
 
   const chartOpts = {
