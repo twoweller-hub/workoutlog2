@@ -1,0 +1,1380 @@
+'use strict';
+
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbzfXMbAScXVYktNKv44qVu7tdQgjMoDFeRdx4zcJ7AZy6q47zl9VxRadfg6oSj4pzoH9Q/exec';
+
+// =====================================================================
+//  STATE
+// =====================================================================
+const S = {
+  exercises: [], menus: [], injurySites: [], menuLastDates: {}, recentSingle: [],
+  activeTab: 'record',
+  recordScreen: 's1',
+  settingsScreen: 's-top',
+  session: null,       // {menu, menuDisplay, startTime, exercises: [{name, done, sets:[]}]}
+  currentExIdx: null,
+  timerInterval: null,
+  timerStart: null,
+  s3ExData: null,      // result of getExerciseData
+  s3Sections: [],      // [{side, warmup:[{weight,reps,recorded,recordedAt}], main:[...]}]
+  histDateOffset: 0,
+  histDateItems: [],
+  histDateHasMore: false,
+  histExWithLastDate: null,
+  histCurrentEx: null,
+  histFromSession: null,
+  histExOffset: 0,
+  histExItems: [],
+  histExHasMore: false,
+  analysisExList: null,
+  analysisExercise: null,
+  analysisChartW: null,
+  analysisChartV: null,
+  currentMenu: null,
+  sortable: null,
+  editingExName: null,
+  editingInjuryOld: null,
+  confirmCb: null,
+};
+
+// =====================================================================
+//  API
+// =====================================================================
+function gasGet(params) {
+  return new Promise((resolve, reject) => {
+    const cb = 'cb' + Date.now() + Math.random().toString(36).slice(2);
+    const qs = Object.entries({ ...params, callback: cb })
+      .map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`).join('&');
+    const script = document.createElement('script');
+    const cleanup = () => { delete window[cb]; if (script.parentNode) document.head.removeChild(script); };
+    window[cb] = (data) => { cleanup(); resolve(data); };
+    script.onerror = () => { cleanup(); reject(new Error('GAS network error')); };
+    setTimeout(() => { cleanup(); reject(new Error('GAS timeout')); }, 15000);
+    script.src = GAS_URL + '?' + qs;
+    document.head.appendChild(script);
+  });
+}
+
+function gasPost(body) {
+  return fetch(GAS_URL, {
+    method: 'POST',
+    mode: 'no-cors',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  }).catch(() => {});
+}
+
+// =====================================================================
+//  DATE / DISPLAY UTILS
+// =====================================================================
+const DAY_JA = ['日', '月', '火', '水', '木', '金', '土'];
+
+function todayStr() {
+  const d = new Date();
+  return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
+}
+
+function todayDisplay() {
+  const d = new Date();
+  return `${d.getMonth() + 1}/${d.getDate()}（${DAY_JA[d.getDay()]}）`;
+}
+
+function timeNow() {
+  const d = new Date();
+  return `${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
+}
+
+function pad2(n) { return String(n).padStart(2, '0'); }
+
+function dateLabel(dateStr) {
+  const d = new Date(dateStr + 'T00:00:00');
+  return `${d.getMonth() + 1}/${d.getDate()}（${DAY_JA[d.getDay()]}）`;
+}
+
+function menuDisplay(name) {
+  // 'メニュー' suffix for UI display
+  if (!name) return '';
+  if (name.endsWith('メニュー')) return name;
+  return name + 'メニュー';
+}
+
+function menuStorage(displayName) {
+  // Strip 'メニュー' for records/sessions sheet
+  if (displayName.endsWith('メニュー')) return displayName.slice(0, -4);
+  return displayName;
+}
+
+function menuLastDate(displayName) {
+  const key = menuStorage(displayName);
+  return S.menuLastDates[key] || S.menuLastDates[displayName] || null;
+}
+
+function setNumLabel(i, isWarm) {
+  if (isWarm) return '準' + ['①', '②', '③', '④', '⑤'][i] || `準${i + 1}`;
+  return ['①', '②', '③', '④', '⑤', '⑥', '⑦', '⑧'][i] || `${i + 1}`;
+}
+
+function formatSets(sets, unit) {
+  return sets.filter(s => s.weight != null || s.reps != null).map(s => {
+    if (unit === '秒') return s.weight != null ? `${s.weight}kg×${s.reps}秒` : `${s.reps}秒`;
+    return s.weight != null ? `${s.weight}kg×${s.reps}` : `${s.reps}回`;
+  }).join(' / ');
+}
+
+function esc(str) {
+  return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+function showToast(msg, dur = 2000) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), dur);
+}
+
+function showConfirm(title, msg, cb) {
+  document.getElementById('modal-confirm-title').textContent = title;
+  document.getElementById('modal-confirm-msg').textContent = msg;
+  S.confirmCb = cb;
+  openModal('modal-confirm');
+}
+
+// =====================================================================
+//  INIT
+// =====================================================================
+async function init() {
+  document.getElementById('s1-date').textContent = todayDisplay();
+  document.getElementById('s2-date').textContent = todayDisplay();
+  setupNav();
+  setupEventListeners();
+  showTab('record');
+
+  try {
+    const data = await gasGet({ action: 'getInitialData' });
+    S.exercises = data.exercises || [];
+    S.menus = data.menus || [];
+    S.injurySites = data.injurySites || [];
+    S.menuLastDates = data.menuLastDates || {};
+    S.recentSingle = data.recentSingle || [];
+    renderS1();
+    updateSettingsTopCounts();
+  } catch (e) {
+    showToast('データの読み込みに失敗しました');
+  }
+}
+
+// =====================================================================
+//  NAVIGATION
+// =====================================================================
+function setupNav() {
+  document.querySelectorAll('#bottom-nav .wa-nav-item').forEach(item => {
+    item.addEventListener('click', () => showTab(item.dataset.tab));
+  });
+}
+
+function showTab(tab) {
+  S.activeTab = tab;
+  document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+  document.getElementById('tab-' + tab).classList.add('active');
+  document.querySelectorAll('#bottom-nav .wa-nav-item').forEach(item => {
+    item.classList.toggle('active', item.dataset.tab === tab);
+  });
+
+  if (tab === 'history' && S.histDateItems.length === 0) loadHistoryDate();
+  if (tab === 'analysis' && !S.analysisExList) loadAnalysisExList();
+  if (tab === 'settings') { renderSettingsEx(); renderSettingsMenu(); renderSettingsInjury(); updateSettingsTopCounts(); }
+}
+
+function showRecordScreen(id) {
+  S.recordScreen = id;
+  document.querySelectorAll('#tab-record .screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function showSettingsScreen(id) {
+  S.settingsScreen = id;
+  document.querySelectorAll('#tab-settings .screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+// =====================================================================
+//  記録タブ: 画面1 メニュー選択
+// =====================================================================
+function renderS1() {
+  const icons = ['💪', '🦾', '🏋️', '🔝', '⚡', '🦵', '🔥', '🧠', '🏃', '✨'];
+  let html = '';
+  S.menus.forEach((m, i) => {
+    const ld = menuLastDate(m.name);
+    let meta = 'まだ実施なし';
+    if (ld) meta = `前回 ${dateLabel(ld.date)}（${ld.daysAgo}日前）`;
+    html += `<div class="wa-menu-item" data-menu="${esc(m.name)}">
+      <div class="wa-menu-icon">${icons[i % icons.length]}</div>
+      <div class="wa-menu-info">
+        <div class="wa-menu-name">${esc(menuDisplay(m.name))}</div>
+        <div class="wa-menu-meta">${esc(meta)}</div>
+      </div>
+      <div class="wa-menu-chevron">▶</div>
+    </div>`;
+  });
+  document.getElementById('s1-menus').innerHTML = html;
+  document.querySelectorAll('#s1-menus .wa-menu-item').forEach(el => {
+    el.addEventListener('click', () => {
+      if (S.session && S.session.menu === el.dataset.menu) { goS2(); return; }
+      if (S.session) {
+        showConfirm('確認', '進行中のセッションがあります。破棄して新しいセッションを開始しますか？', () => {
+          stopTimer(); startSession(el.dataset.menu);
+        });
+        return;
+      }
+      startSession(el.dataset.menu);
+    });
+  });
+}
+
+function startSession(menuName) {
+  S.session = {
+    menu: menuName,
+    menuDisplay: menuDisplay(menuName),
+    startTime: timeNow(),
+    exercises: (S.menus.find(m => m.name === menuName)?.exercises || []).map(name => ({
+      name, done: false, sets: [],
+    })),
+  };
+  goS2();
+}
+
+// =====================================================================
+//  記録タブ: 画面1-s 単発記録 種目選択
+// =====================================================================
+function openSingleRecord() {
+  if (S.session && S.session.menu !== '') {
+    showConfirm('確認', '進行中のセッションがあります。破棄して単発記録に切り替えますか？', () => {
+      stopTimer(); S.session = null; renderS1Single(); showRecordScreen('s1-single');
+    });
+    return;
+  }
+  renderS1Single();
+  showRecordScreen('s1-single');
+}
+
+function renderS1Single(filter = '') {
+  const wrap = document.getElementById('s1s-recent-wrap');
+  const recentList = document.getElementById('s1s-recent-list');
+  const allList = document.getElementById('s1s-ex-list');
+  const lc = filter.toLowerCase();
+
+  if (S.recentSingle.length > 0 && !filter) {
+    wrap.style.display = '';
+    recentList.innerHTML = S.recentSingle.map(name =>
+      `<div class="wa-ex-list-item" data-name="${esc(name)}">
+        <span class="wa-ex-list-name">${esc(name)}</span>
+        <span class="wa-ex-list-chev">▶</span>
+      </div>`
+    ).join('');
+    recentList.querySelectorAll('.wa-ex-list-item').forEach(el => {
+      el.addEventListener('click', () => startSingle(el.dataset.name));
+    });
+  } else {
+    wrap.style.display = 'none';
+  }
+
+  const filtered = S.exercises.filter(e => !filter || e.name.toLowerCase().includes(lc));
+  allList.innerHTML = filtered.map(e =>
+    `<div class="wa-ex-list-item" data-name="${esc(e.name)}">
+      <span class="wa-ex-list-name">${esc(e.name)}</span>
+      <span class="wa-ex-list-meta">${esc(e.bodyPart)}</span>
+      <span class="wa-ex-list-chev">▶</span>
+    </div>`
+  ).join('');
+  allList.querySelectorAll('.wa-ex-list-item').forEach(el => {
+    el.addEventListener('click', () => startSingle(el.dataset.name));
+  });
+}
+
+function startSingle(name) {
+  S.session = {
+    menu: '',
+    menuDisplay: '単発記録',
+    startTime: timeNow(),
+    exercises: [{ name, done: false, sets: [] }],
+  };
+  goS2();
+}
+
+// =====================================================================
+//  記録タブ: 画面2 種目リスト
+// =====================================================================
+function goS2() {
+  document.getElementById('s2-title').textContent = S.session.menuDisplay;
+  if (!S.timerInterval) {
+    S.timerStart = Date.now();
+    S.timerInterval = setInterval(updateTimer, 1000);
+  }
+  renderS2();
+  showRecordScreen('s2');
+}
+
+function updateTimer() {
+  const sec = Math.floor((Date.now() - S.timerStart) / 1000);
+  const el = document.getElementById('session-timer');
+  if (el) el.textContent = `${pad2(Math.floor(sec / 60))}:${pad2(sec % 60)}`;
+}
+
+function renderS2() {
+  const exes = S.session.exercises;
+  let html = '';
+  exes.forEach((ex, i) => {
+    let statusClass = 'pending', statusChar = '○', itemClass = '';
+    if (ex.done) { statusClass = 'check'; statusChar = '✓'; itemClass = ' done'; }
+    else if (i === S.currentExIdx) { statusClass = 'play'; statusChar = '▶'; itemClass = ' active'; }
+
+    let prevText = '';
+    if (ex.sets && ex.sets.length > 0) {
+      const mainSets = ex.sets.filter(s => s.type === 'メイン');
+      const unit = S.exercises.find(e => e.name === ex.name)?.unit || '回';
+      prevText = formatSets(mainSets, unit);
+    }
+
+    html += `<div class="wa-ex-item${itemClass}" data-idx="${i}">
+      <div class="wa-ex-status ${statusClass}">${statusChar}</div>
+      <div class="wa-ex-info">
+        <div class="wa-ex-name">${esc(ex.name)}</div>
+        ${prevText ? `<div class="wa-ex-prev">${esc(prevText)}</div>` : ''}
+      </div>
+      <div class="wa-ex-chevron">▶</div>
+    </div>`;
+  });
+  html += '<div class="wa-divider-line"></div><button class="wa-add-ex-btn" id="btn-s2-add-ex">＋　種目を追加</button>';
+
+  const container = document.getElementById('s2-ex-list');
+  container.innerHTML = html;
+  container.querySelectorAll('.wa-ex-item').forEach(el => {
+    el.addEventListener('click', () => enterEx(parseInt(el.dataset.idx)));
+  });
+  container.querySelector('#btn-s2-add-ex')?.addEventListener('click', openSessionExAdd);
+}
+
+// =====================================================================
+//  記録タブ: 画面3 種目入力
+// =====================================================================
+async function enterEx(idx) {
+  S.currentExIdx = idx;
+  const ex = S.session.exercises[idx];
+  const exMaster = S.exercises.find(e => e.name === ex.name);
+  const interval = exMaster?.defaultInterval ?? 90;
+
+  document.getElementById('s3-title').textContent = ex.name;
+  document.getElementById('s3-start-time').textContent = timeNow() + ' 開始';
+  document.getElementById('s3-interval').value = interval;
+
+  showRecordScreen('s3');
+
+  const body = document.getElementById('s3-body');
+  body.innerHTML = '<div class="loading-msg">前回データを読み込み中…</div>';
+
+  try {
+    S.s3ExData = await gasGet({ action: 'getExerciseData', exercise: ex.name });
+  } catch (e) {
+    S.s3ExData = null;
+  }
+
+  initS3Sections(exMaster);
+  renderS3Body(exMaster);
+}
+
+function initS3Sections(exMaster) {
+  const hasSides = exMaster?.hasSides || false;
+  const data = S.s3ExData;
+
+  const buildSets = (type, sideFilter) => {
+    const prev = data?.lastSets?.filter(s => s.type === type && (sideFilter === '' ? true : s.side === sideFilter)) || [];
+    if (prev.length > 0) {
+      return prev.map(s => ({ weight: s.weight, reps: s.reps, recorded: false, recordedAt: null }));
+    }
+    if (type === 'ウォームアップ') return [];
+    return [{ weight: null, reps: null, recorded: false, recordedAt: null },
+            { weight: null, reps: null, recorded: false, recordedAt: null },
+            { weight: null, reps: null, recorded: false, recordedAt: null }];
+  };
+
+  if (hasSides) {
+    S.s3Sections = [
+      { side: '右', warmup: buildSets('ウォームアップ', '右'), main: buildSets('メイン', '右') },
+      { side: '左', warmup: buildSets('ウォームアップ', '左'), main: buildSets('メイン', '左') },
+    ];
+  } else {
+    S.s3Sections = [
+      { side: '', warmup: buildSets('ウォームアップ', ''), main: buildSets('メイン', '') },
+    ];
+  }
+}
+
+function renderS3Body(exMaster) {
+  const hasSides = exMaster?.hasSides || false;
+  const unit = exMaster?.unit || '回';
+  const data = S.s3ExData;
+  const body = document.getElementById('s3-body');
+
+  let html = buildPrevBoxHtml(data, unit, hasSides);
+
+  S.s3Sections.forEach((sec, si) => {
+    if (hasSides) {
+      html += `<div class="wa-side-section-label">${esc(sec.side)}セクション</div>`;
+    }
+    if (sec.warmup.length > 0 || hasSides) {
+      html += `<div class="wa-section-label">ウォームアップ</div>`;
+      sec.warmup.forEach((set, i) => {
+        html += buildSetRowHtml(si, 'warmup', i, set, unit);
+      });
+      html += `<div class="wa-add-row">
+        <button class="wa-add-btn" data-si="${si}" data-type="warmup">＋ ウォームアップ追加</button>
+      </div>`;
+    }
+    html += `<div class="wa-section-label">メイン</div>`;
+    sec.main.forEach((set, i) => {
+      html += buildSetRowHtml(si, 'main', i, set, unit);
+      if (i > 0 && sec.main[i - 1].recordedAt && set.recordedAt) {
+        const diff = Math.round((set.recordedAt - sec.main[i - 1].recordedAt) / 1000);
+        html += `<div class="wa-interval-auto">${setNumLabel(i - 1, false)}→${setNumLabel(i, false)} ${diff}秒</div>`;
+      }
+    });
+    html += `<div class="wa-add-row">
+      <button class="wa-add-btn" data-si="${si}" data-type="main">＋ セット追加</button>
+      ${!hasSides && sec.warmup.length === 0 ? `<button class="wa-add-btn" data-si="${si}" data-type="warmup">＋ ウォームアップ追加</button>` : ''}
+    </div>`;
+    if (si < S.s3Sections.length - 1) html += '<div class="wa-divider"></div>';
+  });
+
+  html += buildInjuryMemoHtml();
+  body.innerHTML = html;
+
+  // Attach events
+  body.querySelectorAll('.wa-record-btn').forEach(btn => {
+    btn.addEventListener('click', e => onRecordSet(e.currentTarget));
+  });
+  body.querySelectorAll('.wa-add-btn').forEach(btn => {
+    btn.addEventListener('click', e => onAddSet(e.currentTarget));
+  });
+  body.querySelector('#injury-toggle')?.addEventListener('click', toggleInjury);
+}
+
+function buildPrevBoxHtml(data, unit, hasSides) {
+  if (!data || !data.lastDate) return '';
+  const mainSets = (data.lastSets || []).filter(s => s.type === 'メイン');
+  if (mainSets.length === 0 && !data.lastMemo) return '';
+
+  let setsLine = '';
+  if (hasSides) {
+    const r = mainSets.filter(s => s.side === '右');
+    const l = mainSets.filter(s => s.side === '左');
+    if (r.length) setsLine += `右: ${formatSets(r, unit)}　`;
+    if (l.length) setsLine += `左: ${formatSets(l, unit)}`;
+  } else {
+    setsLine = formatSets(mainSets, unit);
+  }
+
+  return `<div class="wa-prev-box">
+    ${data.lastMemo ? `<div class="wa-prev-label">前回のメモ</div><div class="wa-prev-memo">${esc(data.lastMemo)}</div>` : ''}
+    <div class="wa-prev-sets">前回 ${esc(dateLabel(data.lastDate))}: ${esc(setsLine)}</div>
+    <div class="wa-prev-stats">累計 ${data.totalMainSets}セット　前回から${data.daysSinceLast}日</div>
+  </div>`;
+}
+
+function buildSetRowHtml(si, type, i, set, unit) {
+  const isWarm = type === 'warmup';
+  const label = setNumLabel(i, isWarm);
+  const recClass = set.recorded ? ' recorded' : '';
+  const recText = set.recorded ? '✓ 記録済' : '記録';
+  const wVal = set.weight != null ? set.weight : '';
+  const rVal = set.reps != null ? set.reps : '';
+  return `<div class="wa-set-row" data-si="${si}" data-type="${type}" data-i="${i}">
+    <span class="wa-set-num">${label}</span>
+    <input class="wa-set-input weight-input" type="number" value="${wVal}" placeholder="-">
+    <span class="wa-set-unit">kg</span>
+    <span class="wa-set-cross">×</span>
+    <input class="wa-set-input reps-input" type="number" value="${rVal}" placeholder="-">
+    <span class="wa-set-unit">${unit === '秒' ? '秒' : '回'}</span>
+    <button class="wa-record-btn${recClass}" data-si="${si}" data-type="${type}" data-i="${i}">${recText}</button>
+  </div>`;
+}
+
+function buildInjuryMemoHtml() {
+  return `<div class="wa-divider"></div>
+  <div style="margin-bottom:10px">
+    <button class="wa-injury-toggle" id="injury-toggle">
+      🩹 怪我の記録（任意）<span class="wa-injury-chevron" id="injury-chev">▼</span>
+    </button>
+    <div class="wa-injury-body" id="injury-body">
+      <div class="wa-injury-row">
+        <select class="wa-injury-select" id="injury-site">
+          <option value="">部位を選択</option>
+          ${S.injurySites.map(s => `<option>${esc(s)}</option>`).join('')}
+        </select>
+        <select class="wa-injury-select" id="injury-level">
+          <option value="">程度</option>
+          <option>違和感</option><option>支障あり</option><option>中断レベル</option>
+        </select>
+      </div>
+      <textarea class="wa-memo-input" id="injury-memo" rows="2" placeholder="怪我メモ（任意）"></textarea>
+    </div>
+  </div>
+  <div><div class="wa-memo-label">メモ</div>
+    <textarea class="wa-memo-input" id="ex-memo" rows="2" placeholder="自由記述"></textarea>
+  </div>`;
+}
+
+function toggleInjury() {
+  const toggle = document.getElementById('injury-toggle');
+  const body = document.getElementById('injury-body');
+  const chev = document.getElementById('injury-chev');
+  const open = body.classList.toggle('open');
+  toggle.classList.toggle('open', open);
+  chev.style.transform = open ? 'rotate(180deg)' : '';
+}
+
+function onRecordSet(btn) {
+  const si = parseInt(btn.dataset.si);
+  const type = btn.dataset.type;
+  const i = parseInt(btn.dataset.i);
+  const row = btn.closest('.wa-set-row');
+  const weight = parseFloat(row.querySelector('.weight-input').value) || null;
+  const reps = parseFloat(row.querySelector('.reps-input').value) || null;
+  const set = S.s3Sections[si][type][i];
+  set.weight = weight;
+  set.reps = reps;
+  set.recorded = true;
+  set.recordedAt = Date.now();
+  btn.textContent = '✓ 記録済';
+  btn.classList.add('recorded');
+
+  const exMaster = S.exercises.find(e => e.name === S.session.exercises[S.currentExIdx].name);
+  refreshIntervals(si, type, exMaster);
+}
+
+function refreshIntervals(si, type, exMaster) {
+  if (type !== 'main') return;
+  const body = document.getElementById('s3-body');
+  const sec = S.s3Sections[si];
+  // Remove old interval lines for this section
+  body.querySelectorAll(`.wa-interval-auto[data-si="${si}"]`).forEach(el => el.remove());
+  sec.main.forEach((set, i) => {
+    if (i === 0 || !set.recordedAt || !sec.main[i - 1].recordedAt) return;
+    const diff = Math.round((set.recordedAt - sec.main[i - 1].recordedAt) / 1000);
+    const rows = body.querySelectorAll(`.wa-set-row[data-si="${si}"][data-type="main"]`);
+    if (rows[i]) {
+      const line = document.createElement('div');
+      line.className = 'wa-interval-auto';
+      line.dataset.si = si;
+      line.textContent = `${setNumLabel(i - 1, false)}→${setNumLabel(i, false)} ${diff}秒`;
+      rows[i].insertAdjacentElement('beforebegin', line);
+    }
+  });
+}
+
+function onAddSet(btn) {
+  const si = parseInt(btn.dataset.si);
+  const type = btn.dataset.type;
+  S.s3Sections[si][type].push({ weight: null, reps: null, recorded: false, recordedAt: null });
+  const exMaster = S.exercises.find(e => e.name === S.session.exercises[S.currentExIdx].name);
+  renderS3Body(exMaster);
+  document.getElementById('s3-body').scrollTop = 9999;
+}
+
+function completeEx() {
+  const ex = S.session.exercises[S.currentExIdx];
+  const exMaster = S.exercises.find(e => e.name === ex.name);
+  const unit = exMaster?.unit || '回';
+  const targetInterval = parseInt(document.getElementById('s3-interval').value) || 0;
+  const memo = document.getElementById('ex-memo')?.value || '';
+  const injurySite = document.getElementById('injury-site')?.value || '';
+  const injuryLevel = document.getElementById('injury-level')?.value || '';
+  const injuryMemo = document.getElementById('injury-memo')?.value || '';
+  const today = todayStr();
+
+  const sets = [];
+  S.s3Sections.forEach(sec => {
+    sec.warmup.forEach((set, i) => {
+      if (!set.recorded) return;
+      sets.push({
+        type: 'ウォームアップ', setNum: i + 1, side: sec.side,
+        weight: set.weight, reps: set.reps, targetInterval,
+        time: set.recordedAt ? timeFromMs(set.recordedAt) : timeNow(),
+        injurySite: '', injuryLevel: '', injuryMemo: '',
+        memo: i === 0 ? memo : '',
+      });
+    });
+    sec.main.forEach((set, i) => {
+      if (!set.recorded) return;
+      sets.push({
+        type: 'メイン', setNum: i + 1, side: sec.side,
+        weight: set.weight, reps: set.reps, targetInterval,
+        time: set.recordedAt ? timeFromMs(set.recordedAt) : timeNow(),
+        injurySite: i === 0 ? injurySite : '',
+        injuryLevel: i === 0 ? injuryLevel : '',
+        injuryMemo: i === 0 ? injuryMemo : '',
+        memo: i === 0 ? memo : '',
+      });
+    });
+  });
+
+  ex.done = true;
+  ex.sets = sets;
+
+  if (sets.length > 0) {
+    gasPost({ action: 'saveSets', date: today, menu: menuStorage(S.session.menu), exercise: ex.name, sets });
+  }
+
+  const nextIdx = S.session.exercises.findIndex((e, i) => i > S.currentExIdx && !e.done);
+  S.currentExIdx = nextIdx !== -1 ? nextIdx : null;
+  renderS2();
+  showRecordScreen('s2');
+}
+
+function timeFromMs(ms) {
+  const d = new Date(ms);
+  return `${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
+}
+
+// =====================================================================
+//  記録タブ: 終了画面
+// =====================================================================
+function goFinish() {
+  const totalSec = S.timerStart ? Math.floor((Date.now() - S.timerStart) / 1000) : 0;
+  const totalMin = Math.ceil(totalSec / 60);
+  const doneExes = S.session.exercises.filter(e => e.done);
+  const totalSets = doneExes.reduce((n, e) => n + e.sets.filter(s => s.type === 'メイン').length, 0);
+
+  document.getElementById('finish-total-time').textContent = totalMin;
+  document.getElementById('finish-ex-count').innerHTML = `${doneExes.length}<em>種目</em>`;
+  document.getElementById('finish-set-count').innerHTML = `${totalSets}<em>セット</em>`;
+  document.getElementById('finish-start-time').textContent = S.session.startTime;
+  document.querySelectorAll('.wa-choice-btn').forEach(b => b.classList.remove('selected'));
+
+  showRecordScreen('sFinish');
+}
+
+async function saveSession() {
+  const endTime = timeNow();
+  const cond = document.querySelector('.wa-choice-btn[data-group="cond"].selected')?.dataset.val || '';
+  const satis = document.querySelector('.wa-choice-btn[data-group="satis"].selected')?.dataset.val || '';
+  const comment = document.getElementById('finish-comment').value || '';
+
+  await gasPost({
+    action: 'saveSession',
+    date: todayStr(),
+    menu: menuStorage(S.session.menu),
+    startTime: S.session.startTime,
+    endTime,
+    condition: cond,
+    satisfaction: satis,
+    comment,
+  });
+
+  showToast('保存しました！');
+  stopTimer();
+  S.session = null;
+  S.currentExIdx = null;
+  S.s3ExData = null;
+  S.histDateItems = [];
+  S.histDateOffset = 0;
+  try {
+    const data = await gasGet({ action: 'getInitialData' });
+    S.menuLastDates = data.menuLastDates || {};
+    S.recentSingle = data.recentSingle || [];
+  } catch (_) {}
+  renderS1();
+  showRecordScreen('s1');
+}
+
+function stopTimer() {
+  clearInterval(S.timerInterval);
+  S.timerInterval = null;
+  S.timerStart = null;
+  const el = document.getElementById('session-timer');
+  if (el) el.textContent = '00:00';
+}
+
+// セッションに種目を追加（画面2の「種目を追加」）
+function openSessionExAdd() {
+  const already = new Set(S.session.exercises.map(e => e.name));
+  let html = S.exercises.map(e =>
+    `<div class="modal-ex-row" data-name="${esc(e.name)}">
+      ${esc(e.name)}
+      <span>${esc(e.bodyPart)}</span>
+    </div>`
+  ).join('');
+  document.getElementById('modal-session-ex-list').innerHTML = html;
+  document.querySelectorAll('#modal-session-ex-list .modal-ex-row').forEach(el => {
+    el.addEventListener('click', () => {
+      S.session.exercises.push({ name: el.dataset.name, done: false, sets: [] });
+      closeModal('modal-session-ex-add');
+      renderS2();
+    });
+  });
+  document.getElementById('modal-session-ex-search').value = '';
+  document.getElementById('modal-session-ex-search').oninput = function () {
+    const lc = this.value.toLowerCase();
+    document.querySelectorAll('#modal-session-ex-list .modal-ex-row').forEach(el => {
+      el.style.display = el.dataset.name.toLowerCase().includes(lc) ? '' : 'none';
+    });
+  };
+  openModal('modal-session-ex-add');
+}
+
+// =====================================================================
+//  履歴タブ
+// =====================================================================
+async function loadHistoryDate() {
+  const list = document.getElementById('hist-date-list');
+  if (S.histDateOffset === 0) list.innerHTML = '<div class="loading-msg">読み込み中…</div>';
+  try {
+    const data = await gasGet({ action: 'getHistory', offset: S.histDateOffset });
+    const sessions = data.sessions || [];
+    S.histDateHasMore = data.hasMore || false;
+    if (S.histDateOffset === 0) { S.histDateItems = sessions; list.innerHTML = ''; }
+    else S.histDateItems = S.histDateItems.concat(sessions);
+    renderHistoryDate(sessions, S.histDateOffset === 0);
+    S.histDateOffset += sessions.length;
+    document.getElementById('hist-date-more-wrap').style.display = S.histDateHasMore ? '' : 'none';
+  } catch (e) {
+    list.innerHTML = '<div class="loading-msg">読み込みに失敗しました</div>';
+  }
+}
+
+function renderHistoryDate(sessions, clear) {
+  const list = document.getElementById('hist-date-list');
+  if (clear) list.innerHTML = '';
+  sessions.forEach((sess, rawIdx) => {
+    const idx = clear ? rawIdx : S.histDateItems.length - sessions.length + rawIdx;
+    const id = 'sess-' + idx;
+    const dur = calcDuration(sess.startTime, sess.endTime);
+    const menuLabel = sess.menu ? menuDisplay(sess.menu) : sess.exercises ? Object.keys(sess.exercises)[0] || '' : '';
+    const div = document.createElement('div');
+    div.className = 'wa-session-item';
+    div.id = id;
+    div.innerHTML = `<div class="wa-session-header">
+        <div class="wa-session-date">${esc(dateLabel(sess.date))}<span>${esc(sess.startTime)}</span></div>
+        <div class="wa-session-menu">${esc(menuLabel)}</div>
+        <div class="wa-session-dur">${dur}</div>
+        <div class="wa-session-chev">▼</div>
+      </div>
+      <div class="wa-session-body">
+        ${sess.condition || sess.satisfaction ? `<div class="wa-session-cond">
+          ${sess.condition ? `<div>コンディション：<span>${esc(sess.condition)}</span></div>` : ''}
+          ${sess.satisfaction ? `<div>満足度：<span>${esc(sess.satisfaction)}</span></div>` : ''}
+        </div>` : ''}
+        ${sess.comment ? `<div class="wa-session-feeling">${esc(sess.comment)}</div>` : ''}
+        ${buildSessionExRows(sess, id)}
+      </div>`;
+    div.querySelector('.wa-session-header').addEventListener('click', () => div.classList.toggle('expanded'));
+    div.querySelectorAll('.wa-ex-row-name').forEach(el => {
+      el.addEventListener('click', e => { e.stopPropagation(); goHistExDetail(el.dataset.name, id); });
+    });
+    list.appendChild(div);
+  });
+}
+
+function buildSessionExRows(sess, sessId) {
+  const exes = sess.exercises || {};
+  return Object.entries(exes).map(([name, sets]) => {
+    const warmSets = sets.filter(s => s.setType === 'ウォームアップ');
+    const mainSets = sets.filter(s => s.setType === 'メイン');
+    const unit = S.exercises.find(e => e.name === name)?.unit || '回';
+    const mainLine = formatHistSets(mainSets, unit);
+    const warmLine = warmSets.length ? 'ウォームアップ: ' + formatHistSets(warmSets, unit) : '';
+    const injuries = sets.filter(s => s.injurySite).map(s => `${setNumLabel(s.setNum - 1, false)}${s.injurySite}・${s.injuryLevel}`).join('、');
+    const memo = sets.find(s => s.memo)?.memo || '';
+    return `<div class="wa-ex-row">
+      <div class="wa-ex-row-name" data-name="${esc(name)}">${esc(name)}</div>
+      ${warmLine ? `<div class="wa-ex-row-warm">${esc(warmLine)}</div>` : ''}
+      ${mainLine ? `<div class="wa-ex-row-main">${esc(mainLine)}</div>` : ''}
+      ${injuries ? `<div class="wa-ex-row-injury">${esc(injuries)}</div>` : ''}
+      ${memo ? `<div class="wa-ex-row-memo">${esc(memo)}</div>` : ''}
+    </div>`;
+  }).join('');
+}
+
+function formatHistSets(sets, unit) {
+  const unitLabel = unit === '秒' ? '秒' : '';
+  return sets.map(s => {
+    if (s.weight != null) return `${s.weight}kg×${s.reps}${unit === '秒' ? '秒' : ''}`;
+    if (s.reps != null) return `${s.reps}${unit === '秒' ? '秒' : '回'}`;
+    return '';
+  }).filter(Boolean).join(' / ');
+}
+
+function calcDuration(start, end) {
+  if (!start || !end) return '';
+  const [sh, sm] = start.split(':').map(Number);
+  const [eh, em] = end.split(':').map(Number);
+  const diff = (eh * 60 + em) - (sh * 60 + sm);
+  if (diff <= 0) return '';
+  return `${diff}分`;
+}
+
+async function loadHistExList() {
+  const list = document.getElementById('hist-ex-list');
+  if (S.histExWithLastDate) { renderHistExList(S.histExWithLastDate.exercises); return; }
+  list.innerHTML = '<div class="loading-msg">読み込み中…</div>';
+  try {
+    const data = await gasGet({ action: 'getExercisesWithLastDate' });
+    S.histExWithLastDate = data;
+    renderHistExList(data.exercises || []);
+  } catch (e) {
+    list.innerHTML = '<div class="loading-msg">読み込みに失敗しました</div>';
+  }
+}
+
+function renderHistExList(exercises, filter = '') {
+  const lc = filter.toLowerCase();
+  const filtered = filter ? exercises.filter(e => e.name.toLowerCase().includes(lc)) : exercises;
+  document.getElementById('hist-ex-list').innerHTML = filtered.map(e =>
+    `<div class="wa-ex-list-item" data-name="${esc(e.name)}">
+      <span class="wa-ex-list-name">${esc(e.name)}</span>
+      <span class="wa-ex-list-meta">前回 ${esc(dateLabel(e.lastDate))}（${e.daysAgo}日前）</span>
+      <span class="wa-ex-list-chev">▶</span>
+    </div>`
+  ).join('');
+  document.querySelectorAll('#hist-ex-list .wa-ex-list-item').forEach(el => {
+    el.addEventListener('click', () => goHistExDetail(el.dataset.name, null));
+  });
+}
+
+async function goHistExDetail(name, fromSession) {
+  S.histCurrentEx = name;
+  S.histFromSession = fromSession;
+  S.histExOffset = 0;
+  S.histExItems = [];
+  document.getElementById('hist-ex-detail-title').textContent = name;
+  const backLabel = document.getElementById('hist-ex-back-label');
+  if (fromSession) {
+    const dateEl = document.querySelector('#' + fromSession + ' .wa-session-date');
+    backLabel.textContent = (dateEl ? dateEl.textContent.trim() : '') + 'の記録に戻る';
+    document.getElementById('hist-tab-ex').click();
+  } else {
+    backLabel.textContent = '種目一覧に戻る';
+  }
+  document.getElementById('hist-ex-list-view').style.display = 'none';
+  document.getElementById('hist-ex-detail-view').style.display = '';
+
+  const list = document.getElementById('hist-ex-detail-list');
+  list.innerHTML = '<div class="loading-msg">読み込み中…</div>';
+  await loadHistExDetail();
+}
+
+async function loadHistExDetail() {
+  const list = document.getElementById('hist-ex-detail-list');
+  try {
+    const data = await gasGet({ action: 'getExerciseHistory', exercise: S.histCurrentEx, offset: S.histExOffset });
+    const dates = data.dates || [];
+    S.histExHasMore = data.hasMore || false;
+    if (S.histExOffset === 0) { S.histExItems = dates; list.innerHTML = ''; }
+    else S.histExItems = S.histExItems.concat(dates);
+    renderHistExDetail(dates, S.histExOffset === 0);
+    S.histExOffset += dates.length;
+    document.getElementById('hist-ex-detail-more-wrap').style.display = S.histExHasMore ? '' : 'none';
+  } catch (e) {
+    list.innerHTML = '<div class="loading-msg">読み込みに失敗しました</div>';
+  }
+}
+
+function renderHistExDetail(dates, clear) {
+  const list = document.getElementById('hist-ex-detail-list');
+  if (clear) list.innerHTML = '';
+  const unit = S.exercises.find(e => e.name === S.histCurrentEx)?.unit || '回';
+  dates.forEach((d, i) => {
+    const id = 'exh-' + d.date;
+    const mainSets = d.sets.filter(s => s.setType === 'メイン');
+    const warmSets = d.sets.filter(s => s.setType === 'ウォームアップ');
+    const mainLine = formatHistSets(mainSets, unit);
+    const warmLine = warmSets.length ? 'ウォームアップ: ' + formatHistSets(warmSets, unit) : '';
+    const injuries = d.sets.filter(s => s.injurySite).map(s => `${setNumLabel(s.setNum - 1, false)}${s.injurySite}・${s.injuryLevel}`).join('、');
+    const memo = d.sets.find(s => s.memo)?.memo || '';
+    const div = document.createElement('div');
+    div.className = 'wa-ex-hist-item';
+    div.id = id;
+    div.innerHTML = `<div class="wa-ex-hist-header">
+        <div class="wa-ex-hist-date">${esc(dateLabel(d.date))}</div>
+        <div class="wa-ex-hist-sets">${esc(mainLine)}</div>
+        <div class="wa-ex-hist-chev">▼</div>
+      </div>
+      <div class="wa-ex-hist-body">
+        ${warmLine ? `<div class="wa-ex-hist-detail">${esc(warmLine)}</div>` : ''}
+        ${injuries ? `<div class="wa-ex-hist-injury">${esc(injuries)}</div>` : ''}
+        ${memo ? `<div class="wa-ex-hist-memo">${esc(memo)}</div>` : ''}
+      </div>`;
+    div.querySelector('.wa-ex-hist-header').addEventListener('click', () => div.classList.toggle('expanded'));
+    list.appendChild(div);
+  });
+}
+
+function backFromHistExDetail() {
+  if (S.histFromSession) {
+    const sessEl = document.getElementById(S.histFromSession);
+    if (sessEl && !sessEl.classList.contains('expanded')) sessEl.classList.add('expanded');
+    document.getElementById('hist-tab-date').click();
+  }
+  document.getElementById('hist-ex-list-view').style.display = '';
+  document.getElementById('hist-ex-detail-view').style.display = 'none';
+  S.histCurrentEx = null;
+  S.histFromSession = null;
+}
+
+function switchHistTab(view) {
+  document.querySelectorAll('.wa-subtab').forEach(t => t.classList.remove('active'));
+  document.getElementById('hist-tab-' + (view === 'hist-date-view' ? 'date' : 'ex')).classList.add('active');
+  document.querySelectorAll('.hist-view').forEach(v => v.classList.remove('active'));
+  document.getElementById(view).classList.add('active');
+  if (view === 'hist-ex-view' && !S.histExWithLastDate) loadHistExList();
+}
+
+// =====================================================================
+//  分析タブ
+// =====================================================================
+async function loadAnalysisExList() {
+  const list = document.getElementById('analysis-ex-list');
+  list.innerHTML = '<div class="loading-msg">読み込み中…</div>';
+  try {
+    const data = await gasGet({ action: 'getExercisesWithLastDate' });
+    S.analysisExList = data.exercises || [];
+    renderAnalysisExList('');
+  } catch (e) {
+    list.innerHTML = '<div class="loading-msg">読み込みに失敗しました</div>';
+  }
+}
+
+function renderAnalysisExList(filter) {
+  const lc = filter.toLowerCase();
+  const filtered = filter ? S.analysisExList.filter(e => e.name.toLowerCase().includes(lc)) : S.analysisExList;
+  document.getElementById('analysis-ex-list').innerHTML = filtered.map(e =>
+    `<div class="wa-ex-list-item" data-name="${esc(e.name)}">
+      <span class="wa-ex-list-name">${esc(e.name)}</span>
+      <span class="wa-ex-list-meta">前回 ${esc(dateLabel(e.lastDate))}（${e.daysAgo}日前）</span>
+      <span class="wa-ex-list-chev">▶</span>
+    </div>`
+  ).join('');
+  document.querySelectorAll('#analysis-ex-list .wa-ex-list-item').forEach(el => {
+    el.addEventListener('click', () => loadAnalysis(el.dataset.name));
+  });
+}
+
+async function loadAnalysis(name) {
+  S.analysisExercise = name;
+  document.getElementById('analysis-select-view').style.display = 'none';
+  document.getElementById('analysis-content').style.display = '';
+  document.getElementById('analysis-ex-name').textContent = name;
+  document.getElementById('analysis-stats').innerHTML = '<div class="loading-msg">読み込み中…</div>';
+
+  try {
+    const data = await gasGet({ action: 'getAnalysisData', exercise: name });
+    const rows = data.data || [];
+    renderAnalysis(rows);
+  } catch (e) {
+    document.getElementById('analysis-stats').innerHTML = '<div class="loading-msg">読み込みに失敗しました</div>';
+  }
+}
+
+function renderAnalysis(rows) {
+  if (rows.length === 0) {
+    document.getElementById('analysis-stats').innerHTML = '<div class="loading-msg">データなし</div>';
+    return;
+  }
+  const maxW = Math.max(...rows.map(r => r.maxWeight));
+  const maxR = Math.max(...rows.map(r => r.maxReps));
+  const totalSets = rows.reduce((n, r) => n + r.totalSets, 0);
+
+  document.getElementById('analysis-stats').innerHTML = `
+    <div class="analysis-stat-card"><div class="analysis-stat-num">${maxW}<em>kg</em></div><div class="analysis-stat-label">最高重量</div></div>
+    <div class="analysis-stat-card"><div class="analysis-stat-num">${maxR}<em>${maxR > 0 ? '回' : ''}</em></div><div class="analysis-stat-label">最高レップ</div></div>
+    <div class="analysis-stat-card"><div class="analysis-stat-num">${totalSets}<em>set</em></div><div class="analysis-stat-label">累計セット数</div></div>
+    <div class="analysis-stat-card"><div class="analysis-stat-num">${rows.length}<em>回</em></div><div class="analysis-stat-label">実施回数</div></div>`;
+
+  const labels = rows.map(r => dateLabel(r.date));
+  const chartOpts = {
+    responsive: true,
+    plugins: { legend: { display: false } },
+    scales: {
+      x: { ticks: { color: '#b0b8c8', maxTicksLimit: 8, font: { size: 10 } }, grid: { color: '#2e3244' } },
+      y: { ticks: { color: '#b0b8c8', font: { size: 10 } }, grid: { color: '#2e3244' } },
+    },
+  };
+
+  if (S.analysisChartW) S.analysisChartW.destroy();
+  if (S.analysisChartV) S.analysisChartV.destroy();
+
+  S.analysisChartW = new Chart(document.getElementById('chart-weight'), {
+    type: 'line',
+    data: { labels, datasets: [{ data: rows.map(r => r.maxWeight), borderColor: '#d4f53c', backgroundColor: 'rgba(212,245,60,0.1)', tension: 0.3, pointRadius: 3, pointBackgroundColor: '#d4f53c' }] },
+    options: chartOpts,
+  });
+
+  S.analysisChartV = new Chart(document.getElementById('chart-volume'), {
+    type: 'line',
+    data: { labels, datasets: [{ data: rows.map(r => r.totalVolume), borderColor: '#7a8394', backgroundColor: 'rgba(122,131,148,0.1)', tension: 0.3, pointRadius: 3, pointBackgroundColor: '#7a8394' }] },
+    options: chartOpts,
+  });
+}
+
+// =====================================================================
+//  設定タブ
+// =====================================================================
+function updateSettingsTopCounts() {
+  document.getElementById('s-top-ex-count').textContent = S.exercises.length + '種目';
+  document.getElementById('s-top-menu-count').textContent = S.menus.length + 'メニュー';
+  document.getElementById('s-top-injury-count').textContent = S.injurySites.length + '部位';
+}
+
+// --- 種目管理 ---
+function renderSettingsEx() {
+  document.getElementById('s-ex-list').innerHTML = S.exercises.map(e =>
+    `<div class="wa-setting-row" data-name="${esc(e.name)}">
+      <div class="wa-setting-icon">🏋️</div>
+      <div class="wa-setting-name">${esc(e.name)}</div>
+      <div class="wa-setting-meta">${esc(e.bodyPart)}・${esc(e.unit)}・${e.defaultInterval}秒${e.hasSides ? '・左右あり' : ''}</div>
+      <div class="wa-setting-chevron">▶</div>
+    </div>`
+  ).join('');
+  document.querySelectorAll('#s-ex-list .wa-setting-row').forEach(el => {
+    el.addEventListener('click', () => openExModal(el.dataset.name));
+  });
+}
+
+function openExModal(name) {
+  const ex = S.exercises.find(e => e.name === name);
+  S.editingExName = name || null;
+  document.getElementById('modal-ex-title').textContent = name ? '種目を編集' : '種目を追加';
+  document.getElementById('modal-ex-name').value = ex?.name || '';
+  document.getElementById('modal-ex-bodypart').value = ex?.bodyPart || '';
+  document.getElementById('modal-ex-interval').value = ex?.defaultInterval ?? 90;
+  setToggle('modal-ex-unit-row', ex?.unit || '回');
+  setToggle('modal-ex-sides-row', ex?.hasSides ? 'あり' : 'なし');
+  document.getElementById('modal-ex-delete').style.display = name ? '' : 'none';
+  openModal('modal-ex');
+}
+
+async function saveExModal() {
+  const name = document.getElementById('modal-ex-name').value.trim();
+  if (!name) { showToast('種目名を入力してください'); return; }
+  const unit = getToggleVal('modal-ex-unit-row') || '回';
+  const hasSides = getToggleVal('modal-ex-sides-row') === 'あり';
+  const bodyPart = document.getElementById('modal-ex-bodypart').value.trim();
+  const defaultInterval = parseInt(document.getElementById('modal-ex-interval').value) || 90;
+
+  const body = { name, unit, hasSides, bodyPart, defaultInterval };
+  if (S.editingExName) {
+    body.action = 'updateExercise';
+    await gasPost(body);
+    const idx = S.exercises.findIndex(e => e.name === S.editingExName);
+    if (idx !== -1) S.exercises[idx] = { ...S.exercises[idx], ...body };
+  } else {
+    body.action = 'addExercise';
+    await gasPost(body);
+    S.exercises.push({ name, unit, hasSides, bodyPart, defaultInterval, mainEquipment: '', subEquipment: '' });
+  }
+  closeModal('modal-ex');
+  renderSettingsEx();
+  updateSettingsTopCounts();
+  showToast('保存しました');
+}
+
+function deleteExModal() {
+  showConfirm('種目を削除', `「${S.editingExName}」を削除しますか？`, async () => {
+    await gasPost({ action: 'deleteExercise', name: S.editingExName });
+    S.exercises = S.exercises.filter(e => e.name !== S.editingExName);
+    closeModal('modal-ex');
+    renderSettingsEx();
+    updateSettingsTopCounts();
+    showToast('削除しました');
+  });
+}
+
+// --- メニュー管理 ---
+function renderSettingsMenu() {
+  document.getElementById('s-menu-list').innerHTML = S.menus.map(m =>
+    `<div class="wa-setting-row" data-name="${esc(m.name)}">
+      <div class="wa-setting-icon">📋</div>
+      <div class="wa-setting-name">${esc(menuDisplay(m.name))}</div>
+      <div class="wa-setting-meta">${m.exercises.length}種目</div>
+      <div class="wa-setting-chevron">▶</div>
+    </div>`
+  ).join('');
+  document.querySelectorAll('#s-menu-list .wa-setting-row').forEach(el => {
+    el.addEventListener('click', () => openMenuDetail(el.dataset.name));
+  });
+}
+
+function openMenuDetail(name) {
+  S.currentMenu = name;
+  document.getElementById('s-menu-detail-title').textContent = menuDisplay(name);
+  renderMenuDetailList();
+  showSettingsScreen('s-menu-detail');
+}
+
+function renderMenuDetailList() {
+  const menu = S.menus.find(m => m.name === S.currentMenu);
+  if (!menu) return;
+  document.getElementById('s-menu-detail-list').innerHTML = menu.exercises.map(ex =>
+    `<div class="wa-setting-row" data-name="${esc(ex)}">
+      <div class="wa-setting-drag">☰</div>
+      <div class="wa-setting-name">${esc(ex)}</div>
+      <div class="wa-setting-chevron" style="cursor:pointer;color:#ff4d3a;font-size:13px" data-remove="${esc(ex)}">✕</div>
+    </div>`
+  ).join('');
+  document.querySelectorAll('#s-menu-detail-list .wa-setting-chevron[data-remove]').forEach(el => {
+    el.addEventListener('click', e => {
+      e.stopPropagation();
+      removeMenuEx(el.dataset.remove);
+    });
+  });
+  if (S.sortable) S.sortable.destroy();
+  S.sortable = Sortable.create(document.getElementById('s-menu-detail-list'), {
+    handle: '.wa-setting-drag',
+    animation: 150,
+    onEnd: saveMenuOrder,
+  });
+}
+
+async function saveMenuOrder() {
+  const menu = S.menus.find(m => m.name === S.currentMenu);
+  if (!menu) return;
+  const rows = document.querySelectorAll('#s-menu-detail-list .wa-setting-row');
+  const exercises = Array.from(rows).map(r => r.dataset.name);
+  menu.exercises = exercises;
+  await gasPost({ action: 'reorderMenuExercises', menu: S.currentMenu, exercises });
+}
+
+async function removeMenuEx(exName) {
+  const menu = S.menus.find(m => m.name === S.currentMenu);
+  if (!menu) return;
+  menu.exercises = menu.exercises.filter(e => e !== exName);
+  await gasPost({ action: 'removeMenuExercise', menu: S.currentMenu, exercise: exName });
+  renderMenuDetailList();
+}
+
+function openMenuExAdd() {
+  const menu = S.menus.find(m => m.name === S.currentMenu);
+  const already = new Set(menu?.exercises || []);
+  document.getElementById('modal-menu-ex-list').innerHTML = S.exercises
+    .filter(e => !already.has(e.name))
+    .map(e => `<div class="modal-ex-row" data-name="${esc(e.name)}">${esc(e.name)}<span>${esc(e.bodyPart)}</span></div>`)
+    .join('');
+  document.querySelectorAll('#modal-menu-ex-list .modal-ex-row').forEach(el => {
+    el.addEventListener('click', async () => {
+      const exName = el.dataset.name;
+      menu.exercises.push(exName);
+      await gasPost({ action: 'addMenuExercise', menu: S.currentMenu, exercise: exName });
+      closeModal('modal-menu-ex-add');
+      renderMenuDetailList();
+    });
+  });
+  document.getElementById('modal-menu-ex-search').value = '';
+  document.getElementById('modal-menu-ex-search').oninput = function () {
+    const lc = this.value.toLowerCase();
+    document.querySelectorAll('#modal-menu-ex-list .modal-ex-row').forEach(el => {
+      el.style.display = el.dataset.name.toLowerCase().includes(lc) ? '' : 'none';
+    });
+  };
+  openModal('modal-menu-ex-add');
+}
+
+async function addMenuModal() {
+  const name = document.getElementById('modal-menu-name').value.trim();
+  if (!name) { showToast('メニュー名を入力してください'); return; }
+  await gasPost({ action: 'addMenu', name });
+  S.menus.push({ name, exercises: [] });
+  closeModal('modal-menu-add');
+  renderSettingsMenu();
+  updateSettingsTopCounts();
+  showToast('追加しました');
+}
+
+function deleteMenuConfirm() {
+  showConfirm('メニューを削除', `「${menuDisplay(S.currentMenu)}」を削除しますか？`, async () => {
+    await gasPost({ action: 'deleteMenu', name: S.currentMenu });
+    S.menus = S.menus.filter(m => m.name !== S.currentMenu);
+    showSettingsScreen('s-menu');
+    renderSettingsMenu();
+    updateSettingsTopCounts();
+    showToast('削除しました');
+  });
+}
+
+// --- 怪我部位管理 ---
+function renderSettingsInjury() {
+  document.getElementById('s-injury-list').innerHTML = S.injurySites.map(s =>
+    `<div class="wa-setting-row" data-name="${esc(s)}">
+      <div class="wa-setting-name">${esc(s)}</div>
+      <div class="wa-setting-chevron">▶</div>
+    </div>`
+  ).join('');
+  document.querySelectorAll('#s-injury-list .wa-setting-row').forEach(el => {
+    el.addEventListener('click', () => openInjuryModal(el.dataset.name));
+  });
+}
+
+function openInjuryModal(name) {
+  S.editingInjuryOld = name || null;
+  document.getElementById('modal-injury-title').textContent = name ? '怪我部位を編集' : '部位を追加';
+  document.getElementById('modal-injury-name').value = name || '';
+  document.getElementById('modal-injury-delete').style.display = name ? '' : 'none';
+  openModal('modal-injury');
+}
+
+async function saveInjuryModal() {
+  const name = document.getElementById('modal-injury-name').value.trim();
+  if (!name) { showToast('部位名を入力してください'); return; }
+  if (S.editingInjuryOld) {
+    await gasPost({ action: 'updateInjurySite', oldName: S.editingInjuryOld, newName: name });
+    const idx = S.injurySites.indexOf(S.editingInjuryOld);
+    if (idx !== -1) S.injurySites[idx] = name;
+  } else {
+    await gasPost({ action: 'addInjurySite', name });
+    S.injurySites.push(name);
+  }
+  closeModal('modal-injury');
+  renderSettingsInjury();
+  updateSettingsTopCounts();
+  showToast('保存しました');
+}
+
+function deleteInjuryModal() {
+  showConfirm('部位を削除', `「${S.editingInjuryOld}」を削除しますか？`, async () => {
+    await gasPost({ action: 'deleteInjurySite', name: S.editingInjuryOld });
+    S.injurySites = S.injurySites.filter(s => s !== S.editingInjuryOld);
+    closeModal('modal-injury');
+    renderSettingsInjury();
+    updateSettingsTopCounts();
+    showToast('削除しました');
+  });
+}
+
+// =====================================================================
+//  MODAL HELPERS
+// =====================================================================
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+function setToggle(rowId, val) {
+  document.querySelectorAll('#' + rowId + ' .wa-toggle-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.val === val);
+  });
+}
+
+function getToggleVal(rowId) {
+  return document.querySelector('#' + rowId + ' .wa-toggle-btn.active')?.dataset.val || '';
+}
+
+// =====================================================================
+//  EVENT LISTENERS
+// =====================================================================
+function setupEventListeners() {
+
+  // --- 記録タブ ---
+  document.getElementById('btn-single-record').addEventListener('click', openSingleRecord);
+  document.getElementById('btn-s1s-back').addEventListener('click', () => showRecordScreen('s1'));
+  document.getElementById('s1s-search').addEventListener('input', function () { renderS1Single(this.value); });
+
+  document.getElementById('btn-s2-back').addEventListener('click', () => {
+    if (S.session?.menu) { showRecordScreen('s1'); }
+    else { showRecordScreen('s1'); }
+  });
+  document.getElementById('btn-end-training').addEventListener('click', goFinish);
+
+  document.getElementById('btn-s3-back').addEventListener('click', () => {
+    renderS2();
+    showRecordScreen('s2');
+  });
+  document.getElementById('btn-complete-ex').addEventListener('click', completeEx);
+
+  document.getElementById('btn-finish-back').addEventListener('click', () => showRecordScreen('s2'));
+  document.getElementById('btn-save-session').addEventListener('click', saveSession);
+
+  document.querySelectorAll('.wa-choice-btn').forEach(btn => {
+    btn.addEventListener('click', function () {
+      this.closest('.wa-choice-row').querySelectorAll('.wa-choice-btn').forEach(b => b.classList.remove('selected'));
+      this.classList.add('selected');
+    });
+  });
+
+  // --- 履歴タブ ---
+  document.getElementById('hist-tab-date').addEventListener('click', () => switchHistTab('hist-date-view'));
+  document.getElementById('hist-tab-ex').addEventListener('click', () => switchHistTab('hist-ex-view'));
+  document.getElementById('btn-hist-date-more').addEventListener('click', loadHistoryDate);
+  document.getElementById('btn-hist-ex-back').addEventListener('click', backFromHistExDetail);
+  document.getElementById('btn-hist-ex-more').addEventListener('click', loadHistExDetail);
+  document.getElementById('hist-ex-search').addEventListener('input', function () {
+    if (S.histExWithLastDate) renderHistExList(S.histExWithLastDate.exercises, this.value);
+  });
+
+  // --- 分析タブ ---
+  document.getElementById('analysis-search').addEventListener('input', function () {
+    if (S.analysisExList) renderAnalysisExList(this.value);
+  });
+  document.getElementById('btn-analysis-back').addEventListener('click', () => {
+    document.getElementById('analysis-select-view').style.display = '';
+    document.getElementById('analysis-content').style.display = 'none';
+    S.analysisExercise = null;
+  });
+
+  // --- 設定タブ ---
+  document.getElementById('btn-go-s-ex').addEventListener('click', () => { renderSettingsEx(); showSettingsScreen('s-ex'); });
+  document.getElementById('btn-go-s-menu').addEventListener('click', () => { renderSettingsMenu(); showSettingsScreen('s-menu'); });
+  document.getElementById('btn-go-s-injury').addEventListener('click', () => { renderSettingsInjury(); showSettingsScreen('s-injury'); });
+
+  document.getElementById('btn-s-ex-back').addEventListener('click', () => showSettingsScreen('s-top'));
+  document.getElementById('btn-s-menu-back').addEventListener('click', () => showSettingsScreen('s-top'));
+  document.getElementById('btn-s-menu-detail-back').addEventListener('click', () => showSettingsScreen('s-menu'));
+  document.getElementById('btn-s-injury-back').addEventListener('click', () => showSettingsScreen('s-top'));
+
+  document.getElementById('btn-ex-add').addEventListener('click', () => openExModal(null));
+  document.getElementById('btn-menu-add').addEventListener('click', () => {
+    document.getElementById('modal-menu-name').value = '';
+    openModal('modal-menu-add');
+  });
+  document.getElementById('btn-menu-ex-add').addEventListener('click', openMenuExAdd);
+  document.getElementById('btn-delete-menu').addEventListener('click', deleteMenuConfirm);
+  document.getElementById('btn-injury-add').addEventListener('click', () => openInjuryModal(null));
+
+  // --- モーダル ---
+  document.getElementById('modal-ex-cancel').addEventListener('click', () => closeModal('modal-ex'));
+  document.getElementById('modal-ex-save').addEventListener('click', saveExModal);
+  document.getElementById('modal-ex-delete').addEventListener('click', deleteExModal);
+
+  document.getElementById('modal-menu-add-cancel').addEventListener('click', () => closeModal('modal-menu-add'));
+  document.getElementById('modal-menu-add-save').addEventListener('click', addMenuModal);
+
+  document.getElementById('modal-menu-ex-cancel').addEventListener('click', () => closeModal('modal-menu-ex-add'));
+
+  document.getElementById('modal-session-ex-cancel').addEventListener('click', () => closeModal('modal-session-ex-add'));
+
+  document.getElementById('modal-injury-cancel').addEventListener('click', () => closeModal('modal-injury'));
+  document.getElementById('modal-injury-save').addEventListener('click', saveInjuryModal);
+  document.getElementById('modal-injury-delete').addEventListener('click', deleteInjuryModal);
+
+  document.getElementById('modal-confirm-cancel').addEventListener('click', () => closeModal('modal-confirm'));
+  document.getElementById('modal-confirm-ok').addEventListener('click', () => {
+    closeModal('modal-confirm');
+    if (S.confirmCb) { S.confirmCb(); S.confirmCb = null; }
+  });
+
+  // toggle-btn ロジック（モーダル内）
+  document.querySelectorAll('.wa-toggle-row').forEach(row => {
+    row.querySelectorAll('.wa-toggle-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        row.querySelectorAll('.wa-toggle-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+      });
+    });
+  });
+
+  // モーダルの背景クリックで閉じる
+  document.querySelectorAll('.wa-modal-overlay').forEach(overlay => {
+    overlay.addEventListener('click', e => {
+      if (e.target === overlay) overlay.classList.remove('open');
+    });
+  });
+}
+
+// =====================================================================
+//  START
+// =====================================================================
+document.addEventListener('DOMContentLoaded', init);
