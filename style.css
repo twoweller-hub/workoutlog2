@@ -1,9 +1,14 @@
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
+html, body {
+  height: 100%;
+  overflow: hidden;
+}
+
 body {
   background: #0a0c10;
   font-family: 'Noto Sans JP', sans-serif;
-  min-height: 100vh;
+  height: 100%;
   display: flex;
   justify-content: center;
 }
@@ -13,10 +18,11 @@ body {
   color: #eef0f4;
   width: 100%;
   max-width: 430px;
-  min-height: 100vh;
+  height: 100%;
   display: flex;
   flex-direction: column;
   position: relative;
+  overflow: hidden;
 }
 
 #content {
