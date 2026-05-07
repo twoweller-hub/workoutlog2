@@ -640,7 +640,7 @@ function completeEx() {
     gasPost({ action: 'saveSets', date: today, menu: menuStorage(S.session.menu), exercise: ex.name, sessionId: S.session.sessionId, sets });
   }
 
-  if (targetInterval > 0 && exMaster && targetInterval !== exMaster.defaultInterval) {
+  if (exMaster && targetInterval !== exMaster.defaultInterval) {
     exMaster.defaultInterval = targetInterval;
     gasPost({
       action: 'updateExercise',
