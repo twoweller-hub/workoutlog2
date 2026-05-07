@@ -640,6 +640,20 @@ function completeEx() {
     gasPost({ action: 'saveSets', date: today, menu: menuStorage(S.session.menu), exercise: ex.name, sessionId: S.session.sessionId, sets });
   }
 
+  if (targetInterval > 0 && exMaster && targetInterval !== exMaster.defaultInterval) {
+    exMaster.defaultInterval = targetInterval;
+    gasPost({
+      action: 'updateExercise',
+      name: exMaster.name, oldName: exMaster.name,
+      unit: exMaster.unit || '回',
+      hasSides: exMaster.hasSides,
+      bodyPart: exMaster.bodyPart || '',
+      mainEquipment: exMaster.mainEquipment || '',
+      subEquipment: exMaster.subEquipment || '',
+      defaultInterval: targetInterval,
+    });
+  }
+
   const nextIdx = S.session.exercises.findIndex((e, i) => i > S.currentExIdx && !e.done);
   S.currentExIdx = nextIdx !== -1 ? nextIdx : null;
   renderS2();
