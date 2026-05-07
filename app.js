@@ -1242,13 +1242,20 @@ function renderAnalysis(rows) {
 
   const labels = rows.map(r => dateLabel(r.date));
   const xTickCallback = function(value, index, ticks) {
-    const curr     = new Date(rows[value].date + 'T00:00:00');
-    const currYear = curr.getFullYear();
-    const base     = `${curr.getMonth() + 1}/${curr.getDate()}（${DAY_JA[curr.getDay()]}）`;
-    const prevYear = index === 0 ? null : new Date(rows[ticks[index - 1].value].date + 'T00:00:00').getFullYear();
-    return (index === 0 || currYear !== prevYear)
-      ? `${currYear}/${curr.getMonth() + 1}/${curr.getDate()}（${DAY_JA[curr.getDay()]}）`
-      : base;
+    try {
+      const i = typeof value === 'number' ? value : labels.indexOf(String(value));
+      if (i < 0 || i >= rows.length) return value;
+      const curr     = new Date(rows[i].date + 'T00:00:00');
+      const currYear = curr.getFullYear();
+      const base     = `${curr.getMonth() + 1}/${curr.getDate()}（${DAY_JA[curr.getDay()]}）`;
+      if (index === 0) return `${currYear}/${base}`;
+      const pi = typeof ticks[index - 1].value === 'number'
+        ? ticks[index - 1].value
+        : labels.indexOf(String(ticks[index - 1].value));
+      if (pi < 0 || pi >= rows.length) return base;
+      const prevYear = new Date(rows[pi].date + 'T00:00:00').getFullYear();
+      return currYear !== prevYear ? `${currYear}/${base}` : base;
+    } catch (_) { return value; }
   };
 
   const chartOpts = {
