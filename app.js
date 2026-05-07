@@ -666,6 +666,10 @@ function goFinish() {
   document.getElementById('finish-start-time').textContent = S.session.startTime;
   document.querySelectorAll('.wa-choice-btn').forEach(b => b.classList.remove('selected'));
 
+  const btn = document.getElementById('btn-save-session');
+  btn.textContent = '保存して終了';
+  btn.disabled = false;
+
   showRecordScreen('sFinish');
 }
 
