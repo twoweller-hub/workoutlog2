@@ -469,6 +469,33 @@
   </div>
 </div>
 
+<!-- セッション編集 -->
+<div class="wa-modal-overlay" id="modal-session-edit">
+  <div class="wa-modal">
+    <div class="wa-modal-title">セッションを編集</div>
+    <div id="modal-sess-datetime" style="font-size:13px;color:#b0b8c8;margin-bottom:16px;padding:8px 12px;background:#111318;border-radius:8px"></div>
+    <div class="wa-modal-label">コンディション</div>
+    <div class="wa-toggle-row" id="modal-sess-cond-row">
+      <button class="wa-toggle-btn" data-val="好調">好調</button>
+      <button class="wa-toggle-btn" data-val="普通">普通</button>
+      <button class="wa-toggle-btn" data-val="不調">不調</button>
+    </div>
+    <div class="wa-modal-label">満足度</div>
+    <div class="wa-toggle-row" id="modal-sess-satis-row">
+      <button class="wa-toggle-btn" data-val="よくできた">よくできた</button>
+      <button class="wa-toggle-btn" data-val="まあまあ">まあまあ</button>
+      <button class="wa-toggle-btn" data-val="いまいち">いまいち</button>
+    </div>
+    <div class="wa-modal-label">感想</div>
+    <textarea class="wa-modal-input" id="modal-sess-comment" rows="3" placeholder="自由記述"></textarea>
+    <div class="wa-modal-btn-row">
+      <button class="wa-modal-cancel" id="modal-sess-cancel">キャンセル</button>
+      <button class="wa-modal-save" id="modal-sess-save">保存</button>
+    </div>
+    <button class="wa-modal-delete" id="modal-sess-delete">このセッションを削除</button>
+  </div>
+</div>
+
 <!-- Toast -->
 <div id="toast" class="toast"></div>
 

@@ -1026,3 +1026,18 @@ body {
   .toast { bottom: 20px; }
 }
 
+.wa-session-edit-btn {
+  display: block;
+  width: 100%;
+  margin-top: 10px;
+  padding: 8px;
+  background: transparent;
+  border: 1px solid #2e3244;
+  border-radius: 8px;
+  color: #b0b8c8;
+  font-size: 12px;
+  font-family: 'Noto Sans JP', sans-serif;
+  cursor: pointer;
+  text-align: center;
+}
+

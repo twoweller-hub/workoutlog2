@@ -57,6 +57,8 @@ function doPost(e) {
       case 'addInjurySite':        return addInjurySite(d);
       case 'updateInjurySite':     return updateInjurySite(d);
       case 'deleteInjurySite':     return deleteInjurySite(d);
+      case 'updateSession':        return updateSession(d);
+      case 'deleteSession':        return deleteSession(d);
       default: return errorRes('Unknown action: ' + action);
     }
   } catch (err) {
@@ -258,7 +260,8 @@ function getHistory(offset) {
       endTime:      r[4] ? fmtTime(r[4]) : '',
       condition:    String(r[5] || ''),
       satisfaction: String(r[6] || ''),
-      comment:      String(r[7] || '')
+      comment:      String(r[7] || ''),
+      sessionId:    String(r[8] || '')
     }))
     .sort((a, b) => b.date.localeCompare(a.date) || b.startTime.localeCompare(a.startTime));
 
@@ -418,10 +421,11 @@ function saveSets(d) {
     s.injurySite      || '',
     s.injuryLevel     || '',
     s.injuryMemo      || '',
-    s.memo            || ''
+    s.memo            || '',
+    d.sessionId       || ''
   ]);
 
-  sheet.getRange(last + 1, 1, rows.length, 15).setValues(rows);
+  sheet.getRange(last + 1, 1, rows.length, 16).setValues(rows);
   return okRes();
 }
 
@@ -447,8 +451,44 @@ function saveSession(d) {
     d.endTime      || '',
     d.condition    || '',
     d.satisfaction || '',
-    d.comment      || ''
+    d.comment      || '',
+    d.sessionId    || ''
   ]);
+  return okRes();
+}
+
+// ============================================================
+//  セッション更新・削除
+// ============================================================
+function updateSession(d) {
+  const sheet = SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName(SHEET_SESSIONS);
+  const rows  = sheet.getDataRange().getValues();
+  for (let i = 1; i < rows.length; i++) {
+    if (Number(rows[i][0]) !== Number(d.id)) continue;
+    sheet.getRange(i + 1, 6, 1, 3).setValues([[
+      d.condition    || '',
+      d.satisfaction || '',
+      d.comment      || ''
+    ]]);
+    break;
+  }
+  return okRes();
+}
+
+function deleteSession(d) {
+  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  if (d.sessionId) {
+    const recSheet = ss.getSheetByName(SHEET_RECORDS);
+    const recRows  = recSheet.getDataRange().getValues();
+    for (let i = recRows.length - 1; i >= 1; i--) {
+      if (String(recRows[i][15]) === String(d.sessionId)) recSheet.deleteRow(i + 1);
+    }
+  }
+  const sessSheet = ss.getSheetByName(SHEET_SESSIONS);
+  const sessRows  = sessSheet.getDataRange().getValues();
+  for (let i = 1; i < sessRows.length; i++) {
+    if (Number(sessRows[i][0]) === Number(d.id)) { sessSheet.deleteRow(i + 1); break; }
+  }
   return okRes();
 }
 
@@ -465,16 +505,30 @@ function addExercise(d) {
 }
 
 function updateExercise(d) {
-  const sheet = SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName(SHEET_EXERCISES);
-  const rows  = sheet.getDataRange().getValues();
+  const ss         = SpreadsheetApp.openById(SPREADSHEET_ID);
+  const sheet      = ss.getSheetByName(SHEET_EXERCISES);
+  const rows       = sheet.getDataRange().getValues();
+  const searchName = d.oldName || d.name;
   for (let i = 1; i < rows.length; i++) {
-    if (String(rows[i][0]) !== String(d.name)) continue;
+    if (String(rows[i][0]) !== String(searchName)) continue;
     sheet.getRange(i + 1, 1, 1, 7).setValues([[
       d.name, d.unit || '回', d.defaultInterval || 90,
       d.bodyPart || '', d.mainEquipment || '', d.subEquipment || '',
       d.hasSides ? 'あり' : 'なし'
     ]]);
     break;
+  }
+  if (d.oldName && d.oldName !== d.name) {
+    const recSheet = ss.getSheetByName(SHEET_RECORDS);
+    const recRows  = recSheet.getDataRange().getValues();
+    for (let i = 1; i < recRows.length; i++) {
+      if (String(recRows[i][4]) === String(d.oldName)) recSheet.getRange(i + 1, 5).setValue(d.name);
+    }
+    const menuSheet = ss.getSheetByName(SHEET_MENUS);
+    const menuRows  = menuSheet.getDataRange().getValues();
+    for (let i = 1; i < menuRows.length; i++) {
+      if (String(menuRows[i][2]) === String(d.oldName)) menuSheet.getRange(i + 1, 3).setValue(d.name);
+    }
   }
   return okRes();
 }

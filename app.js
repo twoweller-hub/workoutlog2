@@ -33,6 +33,7 @@ const S = {
   sortable: null,
   editingExName: null,
   editingInjuryOld: null,
+  editingSession: null,
   confirmCb: null,
 };
 
@@ -232,6 +233,7 @@ function renderS1() {
 
 function startSession(menuName) {
   S.session = {
+    sessionId: 'sid_' + Date.now(),
     menu: menuName,
     menuDisplay: menuDisplay(menuName),
     startTime: timeNow(),
@@ -292,6 +294,7 @@ function renderS1Single(filter = '') {
 
 function startSingle(name) {
   S.session = {
+    sessionId: 'sid_' + Date.now(),
     menu: '',
     menuDisplay: '単発記録',
     startTime: timeNow(),
@@ -620,7 +623,7 @@ function completeEx() {
   ex.sets = sets;
 
   if (sets.length > 0) {
-    gasPost({ action: 'saveSets', date: today, menu: menuStorage(S.session.menu), exercise: ex.name, sets });
+    gasPost({ action: 'saveSets', date: today, menu: menuStorage(S.session.menu), exercise: ex.name, sessionId: S.session.sessionId, sets });
   }
 
   const nextIdx = S.session.exercises.findIndex((e, i) => i > S.currentExIdx && !e.done);
@@ -667,6 +670,7 @@ async function saveSession() {
     condition: cond,
     satisfaction: satis,
     comment,
+    sessionId: S.session.sessionId,
   });
 
   showToast('保存しました！');
@@ -764,10 +768,15 @@ function renderHistoryDate(sessions, clear) {
         </div>` : ''}
         ${sess.comment ? `<div class="wa-session-feeling">${esc(sess.comment)}</div>` : ''}
         ${buildSessionExRows(sess, id)}
+      <button class="wa-session-edit-btn" data-sess-idx="${idx}">セッションを編集</button>
       </div>`;
     div.querySelector('.wa-session-header').addEventListener('click', () => div.classList.toggle('expanded'));
     div.querySelectorAll('.wa-ex-row-name').forEach(el => {
       el.addEventListener('click', e => { e.stopPropagation(); goHistExDetail(el.dataset.name, id); });
+    });
+    div.querySelector('.wa-session-edit-btn').addEventListener('click', e => {
+      e.stopPropagation();
+      openSessionEditModal(parseInt(e.currentTarget.dataset.sessIdx));
     });
     list.appendChild(div);
   });
@@ -919,6 +928,53 @@ function backFromHistExDetail() {
   S.histFromSession = null;
 }
 
+function openSessionEditModal(idx) {
+  const sess = S.histDateItems[idx];
+  if (!sess) return;
+  S.editingSession = { ...sess, idx };
+  const endPart = sess.endTime ? ' - ' + sess.endTime : '';
+  document.getElementById('modal-sess-datetime').textContent =
+    dateLabel(sess.date) + '  ' + sess.startTime + endPart;
+  setToggle('modal-sess-cond-row', sess.condition || '');
+  setToggle('modal-sess-satis-row', sess.satisfaction || '');
+  document.getElementById('modal-sess-comment').value = sess.comment || '';
+  openModal('modal-session-edit');
+}
+
+async function saveSessionModal() {
+  if (!S.editingSession) return;
+  const condition    = getToggleVal('modal-sess-cond-row');
+  const satisfaction = getToggleVal('modal-sess-satis-row');
+  const comment      = document.getElementById('modal-sess-comment').value;
+  await gasPost({ action: 'updateSession', id: S.editingSession.id, condition, satisfaction, comment });
+  const sess = S.histDateItems[S.editingSession.idx];
+  if (sess) { sess.condition = condition; sess.satisfaction = satisfaction; sess.comment = comment; }
+  closeModal('modal-session-edit');
+  S.editingSession = null;
+  showToast('保存しました');
+  S.histDateItems = [];
+  S.histDateOffset = 0;
+  loadHistoryDate();
+}
+
+function deleteSessionConfirm() {
+  if (!S.editingSession) return;
+  const sess  = S.editingSession;
+  const label = sess.menu ? menuDisplay(sess.menu) : '単発記録';
+  showConfirm('セッションを削除',
+    `${dateLabel(sess.date)}の${label}を削除しますか？\nこのセッションの記録も全て削除されます。`,
+    async () => {
+      await gasPost({ action: 'deleteSession', id: sess.id, sessionId: sess.sessionId });
+      closeModal('modal-session-edit');
+      S.editingSession = null;
+      showToast('削除しました');
+      S.histDateItems = [];
+      S.histDateOffset = 0;
+      loadHistoryDate();
+    }
+  );
+}
+
 function switchHistTab(view) {
   document.querySelectorAll('.wa-subtab').forEach(t => t.classList.remove('active'));
   document.getElementById('hist-tab-' + (view === 'hist-date-view' ? 'date' : 'ex')).classList.add('active');
@@ -1062,6 +1118,7 @@ async function saveExModal() {
   const body = { name, unit, hasSides, bodyPart, defaultInterval };
   if (S.editingExName) {
     body.action = 'updateExercise';
+    body.oldName = S.editingExName;
     await gasPost(body);
     const idx = S.exercises.findIndex(e => e.name === S.editingExName);
     if (idx !== -1) S.exercises[idx] = { ...S.exercises[idx], ...body };
@@ -1355,6 +1412,10 @@ function setupEventListeners() {
     closeModal('modal-confirm');
     if (S.confirmCb) { S.confirmCb(); S.confirmCb = null; }
   });
+
+  document.getElementById('modal-sess-cancel').addEventListener('click', () => closeModal('modal-session-edit'));
+  document.getElementById('modal-sess-save').addEventListener('click', saveSessionModal);
+  document.getElementById('modal-sess-delete').addEventListener('click', deleteSessionConfirm);
 
   // toggle-btn ロジック（モーダル内）
   document.querySelectorAll('.wa-toggle-row').forEach(row => {
