@@ -96,7 +96,7 @@ function getExercises(ss) {
   return rows.slice(1).filter(r => r[0]).map(r => ({
     name:            String(r[0]),
     unit:            String(r[1] || '回'),
-    defaultInterval: Number(r[2] || 90),
+    defaultInterval: r[2] !== '' && r[2] !== null ? Number(r[2]) : 90,
     bodyPart:        String(r[3] || ''),
     mainEquipment:   String(r[4] || ''),
     subEquipment:    String(r[5] || ''),
@@ -556,7 +556,7 @@ function updateExerciseRecords(d) {
 function addExercise(d) {
   SpreadsheetApp.openById(SPREADSHEET_ID)
     .getSheetByName(SHEET_EXERCISES)
-    .appendRow([d.name, d.unit || '回', d.defaultInterval || 90,
+    .appendRow([d.name, d.unit || '回', d.defaultInterval ?? 90,
       d.bodyPart || '', d.mainEquipment || '', d.subEquipment || '',
       d.hasSides ? 'あり' : 'なし']);
   return okRes();
@@ -570,7 +570,7 @@ function updateExercise(d) {
   for (let i = 1; i < rows.length; i++) {
     if (String(rows[i][0]) !== String(searchName)) continue;
     sheet.getRange(i + 1, 1, 1, 7).setValues([[
-      d.name, d.unit || '回', d.defaultInterval || 90,
+      d.name, d.unit || '回', d.defaultInterval ?? 90,
       d.bodyPart || '', d.mainEquipment || '', d.subEquipment || '',
       d.hasSides ? 'あり' : 'なし'
     ]]);

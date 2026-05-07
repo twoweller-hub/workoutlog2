@@ -1384,7 +1384,8 @@ async function saveExModal() {
   const unit = getToggleVal('modal-ex-unit-row') || '回';
   const hasSides = getToggleVal('modal-ex-sides-row') === 'あり';
   const bodyPart = document.getElementById('modal-ex-bodypart').value.trim();
-  const defaultInterval = parseInt(document.getElementById('modal-ex-interval').value) || 90;
+  const rawInterval = parseInt(document.getElementById('modal-ex-interval').value);
+  const defaultInterval = isNaN(rawInterval) ? 90 : rawInterval;
 
   const body = { name, unit, hasSides, bodyPart, defaultInterval };
   if (S.editingExName) {
