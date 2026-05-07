@@ -1,5 +1,9 @@
 # workoutlog2 — Claude向けプロジェクトコンテキスト
 
+## 開発ログ
+
+「開発履歴を記録して」「ログに残して」「メモしておいて」など記録を求められたら `docs/dev-log.md` に追記する。
+
 ## プロジェクト概要
 
 自重トレーニング記録 PWA。フロントエンドは静的ファイル（GitHub Pages等）、バックエンドは Google Apps Script（GAS）+ Google Sheets。
