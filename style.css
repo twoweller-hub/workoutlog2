@@ -779,6 +779,7 @@ body {
   justify-content: center;
 }
 .wa-modal-overlay.open { display: flex; }
+#modal-confirm { z-index: 210; }
 .wa-modal {
   background: #1c1f2a;
   border: 1px solid #2e3244;
