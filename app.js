@@ -477,6 +477,17 @@ function renderS3Body(exMaster) {
     btn.addEventListener('click', e => onAddSet(e.currentTarget));
   });
   body.querySelector('#injury-toggle')?.addEventListener('click', toggleInjury);
+
+  updateCompleteBtn();
+}
+
+function updateCompleteBtn() {
+  const hasRecord = S.s3Sections.some(sec =>
+    sec.warmup.some(s => s.recorded) || sec.main.some(s => s.recorded)
+  );
+  const btn = document.getElementById('btn-complete-ex');
+  btn.disabled = !hasRecord;
+  btn.style.opacity = hasRecord ? '' : '0.3';
 }
 
 function buildPrevBoxHtml(data, unit, hasSides) {
@@ -570,6 +581,7 @@ function onRecordSet(btn) {
 
   const exMaster = S.exercises.find(e => e.name === S.session.exercises[S.currentExIdx].name);
   refreshIntervals(si, type, exMaster);
+  updateCompleteBtn();
 }
 
 function refreshIntervals(si, type, exMaster) {
