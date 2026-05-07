@@ -51,10 +51,18 @@ function gasGet(params) {
     const cleanup = () => { delete window[cb]; if (script.parentNode) document.head.removeChild(script); };
     window[cb] = (data) => { cleanup(); resolve(data); };
     script.onerror = () => { cleanup(); reject(new Error('GAS network error')); };
-    setTimeout(() => { cleanup(); reject(new Error('GAS timeout')); }, 15000);
+    setTimeout(() => { cleanup(); reject(new Error('GAS timeout')); }, 30000);
     script.src = GAS_URL + '?' + qs;
     document.head.appendChild(script);
   });
+}
+
+async function gasGetWithRetry(params) {
+  try {
+    return await gasGet(params);
+  } catch (e) {
+    return await gasGet(params);
+  }
 }
 
 function gasPost(body) {
@@ -738,18 +746,35 @@ function openSessionExAdd() {
 // =====================================================================
 async function loadHistoryDate() {
   const list = document.getElementById('hist-date-list');
-  if (S.histDateOffset === 0) list.innerHTML = '<div class="loading-msg">読み込み中…</div>';
+  const moreBtn = document.getElementById('btn-hist-date-more');
+  const isLoadMore = S.histDateOffset > 0;
+
+  if (!isLoadMore) {
+    list.innerHTML = '<div class="loading-msg">読み込み中…</div>';
+  } else {
+    moreBtn.textContent = '読み込み中…';
+    moreBtn.disabled = true;
+  }
+
   try {
-    const data = await gasGet({ action: 'getHistory', offset: S.histDateOffset });
+    const data = await gasGetWithRetry({ action: 'getHistory', offset: S.histDateOffset });
     const sessions = data.sessions || [];
     S.histDateHasMore = data.hasMore || false;
-    if (S.histDateOffset === 0) { S.histDateItems = sessions; list.innerHTML = ''; }
+    if (!isLoadMore) { S.histDateItems = sessions; list.innerHTML = ''; }
     else S.histDateItems = S.histDateItems.concat(sessions);
-    renderHistoryDate(sessions, S.histDateOffset === 0);
+    renderHistoryDate(sessions, !isLoadMore);
     S.histDateOffset += sessions.length;
     document.getElementById('hist-date-more-wrap').style.display = S.histDateHasMore ? '' : 'none';
+    if (isLoadMore) { moreBtn.textContent = 'もっと見る'; moreBtn.disabled = false; }
   } catch (e) {
-    list.innerHTML = '<div class="loading-msg">読み込みに失敗しました</div>';
+    if (!isLoadMore) {
+      list.innerHTML = '<div class="loading-msg">読み込みに失敗しました。再度お試しください。</div>';
+    } else {
+      moreBtn.textContent = 'もっと見る';
+      moreBtn.disabled = false;
+      document.getElementById('hist-date-more-wrap').style.display = '';
+      showToast('読み込みに失敗しました。再度お試しください。');
+    }
   }
 }
 
@@ -890,17 +915,33 @@ async function goHistExDetail(name, fromSession) {
 
 async function loadHistExDetail() {
   const list = document.getElementById('hist-ex-detail-list');
+  const moreBtn = document.getElementById('btn-hist-ex-more');
+  const isLoadMore = S.histExOffset > 0;
+
+  if (isLoadMore) {
+    moreBtn.textContent = '読み込み中…';
+    moreBtn.disabled = true;
+  }
+
   try {
-    const data = await gasGet({ action: 'getExerciseHistory', exercise: S.histCurrentEx, offset: S.histExOffset });
+    const data = await gasGetWithRetry({ action: 'getExerciseHistory', exercise: S.histCurrentEx, offset: S.histExOffset });
     const dates = data.dates || [];
     S.histExHasMore = data.hasMore || false;
-    if (S.histExOffset === 0) { S.histExItems = dates; list.innerHTML = ''; }
+    if (!isLoadMore) { S.histExItems = dates; list.innerHTML = ''; }
     else S.histExItems = S.histExItems.concat(dates);
-    renderHistExDetail(dates, S.histExOffset === 0);
+    renderHistExDetail(dates, !isLoadMore);
     S.histExOffset += dates.length;
     document.getElementById('hist-ex-detail-more-wrap').style.display = S.histExHasMore ? '' : 'none';
+    if (isLoadMore) { moreBtn.textContent = 'もっと見る'; moreBtn.disabled = false; }
   } catch (e) {
-    list.innerHTML = '<div class="loading-msg">読み込みに失敗しました</div>';
+    if (!isLoadMore) {
+      list.innerHTML = '<div class="loading-msg">読み込みに失敗しました。再度お試しください。</div>';
+    } else {
+      moreBtn.textContent = 'もっと見る';
+      moreBtn.disabled = false;
+      document.getElementById('hist-ex-detail-more-wrap').style.display = '';
+      showToast('読み込みに失敗しました。再度お試しください。');
+    }
   }
 }
 
