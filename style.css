@@ -924,3 +924,105 @@ body {
   font-size: 13px;
   padding: 32px 16px;
 }
+
+/* =====================
+   サイドバー（モバイルは非表示）
+===================== */
+#sidebar-nav { display: none; }
+.sidebar-logo { display: none; }
+
+/* =====================
+   デスクトップ レイアウト
+===================== */
+@media (min-width: 640px) {
+
+  html, body {
+    height: 100%;
+    overflow: hidden;
+  }
+
+  body {
+    justify-content: center;
+    align-items: stretch;
+  }
+
+  #app {
+    flex-direction: row;
+    max-width: 1080px;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+  }
+
+  /* サイドバー */
+  #sidebar-nav {
+    display: flex;
+    flex-direction: column;
+    width: 200px;
+    flex-shrink: 0;
+    height: 100%;
+    background: #111318;
+    border-right: 1px solid #2e3244;
+  }
+
+  .sidebar-logo {
+    display: block;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 21px;
+    letter-spacing: 3px;
+    color: #d4f53c;
+    line-height: 1.2;
+    padding: 24px 20px 22px;
+    border-bottom: 1px solid #2e3244;
+    margin-bottom: 8px;
+  }
+
+  #sidebar-nav .wa-nav-item {
+    flex-direction: row;
+    justify-content: flex-start;
+    padding: 14px 20px;
+    gap: 12px;
+    width: 100%;
+    border-left: 3px solid transparent;
+    border-radius: 0;
+  }
+
+  #sidebar-nav .wa-nav-item.active {
+    border-left-color: #d4f53c;
+    background: rgba(212,245,60,0.06);
+  }
+
+  #sidebar-nav .wa-nav-icon {
+    font-size: 20px;
+    opacity: 0.45;
+  }
+
+  #sidebar-nav .wa-nav-item.active .wa-nav-icon { opacity: 1; }
+
+  #sidebar-nav .wa-nav-label {
+    font-size: 14px;
+    font-weight: 500;
+    color: #b0b8c8;
+    letter-spacing: 0;
+  }
+
+  #sidebar-nav .wa-nav-item.active .wa-nav-label { color: #d4f53c; }
+
+  /* コンテンツエリア */
+  #content {
+    flex: 1;
+    min-width: 0;
+    height: 100%;
+    max-width: 680px;
+  }
+
+  /* ボトムナビを非表示 */
+  .wa-bottom-nav { display: none; }
+
+  /* モーダルの幅をコンテンツ幅に合わせる */
+  .wa-modal { max-width: 680px; }
+
+  /* Toastはビューポート下部固定 */
+  .toast { bottom: 20px; }
+}
+

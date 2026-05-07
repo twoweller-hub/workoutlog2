@@ -166,7 +166,7 @@ async function init() {
 //  NAVIGATION
 // =====================================================================
 function setupNav() {
-  document.querySelectorAll('#bottom-nav .wa-nav-item').forEach(item => {
+  document.querySelectorAll('#bottom-nav .wa-nav-item, #sidebar-nav .wa-nav-item').forEach(item => {
     item.addEventListener('click', () => showTab(item.dataset.tab));
   });
 }
@@ -175,7 +175,7 @@ function showTab(tab) {
   S.activeTab = tab;
   document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
   document.getElementById('tab-' + tab).classList.add('active');
-  document.querySelectorAll('#bottom-nav .wa-nav-item').forEach(item => {
+  document.querySelectorAll('#bottom-nav .wa-nav-item, #sidebar-nav .wa-nav-item').forEach(item => {
     item.classList.toggle('active', item.dataset.tab === tab);
   });
 
