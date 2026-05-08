@@ -210,9 +210,55 @@ function showSettingsScreen(id) {
 }
 
 // =====================================================================
-//  記録タブ: 画面1 メニュー選択
+//  記録タブ: 画面1 記録トップ（クイックグリッド）
 // =====================================================================
+const BODY_EMOJI = {
+  '脚': '🦵', '下半身': '🦵', '太もも': '🦵', 'ふくらはぎ': '🦵', 'カーフ': '🦵', '臀部': '🦵',
+  '胸': '💪', '腕': '💪', '上腕': '💪', '上半身': '💪',
+  '肩': '🦾', '三角筋': '🦾',
+  '背中': '🏋️', '広背筋': '🏋️',
+  '体幹': '🔥', '腹': '🔥', 'コア': '🔥',
+  '有酸素': '🏃', '全身': '⚡',
+};
+
 function renderS1() {
+  const cells = S.recentSingle.slice(0, 5).map(name => {
+    const ex = S.exercises.find(e => e.name === name);
+    const emoji = BODY_EMOJI[ex?.bodyPart] || '🏋️';
+    return `<div class="s1-quick-cell" data-name="${esc(name)}">
+      <div class="s1-quick-emoji">${emoji}</div>
+      <div class="s1-quick-name">${esc(name)}</div>
+    </div>`;
+  });
+  cells.push(`<div class="s1-quick-cell s1-quick-single" id="btn-single-record">
+    <div class="s1-quick-emoji">＋</div>
+    <div class="s1-quick-name">単発記録</div>
+  </div>`);
+  document.getElementById('s1-quick-grid').innerHTML = cells.join('');
+  document.querySelectorAll('#s1-quick-grid .s1-quick-cell:not(.s1-quick-single)').forEach(el => {
+    el.addEventListener('click', () => startSingleFromGrid(el.dataset.name));
+  });
+  document.getElementById('btn-single-record').addEventListener('click', openSingleRecord);
+}
+
+function startSingleFromGrid(name) {
+  if (S.session && S.session.menu !== '') {
+    showConfirm('確認', '進行中のセッションがあります。破棄して単発記録に切り替えますか？', () => {
+      stopTimer(); S.session = null; S.s3ExCache = {};
+      startSingle(name);
+    });
+    return;
+  }
+  if (S.session && S.session.menu === '' && S.session.exercises[0]?.name === name) {
+    goS2(); return;
+  }
+  startSingle(name);
+}
+
+// =====================================================================
+//  記録タブ: 画面1-m セットメニュー選択
+// =====================================================================
+function renderS1Menu() {
   const icons = ['💪', '🦾', '🏋️', '🔝', '⚡', '🦵', '🔥', '🧠', '🏃', '✨'];
   let html = '';
   S.menus.forEach((m, i) => {
@@ -1631,7 +1677,8 @@ function getToggleVal(rowId) {
 function setupEventListeners() {
 
   // --- 記録タブ ---
-  document.getElementById('btn-single-record').addEventListener('click', openSingleRecord);
+  document.getElementById('btn-set-menu').addEventListener('click', () => { renderS1Menu(); showRecordScreen('s1-menu'); });
+  document.getElementById('btn-s1m-back').addEventListener('click', () => showRecordScreen('s1'));
   document.getElementById('btn-s1s-back').addEventListener('click', () => showRecordScreen('s1'));
   document.getElementById('s1s-search').addEventListener('input', function () { renderS1Single(this.value); });
 
