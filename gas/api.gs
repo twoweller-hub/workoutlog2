@@ -380,9 +380,10 @@ function getAnalysisData(exerciseName) {
     const d      = fmtDate(r[1]);
     const weight = r[8] !== '' ? Number(r[8]) : 0;
     const reps   = r[9] !== '' ? Number(r[9]) : 0;
-    if (!dateMap[d]) dateMap[d] = { maxWeight: 0, maxReps: 0, totalVolume: 0, totalSets: 0 };
+    if (!dateMap[d]) dateMap[d] = { maxWeight: 0, maxReps: 0, totalReps: 0, totalVolume: 0, totalSets: 0 };
     dateMap[d].maxWeight    = Math.max(dateMap[d].maxWeight, weight);
     dateMap[d].maxReps      = Math.max(dateMap[d].maxReps, reps);
+    dateMap[d].totalReps   += reps;
     dateMap[d].totalVolume += weight * reps;
     dateMap[d].totalSets++;
   });
@@ -392,6 +393,7 @@ function getAnalysisData(exerciseName) {
       date,
       maxWeight:   dateMap[date].maxWeight,
       maxReps:     dateMap[date].maxReps,
+      totalReps:   dateMap[date].totalReps,
       totalVolume: Math.round(dateMap[date].totalVolume * 10) / 10,
       totalSets:   dateMap[date].totalSets
     }))

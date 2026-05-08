@@ -30,6 +30,8 @@ const S = {
   analysisExercise: null,
   analysisChartW: null,
   analysisChartV: null,
+  analysisChartR: null,
+  analysisChartTR: null,
   currentMenu: null,
   sortable: null,
   editingExName: null,
@@ -1344,6 +1346,8 @@ function renderAnalysis(rows) {
 
   if (S.analysisChartW) S.analysisChartW.destroy();
   if (S.analysisChartV) S.analysisChartV.destroy();
+  if (S.analysisChartR) S.analysisChartR.destroy();
+  if (S.analysisChartTR) S.analysisChartTR.destroy();
 
   S.analysisChartW = new Chart(document.getElementById('chart-weight'), {
     type: 'line',
@@ -1354,6 +1358,18 @@ function renderAnalysis(rows) {
   S.analysisChartV = new Chart(document.getElementById('chart-volume'), {
     type: 'line',
     data: { labels, datasets: [{ data: rows.map(r => r.totalVolume), borderColor: '#7a8394', backgroundColor: 'rgba(122,131,148,0.1)', tension: 0.3, pointRadius: 3, pointBackgroundColor: '#7a8394' }] },
+    options: chartOpts,
+  });
+
+  S.analysisChartR = new Chart(document.getElementById('chart-reps'), {
+    type: 'line',
+    data: { labels, datasets: [{ data: rows.map(r => r.maxReps), borderColor: '#5bc8f5', backgroundColor: 'rgba(91,200,245,0.1)', tension: 0.3, pointRadius: 3, pointBackgroundColor: '#5bc8f5' }] },
+    options: chartOpts,
+  });
+
+  S.analysisChartTR = new Chart(document.getElementById('chart-total-reps'), {
+    type: 'line',
+    data: { labels, datasets: [{ data: rows.map(r => r.totalReps), borderColor: '#f59a5b', backgroundColor: 'rgba(245,154,91,0.1)', tension: 0.3, pointRadius: 3, pointBackgroundColor: '#f59a5b' }] },
     options: chartOpts,
   });
 }
