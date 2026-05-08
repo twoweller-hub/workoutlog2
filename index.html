@@ -10,7 +10,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=2">
+<link rel="stylesheet" href="style.css?v=3">
 </head>
 <body>
 <div id="app">
@@ -41,7 +41,7 @@
     <!-- ===== 記録タブ ===== -->
     <div id="tab-record" class="tab-pane active">
 
-      <!-- 画面1: メニュー選択 -->
+      <!-- 画面1: 記録トップ -->
       <div id="s1" class="screen active">
         <div class="wa-header">
           <div class="wa-header-row">
@@ -49,12 +49,24 @@
             <div class="wa-date" id="s1-date"></div>
           </div>
         </div>
-        <div class="wa-body" id="s1-menu-list">
-          <div class="wa-section-label">メニューを選ぶ</div>
-          <div id="s1-menus"></div>
+        <div class="wa-body">
+          <div class="s1-quick-grid" id="s1-quick-grid"></div>
         </div>
         <div class="wa-fixed-btn-wrap">
-          <button class="wa-single-btn" id="btn-single-record">＋　単発記録</button>
+          <button class="wa-set-menu-btn" id="btn-set-menu">📋　セットメニュー</button>
+        </div>
+      </div>
+
+      <!-- 画面1-m: セットメニュー選択 -->
+      <div id="s1-menu" class="screen">
+        <div class="wa-header">
+          <div class="wa-header-row">
+            <button class="wa-back-btn" id="btn-s1m-back">◀</button>
+            <div class="wa-header-title">セットメニュー</div>
+          </div>
+        </div>
+        <div class="wa-body">
+          <div id="s1-menus"></div>
         </div>
       </div>
 
@@ -528,6 +540,6 @@
     navigator.serviceWorker.register('/workoutlog2/sw.js');
   }
 </script>
-<script src="app.js?v=5"></script>
+<script src="app.js?v=6"></script>
 </body>
 </html>
