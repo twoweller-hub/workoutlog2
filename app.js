@@ -6,7 +6,7 @@ const GAS_URL = 'https://script.google.com/macros/s/AKfycbzfXMbAScXVYktNKv44qVu7
 //  STATE
 // =====================================================================
 const S = {
-  exercises: [], menus: [], injurySites: [], menuLastDates: {}, recentSingle: [],
+  exercises: [], menus: [], injurySites: [], menuLastDates: {}, recentSingle: [], stats: null,
   activeTab: 'record',
   recordScreen: 's1',
   settingsScreen: 's-top',
@@ -168,7 +168,9 @@ async function init() {
     S.injurySites = data.injurySites || [];
     S.menuLastDates = data.menuLastDates || {};
     S.recentSingle = data.recentSingle || [];
+    S.stats = data.stats || null;
     renderS1();
+    renderStats();
     updateSettingsTopCounts();
   } catch (e) {
     showToast('データの読み込みに失敗しました');
@@ -207,6 +209,18 @@ function showSettingsScreen(id) {
   S.settingsScreen = id;
   document.querySelectorAll('#tab-settings .screen').forEach(s => s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
+}
+
+// =====================================================================
+//  統計表示（記録タブ・履歴タブ共通）
+// =====================================================================
+function renderStats() {
+  if (!S.stats) return;
+  const { todayCount, streak, totalSessions } = S.stats;
+  [['stat-today', 'hist-stat-today'], ['stat-streak', 'hist-stat-streak'], ['stat-total', 'hist-stat-total']].forEach(([a, b], i) => {
+    const val = [todayCount, streak, totalSessions][i];
+    [a, b].forEach(id => { const el = document.getElementById(id); if (el) el.textContent = val; });
+  });
 }
 
 // =====================================================================
@@ -789,7 +803,9 @@ async function saveSession() {
   gasGet({ action: 'getInitialData' }).then(data => {
     S.menuLastDates = data.menuLastDates || {};
     S.recentSingle = data.recentSingle || [];
+    S.stats = data.stats || null;
     renderS1();
+    renderStats();
   }).catch(() => {});
 }
 

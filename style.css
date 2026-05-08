@@ -172,6 +172,41 @@ body {
 .wa-menu-chevron { font-size: 12px; color: #b0b8c8; }
 
 /* =====================
+   統計行（記録・履歴タブ共通）
+===================== */
+.wa-stats-row {
+  display: flex;
+  gap: 0;
+  margin: 14px 16px 0;
+  border: 1px solid #2e3244;
+  border-radius: 10px;
+  overflow: hidden;
+}
+.wa-stats-row--header {
+  margin: 10px 16px 14px;
+}
+.wa-stat-cell {
+  flex: 1;
+  padding: 10px 12px;
+  text-align: center;
+  border-right: 1px solid #2e3244;
+}
+.wa-stat-cell:last-child { border-right: none; }
+.wa-stat-num {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 24px;
+  color: #eef0f4;
+  line-height: 1;
+}
+.wa-stat-num em {
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 11px;
+  color: #b0b8c8;
+  font-style: normal;
+}
+.wa-stat-label { font-size: 10px; color: #b0b8c8; margin-top: 2px; }
+
+/* =====================
    記録トップ クイックグリッド
 ===================== */
 .s1-quick-grid {

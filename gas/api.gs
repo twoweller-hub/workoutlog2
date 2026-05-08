@@ -84,8 +84,41 @@ function getInitialData() {
     menus:         getMenus(ss),
     injurySites:   getInjurySites(ss),
     menuLastDates: getMenuLastDates(ss),
-    recentSingle:  getRecentSingleExercises(ss)
+    recentSingle:  getRecentSingleExercises(ss),
+    stats:         getStats(ss)
   };
+}
+
+function getStats(ss) {
+  const sheet = ss.getSheetByName(SHEET_SESSIONS);
+  const last  = sheet.getLastRow();
+  if (last < 2) return { todayCount: 0, streak: 0, totalSessions: 0 };
+
+  const today = Utilities.formatDate(new Date(), 'Asia/Tokyo', 'yyyy-MM-dd');
+  const rows  = sheet.getRange(2, 1, last - 1, 2).getValues();
+
+  const dates = new Set();
+  let todayCount = 0;
+  rows.forEach(r => {
+    if (!r[0]) return;
+    const d = fmtDate(r[1]);
+    dates.add(d);
+    if (d === today) todayCount++;
+  });
+
+  const totalSessions = rows.filter(r => r[0]).length;
+
+  let streak = 0;
+  const cur = new Date();
+  if (!dates.has(today)) cur.setDate(cur.getDate() - 1);
+  for (let i = 0; i < 3650; i++) {
+    const ds = Utilities.formatDate(cur, 'Asia/Tokyo', 'yyyy-MM-dd');
+    if (!dates.has(ds)) break;
+    streak++;
+    cur.setDate(cur.getDate() - 1);
+  }
+
+  return { todayCount, streak, totalSessions };
 }
 
 // ============================================================
