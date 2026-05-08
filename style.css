@@ -239,6 +239,12 @@ body {
   line-height: 1.3;
   word-break: break-all;
 }
+.s1-quick-meta {
+  font-size: 10px;
+  color: #b0b8c8;
+  line-height: 1.4;
+  text-align: center;
+}
 .s1-quick-single { border-style: dashed; border-color: #4a5068; }
 .s1-quick-single .s1-quick-emoji { font-size: 26px; color: #b0b8c8; }
 .s1-quick-single .s1-quick-name { color: #b0b8c8; }

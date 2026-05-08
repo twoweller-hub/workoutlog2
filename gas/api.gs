@@ -196,6 +196,8 @@ function getRecentSingleExercises(ss) {
   const startRow = Math.max(2, lastRow - 500);
   const numRows  = lastRow - startRow + 1;
   const rows     = sheet.getRange(startRow, 1, numRows, 5).getValues();
+  const today    = Utilities.formatDate(new Date(), 'Asia/Tokyo', 'yyyy-MM-dd');
+  const todayMs  = new Date(today).getTime();
 
   const seen   = new Set();
   const result = [];
@@ -203,8 +205,10 @@ function getRecentSingleExercises(ss) {
     const menu   = String(rows[i][3] || '');
     const exName = String(rows[i][4] || '');
     if (menu === '' && exName && !seen.has(exName)) {
+      const d       = fmtDate(rows[i][1]);
+      const daysAgo = Math.round((todayMs - new Date(d).getTime()) / 86400000);
       seen.add(exName);
-      result.push(exName);
+      result.push({ name: exName, lastDate: d, daysAgo });
       if (result.length >= 5) break;
     }
   }

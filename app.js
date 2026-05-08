@@ -236,12 +236,18 @@ const BODY_EMOJI = {
 };
 
 function renderS1() {
-  const cells = S.recentSingle.slice(0, 5).map(name => {
-    const ex = S.exercises.find(e => e.name === name);
+  const cells = S.recentSingle.slice(0, 5).map(item => {
+    const name = typeof item === 'string' ? item : item.name;
+    const ex   = S.exercises.find(e => e.name === name);
     const emoji = BODY_EMOJI[ex?.bodyPart] || '🏋️';
+    let meta = '';
+    if (item.lastDate) {
+      meta = `<div class="s1-quick-meta">前回 ${dateLabel(item.lastDate)}（${item.daysAgo}日前）</div>`;
+    }
     return `<div class="s1-quick-cell" data-name="${esc(name)}">
       <div class="s1-quick-emoji">${emoji}</div>
       <div class="s1-quick-name">${esc(name)}</div>
+      ${meta}
     </div>`;
   });
   cells.push(`<div class="s1-quick-cell s1-quick-single" id="btn-single-record">
@@ -338,12 +344,13 @@ function renderS1Single(filter = '') {
 
   if (S.recentSingle.length > 0 && !filter) {
     wrap.style.display = '';
-    recentList.innerHTML = S.recentSingle.map(name =>
-      `<div class="wa-ex-list-item" data-name="${esc(name)}">
+    recentList.innerHTML = S.recentSingle.map(item => {
+      const name = typeof item === 'string' ? item : item.name;
+      return `<div class="wa-ex-list-item" data-name="${esc(name)}">
         <span class="wa-ex-list-name">${esc(name)}</span>
         <span class="wa-ex-list-chev">▶</span>
-      </div>`
-    ).join('');
+      </div>`;
+    }).join('');
     recentList.querySelectorAll('.wa-ex-list-item').forEach(el => {
       el.addEventListener('click', () => startSingle(el.dataset.name));
     });
