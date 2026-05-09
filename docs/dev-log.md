@@ -1,5 +1,18 @@
 # 開発ログ
 
+## 2026-05-08（深夜）
+
+### 設計変更
+
+**`overflow: hidden` を html/body から削除**
+- 変更前：`html, body { height: 100%; overflow: hidden; }`
+- 変更後：`html, body { height: 100%; }`
+- 目的：PWAスタンドアロンモードでのネイティブ pull-to-refresh を有効化
+- 経緯：旧アプリ（workoutlog）は `overflow: hidden` なしでも正常動作・PTR有効なため、workoutlog2 でも不要と判断
+- **レイアウト崩れが起きたらこの変更が原因の可能性あり**。その場合は `overflow: hidden` を戻し、カスタムPTR実装を検討する
+
+---
+
 ## 2026-05-08（夜）
 
 ### 機能追加
