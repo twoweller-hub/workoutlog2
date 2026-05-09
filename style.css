@@ -1131,17 +1131,78 @@ body {
     flex: 1;
     min-width: 0;
     height: 100%;
-    max-width: 680px;
+    max-width: 880px;
   }
 
   /* ボトムナビを非表示 */
   .wa-bottom-nav { display: none; }
 
   /* モーダルの幅をコンテンツ幅に合わせる */
-  .wa-modal { max-width: 680px; }
+  .wa-modal { max-width: 880px; }
 
   /* Toastはビューポート下部固定 */
   .toast { bottom: 20px; }
+
+  /* ヘッダー */
+  .wa-header { padding: 20px 28px 16px; }
+  .wa-app-title { font-size: 34px; }
+  .wa-header-title { font-size: 28px; }
+  .wa-header-sub { font-size: 13px; }
+  .wa-date { font-size: 14px; }
+
+  /* ボディパディング */
+  .wa-body { padding: 24px 24px 12px; }
+  .wa-fixed-btn-wrap { padding: 14px 24px; }
+
+  /* セクションラベル */
+  .wa-section-label { font-size: 12px; }
+
+  /* メニューアイテム */
+  .wa-menu-item { padding: 18px 20px; }
+  .wa-menu-name { font-size: 18px; }
+  .wa-menu-meta { font-size: 13px; }
+
+  /* 統計テーブル */
+  .wa-stats-table { margin: 16px 0 0; }
+  .wa-stats-table--header { margin: 12px 0 16px; }
+  .wa-stats-th { font-size: 12px; padding: 7px 0; }
+  .wa-stats-td { font-size: 28px; }
+  .wa-stats-td em { font-size: 12px; }
+  .wa-stats-row-label { font-size: 13px; }
+
+  /* 種目リスト */
+  .wa-ex-item { padding: 14px 18px; }
+  .wa-ex-name { font-size: 17px; }
+  .wa-ex-prev { font-size: 13px; }
+
+  /* 履歴セッション */
+  .wa-session-header { padding: 15px 18px; }
+  .wa-session-date { font-size: 15px; }
+  .wa-session-menu { font-size: 15px; }
+  .wa-session-dur { font-size: 13px; }
+  .wa-session-cond { font-size: 13px; }
+  .wa-session-feeling { font-size: 13px; }
+  .wa-ex-row-name { font-size: 15px; }
+  .wa-ex-row-main { font-size: 15px; }
+  .wa-ex-row-warm { font-size: 13px; }
+
+  /* 種目軸リスト */
+  .wa-ex-list-name { font-size: 16px; }
+  .wa-ex-list-meta { font-size: 13px; }
+  .wa-ex-list-item { padding: 14px 6px; }
+
+  /* 設定 */
+  .wa-setting-row { padding: 16px 18px; }
+  .wa-setting-name { font-size: 16px; }
+  .wa-setting-meta { font-size: 13px; }
+
+  /* サブタブ */
+  .wa-subtab { font-size: 15px; padding: 10px; }
+
+  /* ボタン */
+  .wa-save-btn { font-size: 17px; padding: 16px; }
+  .wa-action-btn { font-size: 16px; padding: 16px; }
+  .wa-set-menu-btn { font-size: 18px; }
 }
 
 .wa-ex-row-header {
