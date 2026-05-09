@@ -95,7 +95,7 @@ function getStats(ss) {
   if (last < 2) return { singleToday: 0, singleStreak: 0, singleTotal: 0, menuToday: 0, menuStreak: 0, menuTotal: 0 };
 
   const today = Utilities.formatDate(new Date(), 'Asia/Tokyo', 'yyyy-MM-dd');
-  const rows  = sheet.getRange(2, 1, last - 1, 3).getValues();
+  const rows  = sheet.getRange(2, 1, last - 1, 9).getValues();
 
   const singleDates = new Set();
   const menuDates   = new Set();
@@ -104,8 +104,8 @@ function getStats(ss) {
   rows.forEach(r => {
     if (!r[0]) return;
     const d        = fmtDate(r[1]);
-    const isMenu   = !!r[2];
-    if (isMenu) {
+    const isSingle = !!r[8] && !r[2];
+    if (!isSingle) {
       menuDates.add(d);
       menuTotal++;
       if (d === today) menuToday++;
