@@ -492,7 +492,7 @@ body {
   transition: all 0.15s;
   white-space: nowrap;
 }
-.wa-record-btn:hover { opacity: 0.82; }
+.wa-record-btn:hover { opacity: 0.6; }
 .wa-record-btn.recorded {
   background: rgba(212,245,60,0.18);
   border-color: rgba(212,245,60,0.4);
