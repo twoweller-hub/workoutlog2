@@ -1203,6 +1203,15 @@ body {
   .wa-save-btn { font-size: 17px; padding: 16px; }
   .wa-action-btn { font-size: 16px; padding: 16px; }
   .wa-set-menu-btn { font-size: 18px; }
+
+  /* 前回のメモ */
+  .wa-prev-label { font-size: 12px; }
+  .wa-prev-memo { font-size: 15px; }
+  .wa-prev-sets { font-size: 15px; }
+  .wa-prev-stats { font-size: 13px; }
+
+  /* 記録ボタン：PC では幅を固定 */
+  .wa-record-btn { flex: none; width: 110px; }
 }
 
 .wa-ex-row-header {
