@@ -1459,8 +1459,10 @@ function updateSettingsTopCounts() {
 }
 
 // --- 種目管理 ---
-function renderSettingsEx() {
-  document.getElementById('s-ex-list').innerHTML = S.exercises.map(e =>
+function renderSettingsEx(filter = '') {
+  const lc = filter.toLowerCase();
+  const list = filter ? S.exercises.filter(e => e.name.toLowerCase().includes(lc)) : S.exercises;
+  document.getElementById('s-ex-list').innerHTML = list.map(e =>
     `<div class="wa-setting-row" data-name="${esc(e.name)}">
       <div class="wa-setting-icon">🏋️</div>
       <div class="wa-setting-name">${esc(e.name)}</div>
@@ -1772,7 +1774,8 @@ function setupEventListeners() {
   });
 
   // --- 設定タブ ---
-  document.getElementById('btn-go-s-ex').addEventListener('click', () => { renderSettingsEx(); showSettingsScreen('s-ex'); });
+  document.getElementById('btn-go-s-ex').addEventListener('click', () => { document.getElementById('s-ex-search').value = ''; renderSettingsEx(); showSettingsScreen('s-ex'); });
+  document.getElementById('s-ex-search').addEventListener('input', function () { renderSettingsEx(this.value); });
   document.getElementById('btn-go-s-menu').addEventListener('click', () => { renderSettingsMenu(); showSettingsScreen('s-menu'); });
   document.getElementById('btn-go-s-injury').addEventListener('click', () => { renderSettingsInjury(); showSettingsScreen('s-injury'); });
 

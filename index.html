@@ -10,7 +10,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=9">
+<link rel="stylesheet" href="style.css?v=10">
 </head>
 <body>
 <div id="app">
@@ -341,6 +341,10 @@
           <div class="wa-header-title">種目の管理</div>
         </div></div>
         <div class="wa-body">
+          <div class="wa-ex-search-wrap">
+            <span>🔍</span>
+            <input type="text" id="s-ex-search" placeholder="絞り込み…">
+          </div>
           <div class="wa-setting-card" id="s-ex-card">
             <div id="s-ex-list"></div>
             <button class="wa-add-row-btn" id="btn-ex-add">＋ 種目を追加</button>
@@ -568,6 +572,6 @@
     navigator.serviceWorker.register('/workoutlog2/sw.js');
   }
 </script>
-<script src="app.js?v=9"></script>
+<script src="app.js?v=10"></script>
 </body>
 </html>
