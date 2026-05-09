@@ -271,14 +271,14 @@ function startSingleFromGrid(name) {
   if (S.session && S.session.menu !== '') {
     showConfirm('確認', '進行中のセッションがあります。破棄して単発記録に切り替えますか？', () => {
       stopTimer(); S.session = null; S.s3ExCache = {};
-      startSingle(name);
+      startSingle(name); enterEx(0);
     });
     return;
   }
   if (S.session && S.session.menu === '' && S.session.exercises[0]?.name === name) {
     goS2(); return;
   }
-  startSingle(name);
+  startSingle(name); enterEx(0);
 }
 
 // =====================================================================
