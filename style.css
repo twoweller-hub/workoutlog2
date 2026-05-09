@@ -1,11 +1,12 @@
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
-/* スクロールバー */
+/* スクロールバー（Chrome/Safari/Edge） */
 ::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: #111318; }
 ::-webkit-scrollbar-thumb { background: #2e3244; border-radius: 3px; }
 ::-webkit-scrollbar-thumb:hover { background: #4a5068; }
-* { scrollbar-width: thin; scrollbar-color: #2e3244 #111318; }
+/* Firefox */
+.wa-body, .wa-modal { scrollbar-width: thin; scrollbar-color: #2e3244 #111318; }
 
 html, body {
   height: 100%;
