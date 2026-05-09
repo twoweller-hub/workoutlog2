@@ -580,9 +580,11 @@ function buildPrevBoxHtml(data, unit, hasSides) {
     setsLine = formatSets(mainSets, unit);
   }
 
+  const isToday = data.daysSinceLast === 0;
+  const prevLabel = isToday ? '本日' : '前回';
   return `<div class="wa-prev-box">
-    ${data.lastMemo ? `<div class="wa-prev-label">前回のメモ</div><div class="wa-prev-memo">${esc(data.lastMemo)}</div>` : ''}
-    <div class="wa-prev-sets">前回 ${esc(dateLabel(data.lastDate))}: ${esc(setsLine)}</div>
+    ${data.lastMemo ? `<div class="wa-prev-label">${prevLabel}のメモ</div><div class="wa-prev-memo">${esc(data.lastMemo)}</div>` : ''}
+    <div class="wa-prev-sets">${prevLabel} ${esc(dateLabel(data.lastDate))}: ${esc(setsLine)}</div>
     <div class="wa-prev-stats">累計 ${data.totalMainSets}セット　前回から${data.daysSinceLast}日</div>
   </div>`;
 }
