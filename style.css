@@ -1152,6 +1152,16 @@ body {
   .wa-header { padding: 20px 28px 16px; }
   .wa-app-title { font-size: 34px; }
   .wa-header-title { font-size: 28px; }
+
+  /* 記録タブのタイトルをサイドバーと重複しないよう差し替え */
+  #s1 .wa-app-title { font-size: 0; }
+  #s1 .wa-app-title::before {
+    content: 'RECORD';
+    font-size: 34px;
+    font-family: 'Bebas Neue', sans-serif;
+    letter-spacing: 3px;
+    color: #d4f53c;
+  }
   .wa-header-sub { font-size: 13px; }
   .wa-date { font-size: 14px; }
 
