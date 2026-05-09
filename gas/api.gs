@@ -326,10 +326,11 @@ function getHistory(offset) {
       const d = fmtDate(r[1]);
       if (!dateSet.has(d)) return;
       const sid    = String(r[15] || '');
+      const key    = sid || (d + '|' + String(r[3] || ''));
       const exName = String(r[4] || '');
-      if (!recMap[sid])         recMap[sid] = {};
-      if (!recMap[sid][exName]) recMap[sid][exName] = [];
-      recMap[sid][exName].push({
+      if (!recMap[key])         recMap[key] = {};
+      if (!recMap[key][exName]) recMap[key][exName] = [];
+      recMap[key][exName].push({
         setType:     String(r[5] || ''),
         setNum:      Number(r[6] || 0),
         side:        String(r[7] || ''),
@@ -344,7 +345,8 @@ function getHistory(offset) {
   }
 
   paged.forEach(sess => {
-    sess.exercises = recMap[sess.sessionId] || {};
+    const key = sess.sessionId || (sess.date + '|' + (sess.menu || ''));
+    sess.exercises = recMap[key] || {};
   });
 
   return { sessions: paged, hasMore };
