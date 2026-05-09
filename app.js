@@ -643,10 +643,24 @@ function onRecordSet(btn) {
   const si = parseInt(btn.dataset.si);
   const type = btn.dataset.type;
   const i = parseInt(btn.dataset.i);
+  const set = S.s3Sections[si][type][i];
+
+  if (set.recorded) {
+    showConfirm('記録を取り消す', 'このセットの記録を削除しますか？', () => {
+      set.recorded = false;
+      set.recordedAt = null;
+      btn.textContent = '記録';
+      btn.classList.remove('recorded');
+      const exMaster = S.exercises.find(e => e.name === S.session.exercises[S.currentExIdx].name);
+      refreshIntervals(si, type, exMaster);
+      updateCompleteBtn();
+    });
+    return;
+  }
+
   const row = btn.closest('.wa-set-row');
   const weight = parseFloat(row.querySelector('.weight-input').value) || null;
   const reps = parseFloat(row.querySelector('.reps-input').value) || null;
-  const set = S.s3Sections[si][type][i];
   set.weight = weight;
   set.reps = reps;
   set.recorded = true;
