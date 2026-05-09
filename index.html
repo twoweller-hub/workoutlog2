@@ -10,7 +10,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=7">
+<link rel="stylesheet" href="style.css?v=8">
 </head>
 <body>
 <div id="app">
@@ -50,19 +50,19 @@
           </div>
         </div>
         <div class="wa-body">
-          <div class="wa-stats-row">
-            <div class="wa-stat-cell">
-              <div class="wa-stat-num"><span id="stat-today">--</span><em>回</em></div>
-              <div class="wa-stat-label">今日の記録</div>
-            </div>
-            <div class="wa-stat-cell">
-              <div class="wa-stat-num"><span id="stat-streak">--</span><em>日</em></div>
-              <div class="wa-stat-label">継続日数</div>
-            </div>
-            <div class="wa-stat-cell">
-              <div class="wa-stat-num"><span id="stat-total">--</span><em>回</em></div>
-              <div class="wa-stat-label">累計記録</div>
-            </div>
+          <div class="wa-stats-table">
+            <div class="wa-stats-th wa-stats-corner"></div>
+            <div class="wa-stats-th">今日</div>
+            <div class="wa-stats-th">継続</div>
+            <div class="wa-stats-th">累計</div>
+            <div class="wa-stats-row-label">単発</div>
+            <div class="wa-stats-td"><span id="stat-single-today">--</span><em>回</em></div>
+            <div class="wa-stats-td"><span id="stat-single-streak">--</span><em>日</em></div>
+            <div class="wa-stats-td"><span id="stat-single-total">--</span><em>回</em></div>
+            <div class="wa-stats-row-label">メニュー</div>
+            <div class="wa-stats-td"><span id="stat-menu-today">--</span><em>回</em></div>
+            <div class="wa-stats-td"><span id="stat-menu-streak">--</span><em>日</em></div>
+            <div class="wa-stats-td"><span id="stat-menu-total">--</span><em>回</em></div>
           </div>
           <div class="s1-quick-grid" id="s1-quick-grid"></div>
         </div>
@@ -205,19 +205,19 @@
     <div id="tab-history" class="tab-pane">
       <div class="wa-header">
         <div class="wa-header-row"><div class="wa-app-title">HISTORY</div></div>
-        <div class="wa-stats-row wa-stats-row--header">
-          <div class="wa-stat-cell">
-            <div class="wa-stat-num"><span id="hist-stat-today">--</span><em>回</em></div>
-            <div class="wa-stat-label">今日の記録</div>
-          </div>
-          <div class="wa-stat-cell">
-            <div class="wa-stat-num"><span id="hist-stat-streak">--</span><em>日</em></div>
-            <div class="wa-stat-label">継続日数</div>
-          </div>
-          <div class="wa-stat-cell">
-            <div class="wa-stat-num"><span id="hist-stat-total">--</span><em>回</em></div>
-            <div class="wa-stat-label">累計記録</div>
-          </div>
+        <div class="wa-stats-table wa-stats-table--header">
+          <div class="wa-stats-th wa-stats-corner"></div>
+          <div class="wa-stats-th">今日</div>
+          <div class="wa-stats-th">継続</div>
+          <div class="wa-stats-th">累計</div>
+          <div class="wa-stats-row-label">単発</div>
+          <div class="wa-stats-td"><span id="hist-stat-single-today">--</span><em>回</em></div>
+          <div class="wa-stats-td"><span id="hist-stat-single-streak">--</span><em>日</em></div>
+          <div class="wa-stats-td"><span id="hist-stat-single-total">--</span><em>回</em></div>
+          <div class="wa-stats-row-label">メニュー</div>
+          <div class="wa-stats-td"><span id="hist-stat-menu-today">--</span><em>回</em></div>
+          <div class="wa-stats-td"><span id="hist-stat-menu-streak">--</span><em>日</em></div>
+          <div class="wa-stats-td"><span id="hist-stat-menu-total">--</span><em>回</em></div>
         </div>
       </div>
       <div class="wa-subtab-bar">

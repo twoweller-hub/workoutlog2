@@ -92,33 +92,47 @@ function getInitialData() {
 function getStats(ss) {
   const sheet = ss.getSheetByName(SHEET_SESSIONS);
   const last  = sheet.getLastRow();
-  if (last < 2) return { todayCount: 0, streak: 0, totalSessions: 0 };
+  if (last < 2) return { singleToday: 0, singleStreak: 0, singleTotal: 0, menuToday: 0, menuStreak: 0, menuTotal: 0 };
 
   const today = Utilities.formatDate(new Date(), 'Asia/Tokyo', 'yyyy-MM-dd');
-  const rows  = sheet.getRange(2, 1, last - 1, 2).getValues();
+  const rows  = sheet.getRange(2, 1, last - 1, 3).getValues();
 
-  const dates = new Set();
-  let todayCount = 0;
+  const singleDates = new Set();
+  const menuDates   = new Set();
+  let singleToday = 0, menuToday = 0, singleTotal = 0, menuTotal = 0;
+
   rows.forEach(r => {
     if (!r[0]) return;
-    const d = fmtDate(r[1]);
-    dates.add(d);
-    if (d === today) todayCount++;
+    const d        = fmtDate(r[1]);
+    const isMenu   = !!r[2];
+    if (isMenu) {
+      menuDates.add(d);
+      menuTotal++;
+      if (d === today) menuToday++;
+    } else {
+      singleDates.add(d);
+      singleTotal++;
+      if (d === today) singleToday++;
+    }
   });
 
-  const totalSessions = rows.filter(r => r[0]).length;
-
-  let streak = 0;
-  const cur = new Date();
-  if (!dates.has(today)) cur.setDate(cur.getDate() - 1);
-  for (let i = 0; i < 3650; i++) {
-    const ds = Utilities.formatDate(cur, 'Asia/Tokyo', 'yyyy-MM-dd');
-    if (!dates.has(ds)) break;
-    streak++;
-    cur.setDate(cur.getDate() - 1);
+  function calcStreak(dates) {
+    let streak = 0;
+    const cur = new Date();
+    if (!dates.has(Utilities.formatDate(cur, 'Asia/Tokyo', 'yyyy-MM-dd'))) cur.setDate(cur.getDate() - 1);
+    for (let i = 0; i < 3650; i++) {
+      const ds = Utilities.formatDate(cur, 'Asia/Tokyo', 'yyyy-MM-dd');
+      if (!dates.has(ds)) break;
+      streak++;
+      cur.setDate(cur.getDate() - 1);
+    }
+    return streak;
   }
 
-  return { todayCount, streak, totalSessions };
+  return {
+    singleToday, singleStreak: calcStreak(singleDates), singleTotal,
+    menuToday,   menuStreak:   calcStreak(menuDates),   menuTotal
+  };
 }
 
 // ============================================================

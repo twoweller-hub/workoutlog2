@@ -216,9 +216,15 @@ function showSettingsScreen(id) {
 // =====================================================================
 function renderStats() {
   if (!S.stats) return;
-  const { todayCount, streak, totalSessions } = S.stats;
-  [['stat-today', 'hist-stat-today'], ['stat-streak', 'hist-stat-streak'], ['stat-total', 'hist-stat-total']].forEach(([a, b], i) => {
-    const val = [todayCount, streak, totalSessions][i];
+  const { singleToday, singleStreak, singleTotal, menuToday, menuStreak, menuTotal } = S.stats;
+  [
+    ['stat-single-today',  'hist-stat-single-today',  singleToday],
+    ['stat-single-streak', 'hist-stat-single-streak', singleStreak],
+    ['stat-single-total',  'hist-stat-single-total',  singleTotal],
+    ['stat-menu-today',    'hist-stat-menu-today',    menuToday],
+    ['stat-menu-streak',   'hist-stat-menu-streak',   menuStreak],
+    ['stat-menu-total',    'hist-stat-menu-total',    menuTotal],
+  ].forEach(([a, b, val]) => {
     [a, b].forEach(id => { const el = document.getElementById(id); if (el) el.textContent = val; });
   });
 }
