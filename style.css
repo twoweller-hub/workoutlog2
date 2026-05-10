@@ -797,7 +797,7 @@ body {
 .wa-ex-hist-item.expanded .wa-ex-hist-body { display: block; }
 .wa-ex-hist-detail { font-size: 12px; color: #b0b8c8; margin-bottom: 4px; }
 .wa-ex-hist-injury { font-size: 11px; color: #ff9f40; margin-bottom: 4px; }
-.wa-ex-hist-memo { font-size: 11px; color: #9ba3b5; }
+.wa-ex-hist-memo { font-size: 11px; color: #9ba3b5; white-space: pre-wrap; }
 
 /* もっと見るボタン */
 .wa-more-btn {
@@ -1098,7 +1098,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 11px 16px;
+  padding: 17px 16px;
   cursor: pointer;
   user-select: none;
 }
@@ -1151,7 +1151,7 @@ body {
 
   #app {
     flex-direction: row;
-    max-width: 1080px;
+    max-width: 1280px;
     width: 100%;
     height: 100%;
     overflow: hidden;
@@ -1251,7 +1251,7 @@ body {
 
   /* 記録3: 2カラム */
   .s3-content-wrap { flex-direction: row; }
-  .s3-main-col { flex: 0 0 400px; border-right: 1px solid #2e3244; padding: 20px 20px 12px; }
+  .s3-main-col { flex: 0 0 480px; border-right: 1px solid #2e3244; padding: 20px 20px 12px; }
   .s3-hist-panel {
     flex: 1;
     border-top: none;
@@ -1271,7 +1271,7 @@ body {
     padding: 0 20px 12px;
   }
   .s3-hist-stats { font-size: 12px; }
-  #ex-memo { min-height: 110px; font-size: 15px; }
+  #ex-memo { min-height: 220px; font-size: 15px; }
 
   /* セクションラベル */
   .wa-section-label { font-size: 12px; }
