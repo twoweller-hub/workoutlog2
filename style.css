@@ -1250,7 +1250,7 @@ body {
 
   /* 記録3: 2カラム */
   .s3-content-wrap { flex-direction: row; }
-  .s3-main-col { flex: 0 0 480px; border-right: 1px solid #2e3244; padding: 20px 20px 12px; }
+  .s3-main-col { flex: 0 0 500px; border-right: 1px solid #2e3244; padding: 20px 20px 12px; }
   .s3-hist-panel {
     flex: 1;
     border-top: none;
@@ -1259,7 +1259,7 @@ body {
     flex-direction: column;
     overflow: hidden;
   }
-  .s3-hist-toggle { cursor: default; padding: 16px 20px 8px; }
+  .s3-hist-toggle { cursor: default; padding: 16px 20px 8px 40px; }
   .s3-hist-chev { display: none; }
   .s3-hist-panel-body {
     display: flex !important;
@@ -1267,7 +1267,7 @@ body {
     flex: 1;
     overflow-y: auto;
     max-height: none;
-    padding: 0 20px 12px;
+    padding: 0 20px 12px 40px;
   }
   .s3-hist-stats { font-size: 12px; }
   #ex-memo { min-height: 220px; font-size: 15px; }
