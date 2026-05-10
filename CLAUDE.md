@@ -219,6 +219,11 @@ const S = {
 `index.html` の読み込み: `style.css?v=2` / `app.js?v=4`  
 変更が反映されない場合は `?v=N` を上げ、`sw.js` の `CACHE` 名も変更する。
 
+**`style.css` または `app.js` を変更したコミットには必ずキャッシュバスターの更新を含める。**
+- `style.css` 変更時 → `index.html` の `style.css?vN` を +1、`sw.js` の `CACHE` 名を +1
+- `app.js` 変更時 → `index.html` の `app.js?vN` を +1、`sw.js` の `CACHE` 名を +1
+- 両方変更時 → 両方 +1、`CACHE` 名は1回だけ +1
+
 ## 分析チャート
 
 - Chart.js 4.4.0 を CDN から読み込み
