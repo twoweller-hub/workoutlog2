@@ -435,6 +435,14 @@ body {
 }
 .wa-info-start { font-size: 11px; color: #b0b8c8; }
 .wa-interval-row { display: flex; align-items: center; gap: 6px; }
+.wa-interval-in-body {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 0 14px;
+  border-bottom: 1px solid #2e3244;
+  margin-bottom: 14px;
+}
 .wa-interval-label { font-size: 11px; color: #b0b8c8; }
 .wa-interval-input {
   font-family: 'Bebas Neue', sans-serif;

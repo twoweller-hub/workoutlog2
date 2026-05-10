@@ -17,6 +17,7 @@ const S = {
   s3ExData: null,      // result of getExerciseData
   s3ExCache: {},       // {exerciseName: getExerciseData result} — cache within a session
   s3Sections: [],      // [{side, warmup:[{weight,reps,recorded,recordedAt}], main:[...]}]
+  s3Interval: 90,
   histDateOffset: 0,
   histDateItems: [],
   histDateHasMore: false,
@@ -460,7 +461,7 @@ async function enterEx(idx) {
 
   document.getElementById('s3-title').textContent = ex.name;
   document.getElementById('s3-start-time').textContent = timeNow() + ' 開始';
-  document.getElementById('s3-interval').value = interval;
+  S.s3Interval = interval;
 
   showRecordScreen('s3');
 
@@ -513,8 +514,16 @@ function renderS3Body(exMaster) {
   const unit = exMaster?.unit || '回';
   const data = S.s3ExData;
   const body = document.getElementById('s3-body');
+  const curInterval = document.getElementById('s3-interval');
+  if (curInterval) S.s3Interval = parseInt(curInterval.value) || S.s3Interval;
 
   let html = buildPrevBoxHtml(data, unit, hasSides);
+
+  html += `<div class="wa-interval-in-body">
+    <span class="wa-interval-label">インターバル（秒）</span>
+    <input class="wa-interval-input" type="number" id="s3-interval" min="0" max="999" value="${S.s3Interval}">
+    <span class="wa-interval-label">秒</span>
+  </div>`;
 
   S.s3Sections.forEach((sec, si) => {
     if (hasSides) {
