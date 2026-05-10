@@ -1009,6 +1009,15 @@ function buildSessionExRows(sess, sessId, sessIdx) {
   }).join('');
 }
 
+function toggleExpandAll(btnId, listId, itemClass) {
+  const btn = document.getElementById(btnId);
+  const list = document.getElementById(listId);
+  const items = list.querySelectorAll('.' + itemClass);
+  const allExpanded = [...items].every(el => el.classList.contains('expanded'));
+  items.forEach(el => el.classList.toggle('expanded', !allExpanded));
+  btn.textContent = allExpanded ? 'すべて開く▼' : 'すべて閉じる▲';
+}
+
 function formatHistSets(sets, unit) {
   const unitLabel = unit === '秒' ? '秒' : '';
   return sets.map(s => {
@@ -1851,6 +1860,7 @@ function setupEventListeners() {
     if (!wasOpen && !S.s3HistLoaded) loadS3Hist();
   });
   document.getElementById('btn-s3-hist-more').addEventListener('click', () => loadS3Hist(true));
+  document.getElementById('btn-s3-expand-all').addEventListener('click', () => toggleExpandAll('btn-s3-expand-all', 's3-hist-list', 'wa-ex-hist-item'));
 
   document.getElementById('btn-finish-back').addEventListener('click', () => showRecordScreen('s2'));
   document.getElementById('btn-save-session').addEventListener('click', saveSession);
@@ -1866,8 +1876,10 @@ function setupEventListeners() {
   document.getElementById('hist-tab-date').addEventListener('click', () => switchHistTab('hist-date-view'));
   document.getElementById('hist-tab-ex').addEventListener('click', () => switchHistTab('hist-ex-view'));
   document.getElementById('btn-hist-date-more').addEventListener('click', loadHistoryDate);
+  document.getElementById('btn-hist-date-expand-all').addEventListener('click', () => toggleExpandAll('btn-hist-date-expand-all', 'hist-date-list', 'wa-session-item'));
   document.getElementById('btn-hist-ex-back').addEventListener('click', backFromHistExDetail);
   document.getElementById('btn-hist-ex-more').addEventListener('click', loadHistExDetail);
+  document.getElementById('btn-hist-ex-expand-all').addEventListener('click', () => toggleExpandAll('btn-hist-ex-expand-all', 'hist-ex-detail-list', 'wa-ex-hist-item'));
   document.getElementById('hist-ex-search').addEventListener('input', function () {
     if (S.histExWithLastDate) renderHistExList(S.histExWithLastDate.exercises, this.value);
   });

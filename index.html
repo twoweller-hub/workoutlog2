@@ -10,7 +10,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=31">
+<link rel="stylesheet" href="style.css?v=32">
 </head>
 <body>
 <div id="app">
@@ -151,7 +151,10 @@
               <span class="s3-hist-chev" id="s3-hist-chev">▼</span>
             </div>
             <div class="s3-hist-panel-body" id="s3-hist-panel-body">
-              <div class="s3-hist-stats" id="s3-hist-stats"></div>
+              <div class="s3-hist-stats-row">
+                <div class="s3-hist-stats" id="s3-hist-stats"></div>
+                <button class="wa-expand-all-btn" id="btn-s3-expand-all">すべて開く▼</button>
+              </div>
               <div id="s3-hist-list"></div>
               <div id="s3-hist-more-wrap" style="display:none; text-align:center; padding:8px 0 4px">
                 <button class="wa-more-btn" id="btn-s3-hist-more">もっと見る</button>
@@ -242,6 +245,9 @@
       <div class="wa-body" id="hist-body">
         <!-- 日付軸ビュー -->
         <div id="hist-date-view" class="hist-view active">
+          <div class="wa-expand-all-row">
+            <button class="wa-expand-all-btn" id="btn-hist-date-expand-all">すべて開く▼</button>
+          </div>
           <div id="hist-date-list"></div>
           <div id="hist-date-more-wrap" style="display:none;text-align:center;padding:12px">
             <button class="wa-more-btn" id="btn-hist-date-more">もっと見る</button>
@@ -259,6 +265,9 @@
           <div id="hist-ex-detail-view" style="display:none">
             <button class="wa-back-to" id="btn-hist-ex-back">◀ <span id="hist-ex-back-label">種目一覧に戻る</span></button>
             <div class="wa-ex-hist-title" id="hist-ex-detail-title"></div>
+            <div class="wa-expand-all-row">
+              <button class="wa-expand-all-btn" id="btn-hist-ex-expand-all">すべて開く▼</button>
+            </div>
             <div id="hist-ex-detail-list"></div>
             <div id="hist-ex-detail-more-wrap" style="display:none;text-align:center;padding:12px">
               <button class="wa-more-btn" id="btn-hist-ex-more">もっと見る</button>
@@ -587,6 +596,6 @@
     navigator.serviceWorker.register('/workoutlog2/sw.js');
   }
 </script>
-<script src="app.js?v=16"></script>
+<script src="app.js?v=17"></script>
 </body>
 </html>

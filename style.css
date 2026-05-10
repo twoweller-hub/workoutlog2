@@ -1123,13 +1123,32 @@ body {
   -webkit-overflow-scrolling: touch;
 }
 .s3-hist-panel.open .s3-hist-panel-body { display: block; }
-.s3-hist-stats {
-  font-size: 11px;
-  color: #b0b8c8;
+.s3-hist-stats-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   padding: 4px 0 10px;
   border-bottom: 1px solid #2e3244;
   margin-bottom: 10px;
 }
+.s3-hist-stats {
+  font-size: 11px;
+  color: #b0b8c8;
+}
+.wa-expand-all-row {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 8px;
+}
+.wa-expand-all-btn {
+  background: none;
+  border: none;
+  color: #b0b8c8;
+  font-size: 11px;
+  cursor: pointer;
+  padding: 2px 0;
+}
+.wa-expand-all-btn:hover { color: #eef0f4; }
 
 /* メモ欄を大きく */
 #ex-memo { rows: 4; min-height: 80px; font-size: 14px; }
