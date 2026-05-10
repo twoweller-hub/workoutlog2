@@ -68,12 +68,12 @@ body {
    ヘッダー
 ===================== */
 .wa-header {
-  padding: 16px 20px 12px;
+  padding: 16px 20px 12px 12px;
   background: rgba(17,19,24,0.97);
   border-bottom: 1px solid #2e3244;
   flex-shrink: 0;
 }
-.wa-header-row { display: flex; align-items: center; gap: 14px; }
+.wa-header-row { display: flex; align-items: center; gap: 19px; }
 .wa-app-title {
   font-family: 'Bebas Neue', sans-serif;
   font-size: 28px;
@@ -1158,7 +1158,7 @@ body {
   .toast { bottom: 20px; }
 
   /* ヘッダー */
-  .wa-header { padding: 20px 28px 16px; }
+  .wa-header { padding: 20px 28px 16px 16px; }
   .wa-app-title { font-size: 34px; }
   .wa-header-title { font-size: 28px; }
 
