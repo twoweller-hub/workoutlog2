@@ -1,5 +1,13 @@
 # 開発ログ
 
+## 2026-05-10（夜15）
+
+### 履歴タブのメモ改行表示を修正
+
+- 記録3右ペインの履歴メモ（`.wa-ex-hist-memo`）は `white-space: pre-wrap` 済みだったが、履歴タブ日付別の `.wa-ex-row-memo` と `.wa-session-feeling` が未対応だった
+- 両クラスに `white-space: pre-wrap` を追加
+- `style.css?v=30` → `v=31`、SW `v30` → `v31`
+
 ## 2026-05-10（夜14）
 
 ### 記録3画面の左右ペインのすき間調整

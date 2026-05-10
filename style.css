@@ -711,14 +711,14 @@ body {
 .wa-session-item.expanded .wa-session-body { display: block; }
 .wa-session-cond { display: flex; gap: 12px; margin-bottom: 10px; font-size: 11px; color: #b0b8c8; }
 .wa-session-cond span { color: #eef0f4; }
-.wa-session-feeling { font-size: 11px; color: #b0b8c8; margin-bottom: 10px; line-height: 1.5; }
+.wa-session-feeling { font-size: 11px; color: #b0b8c8; margin-bottom: 10px; line-height: 1.5; white-space: pre-wrap; }
 .wa-ex-row { padding: 8px 0; border-top: 1px solid #2e3244; }
 .wa-ex-row-name { font-size: 13px; font-weight: 700; color: #d4f53c; cursor: pointer; margin-bottom: 2px; transition: color 0.15s; }
 .wa-ex-row-name:hover { color: #eef0f4; }
 .wa-ex-row-main { font-size: 13px; color: #b0b8c8; margin-bottom: 2px; }
 .wa-ex-row-warm { font-size: 12px; color: #6e7789; margin-bottom: 2px; }
 .wa-ex-row-injury { font-size: 12px; color: #ff9f40; margin-bottom: 2px; }
-.wa-ex-row-memo { font-size: 12px; color: #9ba3b5; }
+.wa-ex-row-memo { font-size: 12px; color: #9ba3b5; white-space: pre-wrap; }
 
 /* 種目軸リスト */
 .wa-ex-search-wrap {
