@@ -89,7 +89,7 @@ function todayStr() {
 
 function todayDisplay() {
   const d = new Date();
-  return `${d.getMonth() + 1}/${d.getDate()}（${DAY_JA[d.getDay()]}）`;
+  return `${d.getFullYear()}年${d.getMonth() + 1}月${d.getDate()}日（${DAY_JA[d.getDay()]}）`;
 }
 
 function timeNow() {
@@ -394,6 +394,7 @@ function startSingle(name) {
 // =====================================================================
 function goS2() {
   document.getElementById('s2-title').textContent = S.session.menuDisplay;
+  document.getElementById('s2-start-label').textContent = `（${S.session.startTime}開始）`;
   if (!S.timerInterval) {
     S.timerStart = Date.now();
     S.timerInterval = setInterval(updateTimer, 1000);
@@ -460,7 +461,8 @@ async function enterEx(idx) {
   const interval = exMaster?.defaultInterval ?? 90;
 
   document.getElementById('s3-title').textContent = ex.name;
-  document.getElementById('s3-start-time').textContent = timeNow() + ' 開始';
+  document.getElementById('s3-date').textContent = todayDisplay();
+  document.getElementById('s3-start-label').textContent = `（${S.session.startTime}開始）`;
   S.s3Interval = interval;
 
   showRecordScreen('s3');

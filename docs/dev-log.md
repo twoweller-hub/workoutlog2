@@ -1,5 +1,18 @@
 # 開発ログ
 
+## 2026-05-10（夜5）
+
+### 画面2・3のヘッダー日付フォーマット変更と開始時刻表示追加
+
+- `todayDisplay()` を `YYYY年M月D日（曜）` 形式に変更（年を追加）
+- 画面3ヘッダーの `s3-start-time`（「HH:mm 開始」）→ `s3-date`（日付）に変更
+- 画面2・3の経過時間バーに「（HH:mm開始）」ラベルを追加（`wa-start-time-label`）
+- `wa-timer-group` クラスを追加し s3 info-bar 内の経過時間 spacing を s2 と統一（gap: 8px）
+- `wa-header-title` に `min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap` を追加（長い種目名を省略）
+- `wa-date` に `flex-shrink:0; white-space:nowrap` を追加（日付が折り返さないよう）
+
+---
+
 ## 2026-05-10（夜4）
 
 ### 画面3のインターバル入力を前回データ〜ウォームアップの間に移動

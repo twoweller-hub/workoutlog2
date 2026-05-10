@@ -89,9 +89,13 @@ body {
   color: #d4f53c;
   line-height: 1;
   flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .wa-header-sub { font-size: 11px; color: #b0b8c8; }
-.wa-date { font-size: 12px; color: #b0b8c8; padding-bottom: 2px; }
+.wa-date { font-size: 12px; color: #b0b8c8; padding-bottom: 2px; flex-shrink: 0; white-space: nowrap; }
 .wa-back-btn {
   background: none;
   border: 1px solid #2e3244;
@@ -369,6 +373,8 @@ body {
   flex-shrink: 0;
 }
 .wa-timer-label { font-size: 11px; color: #b0b8c8; letter-spacing: 1px; }
+.wa-start-time-label { font-size: 11px; color: #b0b8c8; }
+.wa-timer-group { display: flex; align-items: center; gap: 8px; }
 .wa-timer-val {
   font-family: 'Bebas Neue', sans-serif;
   font-size: 22px;
