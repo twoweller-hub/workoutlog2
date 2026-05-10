@@ -18,6 +18,9 @@ const S = {
   s3ExCache: {},       // {exerciseName: getExerciseData result} — cache within a session
   s3Sections: [],      // [{side, warmup:[{weight,reps,recorded,recordedAt}], main:[...]}]
   s3Interval: 90,
+  s3HistOffset: 0,
+  s3HistHasMore: false,
+  s3HistLoaded: false,
   histDateOffset: 0,
   histDateItems: [],
   histDateHasMore: false,
@@ -482,6 +485,9 @@ async function enterEx(idx) {
 
   initS3Sections(exMaster);
   renderS3Body(exMaster);
+  updateS3HistStats();
+  resetS3HistPanel();
+  if (window.innerWidth >= 640) loadS3Hist();
 }
 
 function initS3Sections(exMaster) {
@@ -524,9 +530,7 @@ function renderS3Body(exMaster) {
   const savedInjuryLv   = document.getElementById('injury-level')?.value ?? '';
   const injuryOpen      = document.getElementById('injury-body')?.classList.contains('open') ?? false;
 
-  let html = buildPrevBoxHtml(data, unit, hasSides);
-
-  html += `<div class="wa-interval-in-body">
+  let html = `<div class="wa-interval-in-body">
     <span class="wa-interval-label">インターバル（秒）</span>
     <input class="wa-interval-input" type="number" id="s3-interval" min="0" max="999" value="${S.s3Interval}">
     <span class="wa-interval-label">秒</span>
@@ -654,7 +658,7 @@ function buildInjuryMemoHtml() {
     </div>
   </div>
   <div><div class="wa-memo-label">メモ</div>
-    <textarea class="wa-memo-input" id="ex-memo" rows="2" placeholder="自由記述"></textarea>
+    <textarea class="wa-memo-input" id="ex-memo" rows="4" placeholder="自由記述"></textarea>
   </div>`;
 }
 
@@ -1105,12 +1109,8 @@ async function loadHistExDetail() {
   }
 }
 
-function renderHistExDetail(dates, clear) {
-  const list = document.getElementById('hist-ex-detail-list');
-  if (clear) list.innerHTML = '';
-  const unit = S.exercises.find(e => e.name === S.histCurrentEx)?.unit || '回';
-  dates.forEach((d, i) => {
-    const id = 'exh-' + d.date;
+function appendExHistItems(dates, unit, container, idPrefix) {
+  dates.forEach(d => {
     const mainSets = d.sets.filter(s => s.setType === 'メイン');
     const warmSets = d.sets.filter(s => s.setType === 'ウォームアップ');
     const mainLine = formatHistSets(mainSets, unit);
@@ -1119,7 +1119,7 @@ function renderHistExDetail(dates, clear) {
     const memo = d.sets.find(s => s.memo)?.memo || '';
     const div = document.createElement('div');
     div.className = 'wa-ex-hist-item';
-    div.id = id;
+    if (idPrefix) div.id = idPrefix + d.date;
     div.innerHTML = `<div class="wa-ex-hist-header">
         <div class="wa-ex-hist-date">${esc(dateLabel(d.date))}</div>
         <div class="wa-ex-hist-sets">${esc(mainLine)}</div>
@@ -1131,8 +1131,65 @@ function renderHistExDetail(dates, clear) {
         ${memo ? `<div class="wa-ex-hist-memo">${esc(memo)}</div>` : ''}
       </div>`;
     div.querySelector('.wa-ex-hist-header').addEventListener('click', () => div.classList.toggle('expanded'));
-    list.appendChild(div);
+    container.appendChild(div);
   });
+}
+
+function renderHistExDetail(dates, clear) {
+  const list = document.getElementById('hist-ex-detail-list');
+  if (clear) list.innerHTML = '';
+  const unit = S.exercises.find(e => e.name === S.histCurrentEx)?.unit || '回';
+  appendExHistItems(dates, unit, list, 'exh-h-');
+}
+
+function updateS3HistStats() {
+  const el = document.getElementById('s3-hist-stats');
+  if (!el) return;
+  const data = S.s3ExData;
+  if (!data || data.totalMainSets == null) { el.textContent = ''; return; }
+  const dayStr = data.daysSinceLast === 0 ? '本日' : `前回から${data.daysSinceLast}日`;
+  el.textContent = `累計 ${data.totalMainSets}セット　${dayStr}`;
+}
+
+function resetS3HistPanel() {
+  S.s3HistOffset = 0;
+  S.s3HistHasMore = false;
+  S.s3HistLoaded = false;
+  const list = document.getElementById('s3-hist-list');
+  if (list) list.innerHTML = '';
+  const moreWrap = document.getElementById('s3-hist-more-wrap');
+  if (moreWrap) moreWrap.style.display = 'none';
+  const panel = document.getElementById('s3-hist-panel');
+  if (panel) panel.classList.remove('open');
+}
+
+async function loadS3Hist(append = false) {
+  const exName = S.session?.exercises[S.currentExIdx]?.name;
+  if (!exName) return;
+  const list = document.getElementById('s3-hist-list');
+  const moreBtn = document.getElementById('btn-s3-hist-more');
+  const moreWrap = document.getElementById('s3-hist-more-wrap');
+  if (!append) {
+    list.innerHTML = '<div class="loading-msg">読み込み中…</div>';
+  } else {
+    moreBtn.textContent = '読み込み中…';
+    moreBtn.disabled = true;
+  }
+  try {
+    const data = await gasGetWithRetry({ action: 'getExerciseHistory', exercise: exName, offset: S.s3HistOffset });
+    const dates = data.dates || [];
+    S.s3HistHasMore = data.hasMore || false;
+    S.s3HistLoaded = true;
+    if (!append) list.innerHTML = '';
+    const unit = S.exercises.find(e => e.name === exName)?.unit || '回';
+    appendExHistItems(dates, unit, list, 's3h-');
+    S.s3HistOffset += dates.length;
+    moreWrap.style.display = S.s3HistHasMore ? '' : 'none';
+    if (append) { moreBtn.textContent = 'もっと見る'; moreBtn.disabled = false; }
+  } catch {
+    if (!append) list.innerHTML = '<div class="loading-msg">読み込みに失敗しました。</div>';
+    else { moreBtn.textContent = 'もっと見る'; moreBtn.disabled = false; }
+  }
 }
 
 function backFromHistExDetail() {
@@ -1786,6 +1843,14 @@ function setupEventListeners() {
     showRecordScreen('s2');
   });
   document.getElementById('btn-complete-ex').addEventListener('click', completeEx);
+  document.getElementById('s3-hist-toggle').addEventListener('click', () => {
+    if (window.innerWidth >= 640) return;
+    const panel = document.getElementById('s3-hist-panel');
+    const wasOpen = panel.classList.contains('open');
+    panel.classList.toggle('open');
+    if (!wasOpen && !S.s3HistLoaded) loadS3Hist();
+  });
+  document.getElementById('btn-s3-hist-more').addEventListener('click', () => loadS3Hist(true));
 
   document.getElementById('btn-finish-back').addEventListener('click', () => showRecordScreen('s2'));
   document.getElementById('btn-save-session').addEventListener('click', saveSession);

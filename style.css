@@ -1078,6 +1078,63 @@ body {
 .sidebar-logo { display: none; }
 
 /* =====================
+   記録3画面: 2カラムレイアウト
+===================== */
+.s3-content-wrap {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* SP: 履歴パネルは折りたたみ */
+.s3-hist-panel {
+  flex-shrink: 0;
+  border-top: 1px solid #2e3244;
+  background: #111318;
+}
+.s3-hist-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 11px 16px;
+  cursor: pointer;
+  user-select: none;
+}
+.s3-hist-toggle-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: #b0b8c8;
+}
+.s3-hist-chev {
+  font-size: 10px;
+  color: #b0b8c8;
+  transition: transform 0.2s;
+}
+.s3-hist-panel.open .s3-hist-chev { transform: rotate(180deg); }
+.s3-hist-panel-body {
+  display: none;
+  overflow-y: auto;
+  max-height: 38vh;
+  padding: 4px 16px 12px;
+  -webkit-overflow-scrolling: touch;
+}
+.s3-hist-panel.open .s3-hist-panel-body { display: block; }
+.s3-hist-stats {
+  font-size: 11px;
+  color: #b0b8c8;
+  padding: 4px 0 10px;
+  border-bottom: 1px solid #2e3244;
+  margin-bottom: 10px;
+}
+
+/* メモ欄を大きく */
+#ex-memo { rows: 4; min-height: 80px; font-size: 14px; }
+
+/* =====================
    デスクトップ レイアウト
 ===================== */
 @media (min-width: 640px) {
@@ -1191,6 +1248,30 @@ body {
   /* ボディパディング */
   .wa-body { padding: 24px 24px 12px; }
   .wa-fixed-btn-wrap { padding: 14px 24px; }
+
+  /* 記録3: 2カラム */
+  .s3-content-wrap { flex-direction: row; }
+  .s3-main-col { flex: 0 0 400px; border-right: 1px solid #2e3244; padding: 20px 20px 12px; }
+  .s3-hist-panel {
+    flex: 1;
+    border-top: none;
+    border-left: none;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .s3-hist-toggle { cursor: default; padding: 16px 20px 8px; }
+  .s3-hist-chev { display: none; }
+  .s3-hist-panel-body {
+    display: flex !important;
+    flex-direction: column;
+    flex: 1;
+    overflow-y: auto;
+    max-height: none;
+    padding: 0 20px 12px;
+  }
+  .s3-hist-stats { font-size: 12px; }
+  #ex-memo { min-height: 110px; font-size: 15px; }
 
   /* セクションラベル */
   .wa-section-label { font-size: 12px; }

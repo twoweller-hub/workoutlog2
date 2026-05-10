@@ -1,5 +1,21 @@
 # 開発ログ
 
+## 2026-05-10（夜10）
+
+### 記録3画面にPC用2カラムレイアウト（右ペイン：履歴）を追加
+
+- **レイアウト**: `#s3-body` を `.s3-content-wrap` で包み、右に `.s3-hist-panel` を追加
+- **PC（640px以上）**: flex-direction: row で横並び。左400px固定（記録エリア）、右は残り幅（履歴）
+- **SP**: 履歴パネルは折りたたみトグル。開いた時点で初めてAPIを取得（`loadS3Hist`）
+- **前回データブロック廃止**: `buildPrevBoxHtml` を `renderS3Body` から除去。累計セット数・前日からN日は右ペインの `s3-hist-stats` に表示
+- **共通描画ヘルパー追加**: `appendExHistItems(dates, unit, container, idPrefix)` - 履歴タブと右ペインで共有
+- **履歴タブ側**: `renderHistExDetail` を共通ヘルパーを使うよう整理。IDプレフィックスを `exh-h-` に変更（右ペインとの重複回避）
+- **右ペイン履歴**: `loadS3Hist(append)` + `resetS3HistPanel()` + もっと見るボタン対応
+- **メモ欄拡大**: rows 2→4、PCでは min-height: 110px、font-size: 15px
+- `style.css?v=23` → `v=24`、`app.js?v=15` → `v=16`、SW `v23` → `v24`
+
+---
+
 ## 2026-05-10（夜9）
 
 ### セット追加時にメモ・怪我メモが消えるバグを修正
