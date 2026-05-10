@@ -403,8 +403,11 @@ function goS2() {
 
 function updateTimer() {
   const sec = Math.floor((Date.now() - S.timerStart) / 1000);
+  const val = `${pad2(Math.floor(sec / 60))}:${pad2(sec % 60)}`;
   const el = document.getElementById('session-timer');
-  if (el) el.textContent = `${pad2(Math.floor(sec / 60))}:${pad2(sec % 60)}`;
+  if (el) el.textContent = val;
+  const el3 = document.getElementById('s3-timer');
+  if (el3) el3.textContent = val;
 }
 
 function renderS2() {
@@ -844,6 +847,8 @@ function stopTimer() {
   S.timerStart = null;
   const el = document.getElementById('session-timer');
   if (el) el.textContent = '00:00';
+  const el3 = document.getElementById('s3-timer');
+  if (el3) el3.textContent = '00:00';
 }
 
 // セッションに種目を追加（画面2の「種目を追加」）
