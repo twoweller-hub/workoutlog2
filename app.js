@@ -518,6 +518,11 @@ function renderS3Body(exMaster) {
   const body = document.getElementById('s3-body');
   const curInterval = document.getElementById('s3-interval');
   if (curInterval) S.s3Interval = parseInt(curInterval.value) || S.s3Interval;
+  const savedMemo       = document.getElementById('ex-memo')?.value ?? '';
+  const savedInjuryMemo = document.getElementById('injury-memo')?.value ?? '';
+  const savedInjurySite = document.getElementById('injury-site')?.value ?? '';
+  const savedInjuryLv   = document.getElementById('injury-level')?.value ?? '';
+  const injuryOpen      = document.getElementById('injury-body')?.classList.contains('open') ?? false;
 
   let html = buildPrevBoxHtml(data, unit, hasSides);
 
@@ -557,6 +562,13 @@ function renderS3Body(exMaster) {
 
   html += buildInjuryMemoHtml();
   body.innerHTML = html;
+
+  // Restore form values preserved before re-render
+  if (savedMemo)       document.getElementById('ex-memo').value       = savedMemo;
+  if (savedInjuryMemo) document.getElementById('injury-memo').value   = savedInjuryMemo;
+  if (savedInjurySite) document.getElementById('injury-site').value   = savedInjurySite;
+  if (savedInjuryLv)   document.getElementById('injury-level').value  = savedInjuryLv;
+  if (injuryOpen)      document.getElementById('injury-body')?.classList.add('open');
 
   // Attach events
   body.querySelectorAll('.wa-record-btn').forEach(btn => {
