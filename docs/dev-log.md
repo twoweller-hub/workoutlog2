@@ -1,5 +1,15 @@
 # 開発ログ
 
+## 2026-05-11（7）
+
+### PC左サイドメニューにスプレッドシートリンクを追加
+
+- `#sidebar-nav` の最下部に `<a class="sidebar-sheet-link">` を追加
+- アイコン 🔗、ラベル「Sheet」、`target="_blank"` で別タブ表示
+- `margin-top: auto` でサイドバー最下部に固定、`border-top` で区切り線
+- ホバーで `opacity: 0.5 → 1` に変化
+- `style.css?v=36` → `v=37`、SW `v37` → `v38`
+
 ## 2026-05-11（6）
 
 ### 記録済み種目のクリックを無効化

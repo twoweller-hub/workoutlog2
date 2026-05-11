@@ -1274,6 +1274,22 @@ body {
 
   #sidebar-nav .wa-nav-item.active .wa-nav-label { color: #d4f53c; }
 
+  .sidebar-sheet-link {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 20px;
+    margin-top: auto;
+    text-decoration: none;
+    border-top: 1px solid #2e3244;
+    opacity: 0.5;
+    transition: opacity 0.15s;
+  }
+  .sidebar-sheet-link:hover { opacity: 1; }
+  .sidebar-sheet-link .wa-nav-icon { font-size: 20px; opacity: 1; }
+  .sidebar-sheet-link .wa-nav-label { font-size: 14px; font-weight: 500; color: #b0b8c8; }
+
   /* コンテンツエリア */
   #content {
     flex: 1;
