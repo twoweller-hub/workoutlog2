@@ -994,7 +994,7 @@ function buildSessionExRows(sess, sessId, sessIdx) {
     const unit = S.exercises.find(e => e.name === name)?.unit || '回';
     const mainLine = formatHistSets(mainSets, unit);
     const warmLine = warmSets.length ? 'ウォームアップ: ' + formatHistSets(warmSets, unit) : '';
-    const injuries = sets.filter(s => s.injurySite).map(s => `${setNumLabel(s.setNum - 1, false)}${s.injurySite}・${s.injuryLevel}`).join('、');
+    const injuries = sets.filter(s => s.injurySite).map(s => `${setNumLabel(s.setNum - 1, false)}${s.injurySite}・${s.injuryLevel}${s.injuryMemo ? '：' + s.injuryMemo : ''}`).join('、');
     const memo = sets.find(s => s.memo)?.memo || '';
     return `<div class="wa-ex-row">
       <div class="wa-ex-row-header">
@@ -1124,7 +1124,7 @@ function appendExHistItems(dates, unit, container, idPrefix) {
     const warmSets = d.sets.filter(s => s.setType === 'ウォームアップ');
     const mainLine = formatHistSets(mainSets, unit);
     const warmLine = warmSets.length ? 'ウォームアップ: ' + formatHistSets(warmSets, unit) : '';
-    const injuries = d.sets.filter(s => s.injurySite).map(s => `${setNumLabel(s.setNum - 1, false)}${s.injurySite}・${s.injuryLevel}`).join('、');
+    const injuries = d.sets.filter(s => s.injurySite).map(s => `${setNumLabel(s.setNum - 1, false)}${s.injurySite}・${s.injuryLevel}${s.injuryMemo ? '：' + s.injuryMemo : ''}`).join('、');
     const memo = d.sets.find(s => s.memo)?.memo || '';
     const div = document.createElement('div');
     div.className = 'wa-ex-hist-item';
