@@ -398,7 +398,7 @@ body {
   transition: all 0.15s;
 }
 .wa-ex-item:hover { background: #1c1f2a; border-color: #2e3244; }
-.wa-ex-item.done { opacity: 0.4; }
+.wa-ex-item.done { opacity: 0.4; cursor: default; pointer-events: none; }
 .wa-ex-item.active { background: rgba(212,245,60,0.08); border-color: rgba(212,245,60,0.3); }
 .wa-ex-status { width: 22px; text-align: center; flex-shrink: 0; }
 .wa-ex-status.check { color: #d4f53c; font-size: 16px; }

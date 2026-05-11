@@ -1,5 +1,15 @@
 # 開発ログ
 
+## 2026-05-11（6）
+
+### 記録済み種目のクリックを無効化
+
+- s2（種目一覧）で `done = true` の種目をクリックしても s3 に入れてしまう問題を修正
+- `done` 種目を開くと `initS3Sections` が走り今日の記録がリセットされ、再度 `completeEx` すると重複保存になるリスクがあった
+- `renderS2` でイベントリスナーを `!ex.done` な種目のみに設定
+- CSS に `.wa-ex-item.done { pointer-events: none; cursor: default; }` を追加
+- `style.css?v=35` → `v=36`、`app.js?v=21` → `v=22`、SW `v36` → `v37`
+
 ## 2026-05-11（5）
 
 ### トレーニング完了画面に終了時刻・Obsidianメモを追加

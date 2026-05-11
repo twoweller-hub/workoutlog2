@@ -444,7 +444,10 @@ function renderS2() {
   const container = document.getElementById('s2-ex-list');
   container.innerHTML = html;
   container.querySelectorAll('.wa-ex-item').forEach(el => {
-    el.addEventListener('click', () => enterEx(parseInt(el.dataset.idx)));
+    const idx = parseInt(el.dataset.idx);
+    if (!S.session.exercises[idx].done) {
+      el.addEventListener('click', () => enterEx(idx));
+    }
   });
   container.querySelector('#btn-s2-add-ex')?.addEventListener('click', openSessionExAdd);
 
