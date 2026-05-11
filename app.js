@@ -1362,6 +1362,9 @@ function syncRecordEditState() {
 
 async function saveRecordModal() {
   if (!S.editingRecord) return;
+  const btn = document.getElementById('modal-rec-save');
+  btn.textContent = '保存中…';
+  btn.disabled = true;
   syncRecordEditState();
   const { sections, exName, date, menu, sessionId, memo } = S.editingRecord;
 
@@ -1384,6 +1387,8 @@ async function saveRecordModal() {
   });
 
   await gasPost({ action: 'updateExerciseRecords', date, menu: menu || '', exercise: exName, sessionId, sets });
+  btn.textContent = '保存';
+  btn.disabled = false;
   closeModal('modal-record-edit');
   S.editingRecord = null;
   showToast('保存しました');
