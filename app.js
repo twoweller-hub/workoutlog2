@@ -494,15 +494,14 @@ function initS3Sections(exMaster) {
   const hasSides = exMaster?.hasSides || false;
   const data = S.s3ExData;
 
+  const emptySet = () => ({ weight: null, reps: null, recorded: false, recordedAt: null, injurySite: '', injuryLevel: '', injuryMemo: '', injuryOpen: false });
   const buildSets = (type, sideFilter) => {
     const prev = data?.lastSets?.filter(s => s.type === type && (sideFilter === '' ? true : s.side === sideFilter)) || [];
     if (prev.length > 0) {
-      return prev.map(s => ({ weight: s.weight, reps: s.reps, recorded: false, recordedAt: null }));
+      return prev.map(s => ({ weight: s.weight, reps: s.reps, recorded: false, recordedAt: null, injurySite: '', injuryLevel: '', injuryMemo: '', injuryOpen: false }));
     }
     if (type === 'ウォームアップ') return [];
-    return [{ weight: null, reps: null, recorded: false, recordedAt: null },
-            { weight: null, reps: null, recorded: false, recordedAt: null },
-            { weight: null, reps: null, recorded: false, recordedAt: null }];
+    return [emptySet(), emptySet(), emptySet()];
   };
 
   if (hasSides) {
@@ -524,11 +523,8 @@ function renderS3Body(exMaster) {
   const body = document.getElementById('s3-body');
   const curInterval = document.getElementById('s3-interval');
   if (curInterval) S.s3Interval = parseInt(curInterval.value) || S.s3Interval;
-  const savedMemo       = document.getElementById('ex-memo')?.value ?? '';
-  const savedInjuryMemo = document.getElementById('injury-memo')?.value ?? '';
-  const savedInjurySite = document.getElementById('injury-site')?.value ?? '';
-  const savedInjuryLv   = document.getElementById('injury-level')?.value ?? '';
-  const injuryOpen      = document.getElementById('injury-body')?.classList.contains('open') ?? false;
+  syncS3InjuryState();
+  const savedMemo = document.getElementById('ex-memo')?.value ?? '';
 
   let html = `<div class="wa-interval-in-body">
     <span class="wa-interval-label">インターバル（秒）</span>
@@ -567,12 +563,7 @@ function renderS3Body(exMaster) {
   html += buildInjuryMemoHtml();
   body.innerHTML = html;
 
-  // Restore form values preserved before re-render
-  if (savedMemo)       document.getElementById('ex-memo').value       = savedMemo;
-  if (savedInjuryMemo) document.getElementById('injury-memo').value   = savedInjuryMemo;
-  if (savedInjurySite) document.getElementById('injury-site').value   = savedInjurySite;
-  if (savedInjuryLv)   document.getElementById('injury-level').value  = savedInjuryLv;
-  if (injuryOpen)      document.getElementById('injury-body')?.classList.add('open');
+  if (savedMemo) document.getElementById('ex-memo').value = savedMemo;
 
   // Attach events
   body.querySelectorAll('.wa-record-btn').forEach(btn => {
@@ -581,7 +572,13 @@ function renderS3Body(exMaster) {
   body.querySelectorAll('.wa-add-btn').forEach(btn => {
     btn.addEventListener('click', e => onAddSet(e.currentTarget));
   });
-  body.querySelector('#injury-toggle')?.addEventListener('click', toggleInjury);
+  body.querySelectorAll('.wa-set-injury-toggle').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const injBody = btn.nextElementSibling;
+      const open = injBody.classList.toggle('open');
+      btn.querySelector('.wa-set-injury-chev').style.transform = open ? 'rotate(180deg)' : '';
+    });
+  });
 
   updateCompleteBtn();
 }
@@ -626,6 +623,9 @@ function buildSetRowHtml(si, type, i, set, unit) {
   const recText = set.recorded ? '✓ 記録済' : '記録';
   const wVal = set.weight != null ? set.weight : '';
   const rVal = set.reps != null ? set.reps : '';
+  const hasInjury = set.injurySite ? ' has-injury' : '';
+  const injuryOpen = set.injuryOpen ? ' open' : '';
+  const chevStyle = set.injuryOpen ? ' style="transform:rotate(180deg)"' : '';
   return `<div class="wa-set-row" data-si="${si}" data-type="${type}" data-i="${i}">
     <span class="wa-set-num">${label}</span>
     <input class="wa-set-input weight-input" type="number" value="${wVal}" placeholder="-">
@@ -634,41 +634,51 @@ function buildSetRowHtml(si, type, i, set, unit) {
     <input class="wa-set-input reps-input" type="number" value="${rVal}" placeholder="-">
     <span class="wa-set-unit">${unit === '秒' ? '秒' : '回'}</span>
     <button class="wa-record-btn${recClass}" data-si="${si}" data-type="${type}" data-i="${i}">${recText}</button>
+    <div class="wa-set-injury">
+      <button type="button" class="wa-set-injury-toggle${hasInjury}">🩹 怪我<span class="wa-set-injury-chev"${chevStyle}>▼</span></button>
+      <div class="wa-set-injury-body${injuryOpen}">
+        <div class="wa-injury-row">
+          <select class="wa-injury-select injury-site-input">
+            <option value="">部位</option>
+            ${S.injurySites.map(s => `<option${s === set.injurySite ? ' selected' : ''}>${esc(s)}</option>`).join('')}
+          </select>
+          <select class="wa-injury-select injury-level-input">
+            <option value="">程度</option>
+            <option${set.injuryLevel === '違和感' ? ' selected' : ''}>違和感</option>
+            <option${set.injuryLevel === '支障あり' ? ' selected' : ''}>支障あり</option>
+            <option${set.injuryLevel === '中断レベル' ? ' selected' : ''}>中断レベル</option>
+          </select>
+        </div>
+        <textarea class="wa-memo-input injury-memo-input" rows="2" placeholder="怪我メモ（任意）">${esc(set.injuryMemo || '')}</textarea>
+      </div>
+    </div>
   </div>`;
 }
 
 function buildInjuryMemoHtml() {
   return `<div class="wa-divider"></div>
-  <div style="margin-bottom:10px">
-    <button class="wa-injury-toggle" id="injury-toggle">
-      🩹 怪我の記録（任意）<span class="wa-injury-chevron" id="injury-chev">▼</span>
-    </button>
-    <div class="wa-injury-body" id="injury-body">
-      <div class="wa-injury-row">
-        <select class="wa-injury-select" id="injury-site">
-          <option value="">部位を選択</option>
-          ${S.injurySites.map(s => `<option>${esc(s)}</option>`).join('')}
-        </select>
-        <select class="wa-injury-select" id="injury-level">
-          <option value="">程度</option>
-          <option>違和感</option><option>支障あり</option><option>中断レベル</option>
-        </select>
-      </div>
-      <textarea class="wa-memo-input" id="injury-memo" rows="2" placeholder="怪我メモ（任意）"></textarea>
-    </div>
-  </div>
   <div><div class="wa-memo-label">メモ</div>
     <textarea class="wa-memo-input" id="ex-memo" rows="4" placeholder="自由記述"></textarea>
   </div>`;
 }
 
-function toggleInjury() {
-  const toggle = document.getElementById('injury-toggle');
-  const body = document.getElementById('injury-body');
-  const chev = document.getElementById('injury-chev');
-  const open = body.classList.toggle('open');
-  toggle.classList.toggle('open', open);
-  chev.style.transform = open ? 'rotate(180deg)' : '';
+function syncS3InjuryState() {
+  const body = document.getElementById('s3-body');
+  if (!body) return;
+  S.s3Sections.forEach((sec, si) => {
+    ['warmup', 'main'].forEach(type => {
+      sec[type].forEach((set, i) => {
+        const row = body.querySelector(`.wa-set-row[data-si="${si}"][data-type="${type}"][data-i="${i}"]`);
+        if (!row) return;
+        const injBody = row.querySelector('.wa-set-injury-body');
+        if (!injBody) return;
+        set.injurySite  = row.querySelector('.injury-site-input')?.value  || '';
+        set.injuryLevel = row.querySelector('.injury-level-input')?.value || '';
+        set.injuryMemo  = row.querySelector('.injury-memo-input')?.value  || '';
+        set.injuryOpen  = injBody.classList.contains('open');
+      });
+    });
+  });
 }
 
 function onRecordSet(btn) {
@@ -728,7 +738,7 @@ function refreshIntervals(si, type, exMaster) {
 function onAddSet(btn) {
   const si = parseInt(btn.dataset.si);
   const type = btn.dataset.type;
-  S.s3Sections[si][type].push({ weight: null, reps: null, recorded: false, recordedAt: null });
+  S.s3Sections[si][type].push({ weight: null, reps: null, recorded: false, recordedAt: null, injurySite: '', injuryLevel: '', injuryMemo: '', injuryOpen: false });
   const exMaster = S.exercises.find(e => e.name === S.session.exercises[S.currentExIdx].name);
   renderS3Body(exMaster);
   document.getElementById('s3-body').scrollTop = 9999;
@@ -740,10 +750,9 @@ function completeEx() {
   const unit = exMaster?.unit || '回';
   const targetInterval = parseInt(document.getElementById('s3-interval').value) || 0;
   const memo = document.getElementById('ex-memo')?.value || '';
-  const injurySite = document.getElementById('injury-site')?.value || '';
-  const injuryLevel = document.getElementById('injury-level')?.value || '';
-  const injuryMemo = document.getElementById('injury-memo')?.value || '';
   const today = todayStr();
+
+  syncS3InjuryState();
 
   const sets = [];
   S.s3Sections.forEach(sec => {
@@ -753,7 +762,7 @@ function completeEx() {
         type: 'ウォームアップ', setNum: i + 1, side: sec.side,
         weight: set.weight, reps: set.reps, targetInterval,
         time: set.recordedAt ? timeFromMs(set.recordedAt) : timeNow(),
-        injurySite: '', injuryLevel: '', injuryMemo: '',
+        injurySite: set.injurySite || '', injuryLevel: set.injuryLevel || '', injuryMemo: set.injuryMemo || '',
         memo: i === 0 ? memo : '',
       });
     });
@@ -763,9 +772,7 @@ function completeEx() {
         type: 'メイン', setNum: i + 1, side: sec.side,
         weight: set.weight, reps: set.reps, targetInterval,
         time: set.recordedAt ? timeFromMs(set.recordedAt) : timeNow(),
-        injurySite: i === 0 ? injurySite : '',
-        injuryLevel: i === 0 ? injuryLevel : '',
-        injuryMemo: i === 0 ? injuryMemo : '',
+        injurySite: set.injurySite || '', injuryLevel: set.injuryLevel || '', injuryMemo: set.injuryMemo || '',
         memo: i === 0 ? memo : '',
       });
     });
@@ -994,7 +1001,7 @@ function buildSessionExRows(sess, sessId, sessIdx) {
     const unit = S.exercises.find(e => e.name === name)?.unit || '回';
     const mainLine = formatHistSets(mainSets, unit);
     const warmLine = warmSets.length ? 'ウォームアップ: ' + formatHistSets(warmSets, unit) : '';
-    const injuries = sets.filter(s => s.injurySite).map(s => `${setNumLabel(s.setNum - 1, false)}${s.injurySite}・${s.injuryLevel}${s.injuryMemo ? '：' + s.injuryMemo : ''}`).join('、');
+    const injuries = sets.filter(s => s.injurySite).map(s => `${setNumLabel(s.setNum - 1, s.setType === 'ウォームアップ')}${s.injurySite}・${s.injuryLevel}${s.injuryMemo ? '：' + s.injuryMemo : ''}`).join('\n');
     const memo = sets.find(s => s.memo)?.memo || '';
     return `<div class="wa-ex-row">
       <div class="wa-ex-row-header">
@@ -1124,7 +1131,7 @@ function appendExHistItems(dates, unit, container, idPrefix) {
     const warmSets = d.sets.filter(s => s.setType === 'ウォームアップ');
     const mainLine = formatHistSets(mainSets, unit);
     const warmLine = warmSets.length ? 'ウォームアップ: ' + formatHistSets(warmSets, unit) : '';
-    const injuries = d.sets.filter(s => s.injurySite).map(s => `${setNumLabel(s.setNum - 1, false)}${s.injurySite}・${s.injuryLevel}${s.injuryMemo ? '：' + s.injuryMemo : ''}`).join('、');
+    const injuries = d.sets.filter(s => s.injurySite).map(s => `${setNumLabel(s.setNum - 1, s.setType === 'ウォームアップ')}${s.injurySite}・${s.injuryLevel}${s.injuryMemo ? '：' + s.injuryMemo : ''}`).join('\n');
     const memo = d.sets.find(s => s.memo)?.memo || '';
     const div = document.createElement('div');
     div.className = 'wa-ex-hist-item';
@@ -1224,24 +1231,20 @@ function openRecordEditModal(sessIdx, exName) {
   const buildSide = side => ({
     side,
     warmup: sets.filter(s => s.setType === 'ウォームアップ' && s.side === side)
-                .map(s => ({ weight: s.weight, reps: s.reps })),
+                .map(s => ({ weight: s.weight, reps: s.reps, injurySite: s.injurySite || '', injuryLevel: s.injuryLevel || '', injuryMemo: s.injuryMemo || '', injuryOpen: !!(s.injurySite) })),
     main:   sets.filter(s => s.setType === 'メイン' && s.side === side)
-                .map(s => ({ weight: s.weight, reps: s.reps })),
+                .map(s => ({ weight: s.weight, reps: s.reps, injurySite: s.injurySite || '', injuryLevel: s.injuryLevel || '', injuryMemo: s.injuryMemo || '', injuryOpen: !!(s.injurySite) })),
   });
 
   const sections = hasSides ? [buildSide('右'), buildSide('左')] : [buildSide('')];
 
-  const firstInjury = sets.find(s => s.injurySite) || {};
   S.editingRecord = {
     sessIdx, exName,
     date:      sess.date,
     menu:      sess.menu,
     sessionId: sess.sessionId,
     unit, hasSides, sections,
-    injurySite:  firstInjury.injurySite  || '',
-    injuryLevel: firstInjury.injuryLevel || '',
-    injuryMemo:  firstInjury.injuryMemo  || '',
-    memo:        sets.find(s => s.memo)?.memo || '',
+    memo: sets.find(s => s.memo)?.memo || '',
   };
 
   document.getElementById('modal-rec-title').textContent = exName + 'を編集';
@@ -1251,7 +1254,7 @@ function openRecordEditModal(sessIdx, exName) {
 }
 
 function renderRecordEditBody() {
-  const { sections, unit, hasSides, injurySite, injuryLevel, injuryMemo, memo } = S.editingRecord;
+  const { sections, unit, hasSides, memo } = S.editingRecord;
   const body = document.getElementById('modal-rec-body');
   let html = '';
 
@@ -1270,32 +1273,14 @@ function renderRecordEditBody() {
 
   html += `<div class="wa-divider"></div>
     <div class="wa-memo-label">メモ</div>
-    <textarea class="wa-modal-input" id="modal-rec-memo" rows="2" placeholder="自由記述">${esc(memo)}</textarea>
-    <button class="wa-injury-toggle" id="modal-rec-injury-toggle" style="margin-top:8px">
-      🩹 怪我の記録（任意）<span id="modal-rec-injury-chev">▼</span>
-    </button>
-    <div class="wa-injury-body" id="modal-rec-injury-body">
-      <div class="wa-injury-row">
-        <select class="wa-injury-select" id="modal-rec-injury-site">
-          <option value="">部位を選択</option>
-          ${S.injurySites.map(s => `<option${s === injurySite ? ' selected' : ''}>${esc(s)}</option>`).join('')}
-        </select>
-        <select class="wa-injury-select" id="modal-rec-injury-level">
-          <option value="">程度</option>
-          <option${injuryLevel === '違和感' ? ' selected' : ''}>違和感</option>
-          <option${injuryLevel === '支障あり' ? ' selected' : ''}>支障あり</option>
-          <option${injuryLevel === '中断レベル' ? ' selected' : ''}>中断レベル</option>
-        </select>
-      </div>
-      <textarea class="wa-modal-input" id="modal-rec-injury-memo" rows="2" placeholder="怪我メモ">${esc(injuryMemo)}</textarea>
-    </div>`;
+    <textarea class="wa-modal-input" id="modal-rec-memo" rows="2" placeholder="自由記述">${esc(memo)}</textarea>`;
 
   body.innerHTML = html;
 
   body.querySelectorAll('.wa-add-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       syncRecordEditState();
-      S.editingRecord.sections[parseInt(btn.dataset.si)][btn.dataset.type].push({ weight: null, reps: null });
+      S.editingRecord.sections[parseInt(btn.dataset.si)][btn.dataset.type].push({ weight: null, reps: null, injurySite: '', injuryLevel: '', injuryMemo: '', injuryOpen: false });
       renderRecordEditBody();
     });
   });
@@ -1306,12 +1291,13 @@ function renderRecordEditBody() {
       renderRecordEditBody();
     });
   });
-  document.getElementById('modal-rec-injury-toggle').addEventListener('click', () => {
-    const b    = document.getElementById('modal-rec-injury-body');
-    const open = b.classList.toggle('open');
-    document.getElementById('modal-rec-injury-chev').style.transform = open ? 'rotate(180deg)' : '';
+  body.querySelectorAll('.wa-set-injury-toggle').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const injBody = btn.nextElementSibling;
+      const open = injBody.classList.toggle('open');
+      btn.querySelector('.wa-set-injury-chev').style.transform = open ? 'rotate(180deg)' : '';
+    });
   });
-  if (injurySite) document.getElementById('modal-rec-injury-body').classList.add('open');
 }
 
 function buildRecordSetRow(si, type, i, set, unit) {
@@ -1319,6 +1305,9 @@ function buildRecordSetRow(si, type, i, set, unit) {
   const label  = setNumLabel(i, isWarm);
   const wVal   = set.weight != null ? set.weight : '';
   const rVal   = set.reps   != null ? set.reps   : '';
+  const hasInjury = set.injurySite ? ' has-injury' : '';
+  const injuryOpen = set.injuryOpen ? ' open' : '';
+  const chevStyle = set.injuryOpen ? ' style="transform:rotate(180deg)"' : '';
   return `<div class="wa-set-row" data-si="${si}" data-type="${type}" data-i="${i}">
     <span class="wa-set-num">${label}</span>
     <input class="wa-set-input weight-input" type="number" value="${wVal}" placeholder="-">
@@ -1327,16 +1316,31 @@ function buildRecordSetRow(si, type, i, set, unit) {
     <input class="wa-set-input reps-input" type="number" value="${rVal}" placeholder="-">
     <span class="wa-set-unit">${unit === '秒' ? '秒' : '回'}</span>
     <button class="wa-rec-del-btn" data-si="${si}" data-type="${type}" data-i="${i}">✕</button>
+    <div class="wa-set-injury">
+      <button type="button" class="wa-set-injury-toggle${hasInjury}">🩹 怪我<span class="wa-set-injury-chev"${chevStyle}>▼</span></button>
+      <div class="wa-set-injury-body${injuryOpen}">
+        <div class="wa-injury-row">
+          <select class="wa-injury-select injury-site-input">
+            <option value="">部位</option>
+            ${S.injurySites.map(s => `<option${s === set.injurySite ? ' selected' : ''}>${esc(s)}</option>`).join('')}
+          </select>
+          <select class="wa-injury-select injury-level-input">
+            <option value="">程度</option>
+            <option${set.injuryLevel === '違和感' ? ' selected' : ''}>違和感</option>
+            <option${set.injuryLevel === '支障あり' ? ' selected' : ''}>支障あり</option>
+            <option${set.injuryLevel === '中断レベル' ? ' selected' : ''}>中断レベル</option>
+          </select>
+        </div>
+        <textarea class="wa-memo-input injury-memo-input" rows="2" placeholder="怪我メモ（任意）">${esc(set.injuryMemo || '')}</textarea>
+      </div>
+    </div>
   </div>`;
 }
 
 function syncRecordEditState() {
   const body = document.getElementById('modal-rec-body');
   if (!body || !S.editingRecord) return;
-  S.editingRecord.memo        = document.getElementById('modal-rec-memo')?.value || '';
-  S.editingRecord.injurySite  = document.getElementById('modal-rec-injury-site')?.value || '';
-  S.editingRecord.injuryLevel = document.getElementById('modal-rec-injury-level')?.value || '';
-  S.editingRecord.injuryMemo  = document.getElementById('modal-rec-injury-memo')?.value || '';
+  S.editingRecord.memo = document.getElementById('modal-rec-memo')?.value || '';
   S.editingRecord.sections.forEach((sec, si) => {
     ['warmup', 'main'].forEach(type => {
       sec[type].forEach((set, i) => {
@@ -1346,6 +1350,11 @@ function syncRecordEditState() {
         const r = row.querySelector('.reps-input').value;
         set.weight = w !== '' ? parseFloat(w) : null;
         set.reps   = r !== '' ? parseFloat(r) : null;
+        set.injurySite  = row.querySelector('.injury-site-input')?.value  || '';
+        set.injuryLevel = row.querySelector('.injury-level-input')?.value || '';
+        set.injuryMemo  = row.querySelector('.injury-memo-input')?.value  || '';
+        const injBody = row.querySelector('.wa-set-injury-body');
+        set.injuryOpen  = injBody ? injBody.classList.contains('open') : false;
       });
     });
   });
@@ -1354,21 +1363,22 @@ function syncRecordEditState() {
 async function saveRecordModal() {
   if (!S.editingRecord) return;
   syncRecordEditState();
-  const { sections, exName, date, menu, sessionId, memo, injurySite, injuryLevel, injuryMemo } = S.editingRecord;
+  const { sections, exName, date, menu, sessionId, memo } = S.editingRecord;
 
   const sets = [];
   sections.forEach(sec => {
     sec.warmup.forEach((set, i) => {
       sets.push({ type: 'ウォームアップ', setNum: i + 1, side: sec.side,
         weight: set.weight, reps: set.reps,
-        injurySite: '', injuryLevel: '', injuryMemo: '', memo: i === 0 ? memo : '' });
+        injurySite: set.injurySite || '', injuryLevel: set.injuryLevel || '', injuryMemo: set.injuryMemo || '',
+        memo: i === 0 ? memo : '' });
     });
     sec.main.forEach((set, i) => {
       sets.push({ type: 'メイン', setNum: i + 1, side: sec.side,
         weight: set.weight, reps: set.reps,
-        injurySite:  i === 0 ? injurySite  : '',
-        injuryLevel: i === 0 ? injuryLevel : '',
-        injuryMemo:  i === 0 ? injuryMemo  : '',
+        injurySite:  set.injurySite  || '',
+        injuryLevel: set.injuryLevel || '',
+        injuryMemo:  set.injuryMemo  || '',
         memo: i === 0 ? memo : '' });
     });
   });

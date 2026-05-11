@@ -484,7 +484,7 @@ body {
   padding-left: 2px;
 }
 
-.wa-set-row { display: flex; align-items: center; gap: 6px; margin-bottom: 6px; }
+.wa-set-row { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; margin-bottom: 6px; }
 .wa-set-num { font-size: 11px; color: #b0b8c8; width: 24px; text-align: right; flex-shrink: 0; }
 .wa-set-input {
   font-family: 'Bebas Neue', sans-serif;
@@ -541,6 +541,21 @@ body {
   transition: color 0.15s;
 }
 .wa-add-btn:hover { color: #eef0f4; }
+
+.wa-set-injury { width: 100%; padding-left: 30px; margin-top: -2px; margin-bottom: 2px; }
+.wa-set-injury-toggle {
+  display: flex; align-items: center; gap: 4px;
+  background: none; border: none;
+  color: #5a6070; font-size: 11px;
+  font-family: 'Noto Sans JP', sans-serif;
+  cursor: pointer; padding: 2px 0;
+  transition: color 0.15s;
+}
+.wa-set-injury-toggle:hover { color: #9ba3b5; }
+.wa-set-injury-toggle.has-injury { color: #ff9f40; }
+.wa-set-injury-chev { font-size: 9px; transition: transform 0.2s; }
+.wa-set-injury-body { display: none; padding: 6px 0 4px; }
+.wa-set-injury-body.open { display: block; }
 
 .wa-injury-toggle {
   display: flex;
@@ -717,7 +732,7 @@ body {
 .wa-ex-row-name:hover { color: #eef0f4; }
 .wa-ex-row-main { font-size: 13px; color: #b0b8c8; margin-bottom: 2px; }
 .wa-ex-row-warm { font-size: 12px; color: #6e7789; margin-bottom: 2px; }
-.wa-ex-row-injury { font-size: 12px; color: #ff9f40; margin-bottom: 2px; }
+.wa-ex-row-injury { font-size: 12px; color: #ff9f40; margin-bottom: 2px; white-space: pre-wrap; }
 .wa-ex-row-memo { font-size: 12px; color: #9ba3b5; white-space: pre-wrap; }
 
 /* 種目軸リスト */
@@ -796,7 +811,7 @@ body {
 .wa-ex-hist-body { display: none; background: #161920; padding: 10px 14px 12px; }
 .wa-ex-hist-item.expanded .wa-ex-hist-body { display: block; }
 .wa-ex-hist-detail { font-size: 12px; color: #b0b8c8; margin-bottom: 4px; }
-.wa-ex-hist-injury { font-size: 11px; color: #ff9f40; margin-bottom: 4px; }
+.wa-ex-hist-injury { font-size: 11px; color: #ff9f40; margin-bottom: 4px; white-space: pre-wrap; }
 .wa-ex-hist-memo { font-size: 11px; color: #9ba3b5; white-space: pre-wrap; }
 
 /* もっと見るボタン */
@@ -1357,6 +1372,8 @@ body {
   .wa-side-section-label { font-size: 15px; margin: 14px 0 8px; }
   .wa-add-btn { font-size: 14px; }
   .wa-interval-input { font-size: 22px; width: 62px; }
+  .wa-set-injury { padding-left: 40px; }
+  .wa-set-injury-toggle { font-size: 13px; }
 }
 
 .wa-ex-row-header {

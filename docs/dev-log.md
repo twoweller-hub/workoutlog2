@@ -1,5 +1,26 @@
 # 開発ログ
 
+## 2026-05-11（2）
+
+### 怪我の記録をセット単位に変更
+
+- 従来：種目1つにつき怪我入力欄が1つ（常にメイン①セットに保存）
+- 変更後：ウォームアップ・メイン各セット行に「🩹 怪我」トグルを追加。セットごとに部位・程度・メモを入力可能
+- `buildSetRowHtml` / `buildRecordSetRow` に `.wa-set-injury` セクションを追加
+- `buildInjuryMemoHtml` から怪我欄を削除（メモのみ残す）
+- `toggleInjury` 関数を削除
+- `syncS3InjuryState()` 追加：re-render前にDOMの怪我値を `S.s3Sections` に同期
+- `initS3Sections` のセットオブジェクトに `injurySite / injuryLevel / injuryMemo / injuryOpen` フィールドを追加
+- `completeEx`：共有怪我入力の読み取りを廃止し `S.s3Sections` から per-set で読む
+- `openRecordEditModal`：`buildSide` が per-set injury を含むように変更。`firstInjury` 抽出を廃止
+- `renderRecordEditBody`：共有怪我欄を削除、per-set トグルイベントを追加
+- `syncRecordEditState`：per-set 怪我を各行から読む
+- `saveRecordModal`：sections の per-set injury から保存
+- 履歴表示（line 997, 1127）：`setNumLabel` の isWarm を正しく設定。複数怪我の区切りを `、` → `\n`（pre-wrap で改行表示）
+- `.wa-ex-row-injury` / `.wa-ex-hist-injury` に `white-space: pre-wrap` を追加
+- CSS: `.wa-set-row` に `flex-wrap: wrap`、`.wa-set-injury` 系クラスを追加
+- `style.css?v=32` → `v=34`、`app.js?v=18` → `v=19`、SW `v33` → `v34`
+
 ## 2026-05-11
 
 ### 履歴の怪我メモ表示を修正
