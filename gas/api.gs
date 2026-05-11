@@ -561,6 +561,28 @@ function updateExerciseRecords(d) {
   const sheet = ss.getSheetByName(SHEET_RECORDS);
   const rows  = sheet.getDataRange().getValues();
 
+  // 削除前に挿入位置と元の時刻・インターバルを記録
+  let insertRow = -1;
+  const originalData = {};
+  for (let i = 1; i < rows.length; i++) {
+    if (String(rows[i][4]) !== String(d.exercise)) continue;
+    const byId       = d.sessionId && String(rows[i][15]) === String(d.sessionId);
+    const byFallback = !d.sessionId &&
+                       fmtDate(rows[i][1]) === String(d.date) &&
+                       String(rows[i][3]) === String(d.menu || '');
+    if (byId || byFallback) {
+      if (insertRow === -1) insertRow = i + 1;
+      const key = rows[i][5] + '|' + rows[i][6] + '|' + String(rows[i][7] || '');
+      if (!originalData[key]) {
+        originalData[key] = {
+          time:           fmtTime(rows[i][2]),
+          targetInterval: rows[i][10]
+        };
+      }
+    }
+  }
+
+  // ボトムアップで削除
   for (let i = rows.length - 1; i >= 1; i--) {
     if (String(rows[i][4]) !== String(d.exercise)) continue;
     const byId       = d.sessionId && String(rows[i][15]) === String(d.sessionId);
@@ -580,26 +602,35 @@ function updateExerciseRecords(d) {
     baseId = (typeof lastId === 'number' && lastId > 0 ? lastId : last - 1) + 1;
   }
 
-  const newRows = sets.map((s, i) => [
-    baseId + i,
-    d.date,
-    '',
-    d.menu        || '',
-    d.exercise,
-    s.type,
-    s.setNum,
-    s.side        || '',
-    s.weight != null ? s.weight : '',
-    s.reps   != null ? s.reps   : '',
-    '',
-    s.injurySite  || '',
-    s.injuryLevel || '',
-    s.injuryMemo  || '',
-    s.memo        || '',
-    d.sessionId   || ''
-  ]);
+  const newRows = sets.map((s, i) => {
+    const key  = s.type + '|' + s.setNum + '|' + String(s.side || '');
+    const orig = originalData[key] || {};
+    return [
+      baseId + i,
+      d.date,
+      orig.time           || '',
+      d.menu              || '',
+      d.exercise,
+      s.type,
+      s.setNum,
+      s.side              || '',
+      s.weight != null ? s.weight : '',
+      s.reps   != null ? s.reps   : '',
+      orig.targetInterval ?? '',
+      s.injurySite        || '',
+      s.injuryLevel       || '',
+      s.injuryMemo        || '',
+      s.memo              || '',
+      d.sessionId         || ''
+    ];
+  });
 
-  sheet.getRange(last + 1, 1, newRows.length, 16).setValues(newRows);
+  // 削除後も挿入位置が有効なら元の位置に挿入、それ以外は末尾追記
+  const targetRow = insertRow !== -1 ? insertRow : last + 1;
+  if (targetRow <= sheet.getLastRow()) {
+    sheet.insertRowsBefore(targetRow, newRows.length);
+  }
+  sheet.getRange(targetRow, 1, newRows.length, 16).setValues(newRows);
   return okRes();
 }
 
