@@ -10,7 +10,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=34">
+<link rel="stylesheet" href="style.css?v=35">
 </head>
 <body>
 <div id="app">
@@ -179,7 +179,7 @@
           <div class="wa-finish-msg">
             <div class="wa-finish-emoji">💪</div>
             <div class="wa-finish-title">お疲れ様でした</div>
-            <div class="wa-finish-time">総時間<span id="finish-total-time">0</span>分</div>
+            <div class="wa-finish-time" id="finish-time-range">--:--〜--:--（--分）</div>
           </div>
           <div class="wa-summary-row">
             <div class="wa-summary-card">
@@ -190,10 +190,13 @@
               <div class="wa-summary-num" id="finish-set-count">0<em>セット</em></div>
               <div class="wa-summary-label">総セット数</div>
             </div>
-            <div class="wa-summary-card">
-              <div class="wa-summary-num" id="finish-start-time">--:--</div>
-              <div class="wa-summary-label">開始時刻</div>
+          </div>
+          <div class="wa-obsidian-wrap">
+            <div class="wa-obsidian-header">
+              <span>Obsidianメモ</span>
+              <button id="btn-copy-obsidian" class="wa-obsidian-copy-btn">コピー</button>
             </div>
+            <textarea id="finish-obsidian" class="wa-obsidian-textarea" readonly rows="6"></textarea>
           </div>
           <div class="wa-section-label">コンディション</div>
           <div class="wa-choice-row">
@@ -596,6 +599,6 @@
     navigator.serviceWorker.register('/workoutlog2/sw.js');
   }
 </script>
-<script src="app.js?v=20"></script>
+<script src="app.js?v=21"></script>
 </body>
 </html>

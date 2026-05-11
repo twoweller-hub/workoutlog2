@@ -617,13 +617,42 @@ body {
   color: #eef0f4;
   margin-bottom: 6px;
 }
-.wa-finish-time { font-size: 13px; color: #b0b8c8; }
-.wa-finish-time span {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 22px;
+.wa-finish-time {
+  font-size: 15px;
   color: #d4f53c;
-  letter-spacing: 2px;
-  margin: 0 4px;
+  letter-spacing: 1px;
+  margin-top: 6px;
+}
+.wa-obsidian-wrap { margin-bottom: 20px; }
+.wa-obsidian-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+  color: #b0b8c8;
+  margin-bottom: 6px;
+}
+.wa-obsidian-copy-btn {
+  background: #1c1f2a;
+  border: 1px solid #3a3f56;
+  color: #d4f53c;
+  border-radius: 4px;
+  padding: 3px 12px;
+  font-size: 12px;
+  cursor: pointer;
+}
+.wa-obsidian-textarea {
+  width: 100%;
+  background: #0d0f14;
+  color: #c8d0e0;
+  border: 1px solid #2e3244;
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 12px;
+  font-family: monospace;
+  resize: none;
+  box-sizing: border-box;
+  line-height: 1.6;
 }
 .wa-summary-row { display: flex; gap: 8px; margin-bottom: 20px; }
 .wa-summary-card {

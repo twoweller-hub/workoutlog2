@@ -1,5 +1,18 @@
 # 開発ログ
 
+## 2026-05-11（5）
+
+### トレーニング完了画面に終了時刻・Obsidianメモを追加
+
+- `goFinish()` で `endTime = timeNow()` を取得し `S.session.endTime` に保存
+- 「総時間X分」表示を `19:30〜20:45（75分）` 形式（`#finish-time-range`）に変更
+- サマリーカードの「開始時刻」を削除（時間帯表示に統合）
+- `buildObsidianText()` 追加：完了種目・メインセット値（`formatHistSets` 形式）・時間帯を組み立て
+- Obsidianメモ欄（読み取り専用 `<textarea>`）と「コピー」ボタンを追加。コピー後1.5秒「コピー済み✓」表示
+- `saveSession()` の `endTime` を `S.session.endTime` 優先に変更（完了画面表示と保存値を一致）
+- 単発記録は `menuDisplay = '単発記録'` のため見出しは `### 筋トレ：単発記録`
+- `style.css?v=34` → `v=35`、`app.js?v=20` → `v=21`、SW `v35` → `v36`
+
 ## 2026-05-11（4）
 
 ### 記録編集モーダルの保存ボタンに「保存中…」表示を追加

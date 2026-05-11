@@ -813,16 +813,30 @@ function timeFromMs(ms) {
 // =====================================================================
 //  記録タブ: 終了画面
 // =====================================================================
+function buildObsidianText(doneExes, menuDisplayName, startTime, endTime, totalMin) {
+  const lines = [`### 筋トレ：${menuDisplayName}`];
+  doneExes.forEach(ex => {
+    const unit = S.exercises.find(e => e.name === ex.name)?.unit || '回';
+    const mainSets = ex.sets.filter(s => s.type === 'メイン');
+    const setsStr = formatHistSets(mainSets, unit);
+    lines.push(setsStr ? `  - ${ex.name}　${setsStr}` : `  - ${ex.name}`);
+  });
+  lines.push(`${startTime}〜${endTime}（${totalMin}分）`);
+  return lines.join('\n');
+}
+
 function goFinish() {
+  const endTime = timeNow();
+  S.session.endTime = endTime;
   const totalSec = S.timerStart ? Math.floor((Date.now() - S.timerStart) / 1000) : 0;
   const totalMin = Math.ceil(totalSec / 60);
   const doneExes = S.session.exercises.filter(e => e.done);
   const totalSets = doneExes.reduce((n, e) => n + e.sets.filter(s => s.type === 'メイン').length, 0);
 
-  document.getElementById('finish-total-time').textContent = totalMin;
+  document.getElementById('finish-time-range').textContent = `${S.session.startTime}〜${endTime}（${totalMin}分）`;
   document.getElementById('finish-ex-count').innerHTML = `${doneExes.length}<em>種目</em>`;
   document.getElementById('finish-set-count').innerHTML = `${totalSets}<em>セット</em>`;
-  document.getElementById('finish-start-time').textContent = S.session.startTime;
+  document.getElementById('finish-obsidian').value = buildObsidianText(doneExes, S.session.menuDisplay, S.session.startTime, endTime, totalMin);
   document.querySelectorAll('.wa-choice-btn').forEach(b => b.classList.remove('selected'));
 
   const btn = document.getElementById('btn-save-session');
@@ -837,7 +851,7 @@ async function saveSession() {
   btn.textContent = '保存中…';
   btn.disabled = true;
 
-  const endTime = timeNow();
+  const endTime = S.session.endTime || timeNow();
   const cond = document.querySelector('.wa-choice-btn[data-group="cond"].selected')?.dataset.val || '';
   const satis = document.querySelector('.wa-choice-btn[data-group="satis"].selected')?.dataset.val || '';
   const comment = document.getElementById('finish-comment').value || '';
@@ -1879,6 +1893,14 @@ function setupEventListeners() {
 
   document.getElementById('btn-finish-back').addEventListener('click', () => showRecordScreen('s2'));
   document.getElementById('btn-save-session').addEventListener('click', saveSession);
+  document.getElementById('btn-copy-obsidian').addEventListener('click', () => {
+    const ta = document.getElementById('finish-obsidian');
+    const btn = document.getElementById('btn-copy-obsidian');
+    navigator.clipboard.writeText(ta.value).then(() => {
+      btn.textContent = 'コピー済み✓';
+      setTimeout(() => { btn.textContent = 'コピー'; }, 1500);
+    }).catch(() => { ta.select(); document.execCommand('copy'); });
+  });
 
   document.querySelectorAll('.wa-choice-btn').forEach(btn => {
     btn.addEventListener('click', function () {
