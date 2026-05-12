@@ -486,6 +486,7 @@ async function enterEx(idx) {
     }
   }
 
+  document.getElementById('s3-body').innerHTML = '';
   initS3Sections(exMaster);
   renderS3Body(exMaster);
   updateS3HistStats();
