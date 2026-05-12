@@ -979,7 +979,7 @@ function renderHistoryDate(sessions, clear) {
     div.className = 'wa-session-item';
     div.id = id;
     div.innerHTML = `<div class="wa-session-header">
-        <div class="wa-session-date">${esc(dateLabel(sess.date))}<span>${esc(sess.startTime)}</span></div>
+        <div class="wa-session-date">${esc(dateLabel(sess.date))}<span>${esc(sess.startTime)}〜</span></div>
         <div class="wa-session-menu">${esc(menuLabel)}</div>
         <div class="wa-session-dur">${dur}</div>
         <div class="wa-session-chev">▼</div>
