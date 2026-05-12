@@ -325,8 +325,8 @@ function startSession(menuName) {
     menu: menuName,
     menuDisplay: menuDisplay(menuName),
     startTime: timeNow(),
-    exercises: (S.menus.find(m => m.name === menuName)?.exercises || []).map(name => ({
-      name, done: false, sets: [],
+    exercises: (S.menus.find(m => m.name === menuName)?.exercises || []).map((name, i) => ({
+      name, done: false, sets: [], exInstanceId: 'exinst_' + Date.now() + '_' + i,
     })),
   };
   goS2();
@@ -387,7 +387,7 @@ function startSingle(name) {
     menu: '',
     menuDisplay: '単発記録',
     startTime: timeNow(),
-    exercises: [{ name, done: false, sets: [] }],
+    exercises: [{ name, done: false, sets: [], exInstanceId: 'exinst_' + Date.now() + '_0' }],
   };
   goS2();
 }
@@ -785,7 +785,7 @@ function completeEx() {
   ex.sets = sets;
 
   if (sets.length > 0) {
-    gasPost({ action: 'saveSets', date: today, menu: menuStorage(S.session.menu), exercise: ex.name, sessionId: S.session.sessionId, sets });
+    gasPost({ action: 'saveSets', date: today, menu: menuStorage(S.session.menu), exercise: ex.name, sessionId: S.session.sessionId, exInstanceId: ex.exInstanceId || '', sets });
   }
 
   if (exMaster && targetInterval !== exMaster.defaultInterval) {
@@ -914,7 +914,7 @@ function openSessionExAdd() {
   document.getElementById('modal-session-ex-list').innerHTML = html;
   document.querySelectorAll('#modal-session-ex-list .modal-ex-row').forEach(el => {
     el.addEventListener('click', () => {
-      S.session.exercises.push({ name: el.dataset.name, done: false, sets: [] });
+      S.session.exercises.push({ name: el.dataset.name, done: false, sets: [], exInstanceId: 'exinst_' + Date.now() + '_' + S.session.exercises.length });
       closeModal('modal-session-ex-add');
       renderS2();
     });
@@ -973,7 +973,7 @@ function renderHistoryDate(sessions, clear) {
     const idx = clear ? rawIdx : S.histDateItems.length - sessions.length + rawIdx;
     const id = 'sess-' + idx;
     const dur = calcDuration(sess.startTime, sess.endTime);
-    const menuLabel = sess.menu ? menuDisplay(sess.menu) : sess.exercises ? Object.keys(sess.exercises)[0] || '' : '';
+    const menuLabel = sess.menu ? menuDisplay(sess.menu) : (sess.exercises?.[0]?.name || '');
     const div = document.createElement('div');
     div.className = 'wa-session-item';
     div.id = id;
@@ -1003,7 +1003,7 @@ function renderHistoryDate(sessions, clear) {
     div.querySelectorAll('.wa-ex-row-edit').forEach(el => {
       el.addEventListener('click', e => {
         e.stopPropagation();
-        openRecordEditModal(parseInt(el.dataset.sessIdx), el.dataset.name);
+        openRecordEditModal(parseInt(el.dataset.sessIdx), el.dataset.name, el.dataset.exInstanceId);
       });
     });
     list.appendChild(div);
@@ -1011,8 +1011,8 @@ function renderHistoryDate(sessions, clear) {
 }
 
 function buildSessionExRows(sess, sessId, sessIdx) {
-  const exes = sess.exercises || {};
-  return Object.entries(exes).map(([name, sets]) => {
+  const exes = sess.exercises || [];
+  return exes.map(({ name, exInstanceId, sets }) => {
     const warmSets = sets.filter(s => s.setType === 'ウォームアップ');
     const mainSets = sets.filter(s => s.setType === 'メイン');
     const unit = S.exercises.find(e => e.name === name)?.unit || '回';
@@ -1023,7 +1023,7 @@ function buildSessionExRows(sess, sessId, sessIdx) {
     return `<div class="wa-ex-row">
       <div class="wa-ex-row-header">
         <div class="wa-ex-row-name" data-name="${esc(name)}">${esc(name)}</div>
-        <button class="wa-ex-row-edit" data-sess-idx="${sessIdx}" data-name="${esc(name)}">編集</button>
+        <button class="wa-ex-row-edit" data-sess-idx="${sessIdx}" data-name="${esc(name)}" data-ex-instance-id="${esc(exInstanceId || '')}">編集</button>
       </div>
       ${warmLine ? `<div class="wa-ex-row-warm">${esc(warmLine)}</div>` : ''}
       ${mainLine ? `<div class="wa-ex-row-main">${esc(mainLine)}</div>` : ''}
@@ -1152,9 +1152,10 @@ function appendExHistItems(dates, unit, container, idPrefix) {
     const memo = d.sets.find(s => s.memo)?.memo || '';
     const div = document.createElement('div');
     div.className = 'wa-ex-hist-item';
-    if (idPrefix) div.id = idPrefix + d.date;
+    if (idPrefix) div.id = idPrefix + (d.exInstanceId || d.date);
+    const timeStr = d.time ? ` ${d.time}〜` : '';
     div.innerHTML = `<div class="wa-ex-hist-header">
-        <div class="wa-ex-hist-date">${esc(dateLabel(d.date))}</div>
+        <div class="wa-ex-hist-date">${esc(dateLabel(d.date) + timeStr)}</div>
         <div class="wa-ex-hist-sets">${esc(mainLine)}</div>
         <div class="wa-ex-hist-chev">▼</div>
       </div>
@@ -1237,10 +1238,11 @@ function backFromHistExDetail() {
   S.histFromSession = null;
 }
 
-function openRecordEditModal(sessIdx, exName) {
+function openRecordEditModal(sessIdx, exName, exInstanceId) {
   const sess = S.histDateItems[sessIdx];
   if (!sess) return;
-  const sets     = (sess.exercises || {})[exName] || [];
+  const exEntry  = (sess.exercises || []).find(e => exInstanceId ? e.exInstanceId === exInstanceId : e.name === exName);
+  const sets     = exEntry?.sets || [];
   const exMaster = S.exercises.find(e => e.name === exName);
   const unit     = exMaster?.unit || '回';
   const hasSides = exMaster?.hasSides || false;
@@ -1257,6 +1259,7 @@ function openRecordEditModal(sessIdx, exName) {
 
   S.editingRecord = {
     sessIdx, exName,
+    exInstanceId: exEntry?.exInstanceId || '',
     date:      sess.date,
     menu:      sess.menu,
     sessionId: sess.sessionId,
@@ -1383,7 +1386,7 @@ async function saveRecordModal() {
   btn.textContent = '保存中…';
   btn.disabled = true;
   syncRecordEditState();
-  const { sections, exName, date, menu, sessionId, memo } = S.editingRecord;
+  const { sections, exName, date, menu, sessionId, exInstanceId, memo } = S.editingRecord;
 
   const sets = [];
   sections.forEach(sec => {
@@ -1403,7 +1406,7 @@ async function saveRecordModal() {
     });
   });
 
-  await gasPost({ action: 'updateExerciseRecords', date, menu: menu || '', exercise: exName, sessionId, sets });
+  await gasPost({ action: 'updateExerciseRecords', date, menu: menu || '', exercise: exName, sessionId, exInstanceId, sets });
   btn.textContent = '保存';
   btn.disabled = false;
   closeModal('modal-record-edit');
@@ -1416,11 +1419,11 @@ async function saveRecordModal() {
 
 function deleteExerciseRecordsConfirm() {
   if (!S.editingRecord) return;
-  const { exName, date, menu, sessionId } = S.editingRecord;
+  const { exName, date, menu, sessionId, exInstanceId } = S.editingRecord;
   showConfirm('記録を削除',
     `「${exName}」の記録を削除しますか？\nこのセッションのログは残ります。`,
     async () => {
-      await gasPost({ action: 'updateExerciseRecords', date, menu: menu || '', exercise: exName, sessionId, sets: [] });
+      await gasPost({ action: 'updateExerciseRecords', date, menu: menu || '', exercise: exName, sessionId, exInstanceId, sets: [] });
       closeModal('modal-record-edit');
       S.editingRecord = null;
       showToast('削除しました');

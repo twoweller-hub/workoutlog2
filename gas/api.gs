@@ -334,17 +334,20 @@ function getHistory(offset) {
   const recMap   = {};
 
   if (recLast >= 2) {
-    const recRows = recSheet.getRange(2, 1, recLast - 1, 16).getValues();
+    const recRows = recSheet.getRange(2, 1, recLast - 1, 17).getValues();
     recRows.forEach(r => {
       if (!r[0]) return;
       const d = fmtDate(r[1]);
       if (!dateSet.has(d)) return;
-      const sid    = String(r[15] || '');
-      const key    = sid || (d + '|' + String(r[3] || ''));
-      const exName = String(r[4] || '');
-      if (!recMap[key])         recMap[key] = {};
-      if (!recMap[key][exName]) recMap[key][exName] = [];
-      recMap[key][exName].push({
+      const sid          = String(r[15] || '');
+      const exInstanceId = String(r[16] || '');
+      const key          = sid || (d + '|' + String(r[3] || ''));
+      const exName       = String(r[4] || '');
+      // exInstanceId があれば種目出現ごとにグループ化、なければ従来どおり種目名でまとめる
+      const exKey = exInstanceId || (key + '|' + exName);
+      if (!recMap[key]) recMap[key] = {};
+      if (!recMap[key][exKey]) recMap[key][exKey] = { name: exName, exInstanceId, sets: [] };
+      recMap[key][exKey].sets.push({
         setType:     String(r[5] || ''),
         setNum:      Number(r[6] || 0),
         side:        String(r[7] || ''),
@@ -360,7 +363,7 @@ function getHistory(offset) {
 
   paged.forEach(sess => {
     const key = sess.sessionId || (sess.date + '|' + (sess.menu || ''));
-    sess.exercises = recMap[key] || {};
+    sess.exercises = Object.values(recMap[key] || {});
   });
 
   return { sessions: paged, hasMore };
@@ -377,15 +380,19 @@ function getExerciseHistory(exerciseName, offset) {
   const last     = sheet.getLastRow();
   if (last < 2) return { dates: [], hasMore: false };
 
-  const rows    = sheet.getRange(2, 1, last - 1, 15).getValues();
+  const rows    = sheet.getRange(2, 1, last - 1, 17).getValues();
   const today   = Utilities.formatDate(new Date(), 'Asia/Tokyo', 'yyyy-MM-dd');
-  const dateMap = {};
+  const entryMap = {};
 
   rows.forEach(r => {
     if (!r[0] || String(r[4]) !== exerciseName) return;
-    const d = fmtDate(r[1]);
-    if (!dateMap[d]) dateMap[d] = [];
-    dateMap[d].push({
+    const d            = fmtDate(r[1]);
+    const time         = fmtTime(r[2]);
+    const exInstanceId = String(r[16] || '');
+    // exInstanceId があれば種目出現ごとに分離、なければ日付でまとめる（旧データ互換）
+    const key = exInstanceId || d;
+    if (!entryMap[key]) entryMap[key] = { date: d, time, sets: [] };
+    entryMap[key].sets.push({
       setType:     String(r[5] || ''),
       setNum:      Number(r[6] || 0),
       side:        String(r[7] || ''),
@@ -398,16 +405,21 @@ function getExerciseHistory(exerciseName, offset) {
     });
   });
 
-  const sorted  = Object.keys(dateMap).sort((a, b) => b.localeCompare(a));
+  const sorted  = Object.keys(entryMap).sort((a, b) => {
+    const da = entryMap[a].date + entryMap[a].time;
+    const db = entryMap[b].date + entryMap[b].time;
+    return db.localeCompare(da);
+  });
   const paged   = sorted.slice(offset, offset + PER_PAGE);
   const hasMore = sorted.length > offset + PER_PAGE;
   const todayMs = new Date(today).getTime();
 
   return {
-    dates: paged.map(date => ({
-      date,
-      daysAgo: Math.round((todayMs - new Date(date).getTime()) / 86400000),
-      sets: dateMap[date]
+    dates: paged.map(key => ({
+      date:   entryMap[key].date,
+      time:   entryMap[key].time,
+      daysAgo: Math.round((todayMs - new Date(entryMap[key].date).getTime()) / 86400000),
+      sets:   entryMap[key].sets
     })),
     hasMore
   };
@@ -483,10 +495,11 @@ function saveSets(d) {
     s.injuryLevel     || '',
     s.injuryMemo      || '',
     s.memo            || '',
-    d.sessionId       || ''
+    d.sessionId       || '',
+    d.exInstanceId    || ''
   ]);
 
-  sheet.getRange(last + 1, 1, rows.length, 16).setValues(rows);
+  sheet.getRange(last + 1, 1, rows.length, 17).setValues(rows);
   return okRes();
 }
 
@@ -566,11 +579,12 @@ function updateExerciseRecords(d) {
   const originalData = {};
   for (let i = 1; i < rows.length; i++) {
     if (String(rows[i][4]) !== String(d.exercise)) continue;
-    const byId       = d.sessionId && String(rows[i][15]) === String(d.sessionId);
-    const byFallback = !d.sessionId &&
-                       fmtDate(rows[i][1]) === String(d.date) &&
-                       String(rows[i][3]) === String(d.menu || '');
-    if (byId || byFallback) {
+    const byExInstance = d.exInstanceId && String(rows[i][16]) === String(d.exInstanceId);
+    const byId         = !d.exInstanceId && d.sessionId && String(rows[i][15]) === String(d.sessionId);
+    const byFallback   = !d.exInstanceId && !d.sessionId &&
+                         fmtDate(rows[i][1]) === String(d.date) &&
+                         String(rows[i][3]) === String(d.menu || '');
+    if (byExInstance || byId || byFallback) {
       if (insertRow === -1) insertRow = i + 1;
       const key = rows[i][5] + '|' + rows[i][6] + '|' + String(rows[i][7] || '');
       if (!originalData[key]) {
@@ -585,11 +599,12 @@ function updateExerciseRecords(d) {
   // ボトムアップで削除
   for (let i = rows.length - 1; i >= 1; i--) {
     if (String(rows[i][4]) !== String(d.exercise)) continue;
-    const byId       = d.sessionId && String(rows[i][15]) === String(d.sessionId);
-    const byFallback = !d.sessionId &&
-                       fmtDate(rows[i][1]) === String(d.date) &&
-                       String(rows[i][3]) === String(d.menu || '');
-    if (byId || byFallback) sheet.deleteRow(i + 1);
+    const byExInstance = d.exInstanceId && String(rows[i][16]) === String(d.exInstanceId);
+    const byId         = !d.exInstanceId && d.sessionId && String(rows[i][15]) === String(d.sessionId);
+    const byFallback   = !d.exInstanceId && !d.sessionId &&
+                         fmtDate(rows[i][1]) === String(d.date) &&
+                         String(rows[i][3]) === String(d.menu || '');
+    if (byExInstance || byId || byFallback) sheet.deleteRow(i + 1);
   }
 
   const sets = d.sets || [];
@@ -621,7 +636,8 @@ function updateExerciseRecords(d) {
       s.injuryLevel       || '',
       s.injuryMemo        || '',
       s.memo              || '',
-      d.sessionId         || ''
+      d.sessionId         || '',
+      d.exInstanceId      || ''
     ];
   });
 
@@ -630,7 +646,7 @@ function updateExerciseRecords(d) {
   if (targetRow <= sheet.getLastRow()) {
     sheet.insertRowsBefore(targetRow, newRows.length);
   }
-  sheet.getRange(targetRow, 1, newRows.length, 16).setValues(newRows);
+  sheet.getRange(targetRow, 1, newRows.length, 17).setValues(newRows);
   return okRes();
 }
 

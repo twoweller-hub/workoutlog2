@@ -1,5 +1,23 @@
 # 開発ログ
 
+## 2026-05-12（2）
+
+### 種目インスタンスID（exInstanceId）を追加し、同一セッション内の同種目重複・複数セッションの履歴分離を実現
+
+- 記録シートに col 17（種目インスタンスID）を追加。フロントで `'exinst_' + Date.now() + '_' + index` を生成
+- `startSession` / `startSingle` / `openSessionExAdd` で各種目に `exInstanceId` を付与
+- `completeEx` で `saveSets` に `exInstanceId` を渡し、GAS 側 col 17 に書き込む
+- `updateExerciseRecords` の行特定を `exInstanceId` 優先に変更（旧データは `sessionId + 種目名` にフォールバック）
+- `getHistory` の `recMap` を `{exKey: {name, exInstanceId, sets}}` に変更。`sess.exercises` を object から array に変更
+- `getExerciseHistory` を日付単位グループから `exInstanceId` 単位グループに変更。時刻（col C）もレスポンスに追加
+- `buildSessionExRows` を array 対応に変更。編集ボタンに `data-ex-instance-id` を追加
+- `openRecordEditModal` の引数に `exInstanceId` を追加。`S.editingRecord` にも保存
+- `saveRecordModal` / `deleteExerciseRecordsConfirm` で `exInstanceId` を GAS に渡す
+- `appendExHistItems` で時刻を日付横に表示（`HH:mm〜` 形式）。要素 ID を `exInstanceId` ベースに変更
+- 解決した問題：同じ日に同じメニューを2回やると種目履歴がまとまる / 同セッション内で同種目を2回記録できなかった
+- 旧データ互換：col 17 が空の行は従来ロジックで処理
+- `app.js?v=23` → `v=24`、SW `v39` → `v40`
+
 ## 2026-05-12（1）
 
 ### 日付表示に西暦を追加
