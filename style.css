@@ -745,7 +745,7 @@ body {
   transition: background 0.15s;
 }
 .wa-session-header:hover { background: #1e2230; }
-.wa-session-date { font-size: 13px; font-weight: 700; color: #eef0f4; flex-shrink: 0; width: 110px; }
+.wa-session-date { font-size: 13px; font-weight: 700; color: #eef0f4; flex-shrink: 0; white-space: nowrap; }
 .wa-session-date span { font-size: 11px; color: #b0b8c8; font-weight: 400; margin-left: 4px; }
 .wa-session-menu { font-size: 13px; color: #d4f53c; flex: 1; }
 .wa-session-dur { font-size: 11px; color: #b0b8c8; flex-shrink: 0; }
@@ -833,7 +833,7 @@ body {
   transition: background 0.15s;
 }
 .wa-ex-hist-header:hover { background: #1e2230; }
-.wa-ex-hist-date { font-size: 13px; font-weight: 700; color: #eef0f4; flex-shrink: 0; width: 80px; }
+.wa-ex-hist-date { font-size: 13px; font-weight: 700; color: #eef0f4; flex-shrink: 0; white-space: nowrap; }
 .wa-ex-hist-sets { font-size: 12px; color: #b0b8c8; flex: 1; }
 .wa-ex-hist-chev { font-size: 10px; color: #b0b8c8; transition: transform 0.2s; }
 .wa-ex-hist-item.expanded .wa-ex-hist-chev { transform: rotate(180deg); }
