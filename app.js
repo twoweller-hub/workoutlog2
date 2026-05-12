@@ -104,7 +104,7 @@ function pad2(n) { return String(n).padStart(2, '0'); }
 
 function dateLabel(dateStr) {
   const d = new Date(dateStr + 'T00:00:00');
-  return `${d.getMonth() + 1}/${d.getDate()}（${DAY_JA[d.getDay()]}）`;
+  return `${d.getFullYear()}/${d.getMonth() + 1}/${d.getDate()}（${DAY_JA[d.getDay()]}）`;
 }
 
 function menuDisplay(name) {
