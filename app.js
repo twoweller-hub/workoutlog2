@@ -419,6 +419,16 @@ function updateTimer() {
     const exSec = Math.floor((Date.now() - S.currentExStartTime) / 1000);
     elEx.textContent = `${pad2(Math.floor(exSec / 60))}:${pad2(exSec % 60)}`;
   }
+  const now = Date.now();
+  document.querySelectorAll('.wa-record-btn.started').forEach(btn => {
+    const si = parseInt(btn.dataset.si);
+    const type = btn.dataset.type;
+    const idx = parseInt(btn.dataset.i);
+    const set = S.s3Sections[si]?.[type]?.[idx];
+    if (!set?.startedAt) return;
+    const sec = Math.floor((now - set.startedAt) / 1000);
+    btn.textContent = `${pad2(Math.floor(sec / 60))}:${pad2(sec % 60)}`;
+  });
 }
 
 function renderS2() {
@@ -504,11 +514,11 @@ function initS3Sections(exMaster) {
   const hasSides = exMaster?.hasSides || false;
   const data = S.s3ExData;
 
-  const emptySet = () => ({ weight: null, reps: null, recorded: false, recordedAt: null, injurySite: '', injuryLevel: '', injuryMemo: '', injuryOpen: false });
+  const emptySet = () => ({ weight: null, reps: null, recorded: false, recordedAt: null, startedAt: null, duration: null, injurySite: '', injuryLevel: '', injuryMemo: '', injuryOpen: false });
   const buildSets = (type, sideFilter) => {
     const prev = data?.lastSets?.filter(s => s.type === type && (sideFilter === '' ? true : s.side === sideFilter)) || [];
     if (prev.length > 0) {
-      return prev.map(s => ({ weight: s.weight, reps: s.reps, recorded: false, recordedAt: null, injurySite: '', injuryLevel: '', injuryMemo: '', injuryOpen: false }));
+      return prev.map(s => ({ weight: s.weight, reps: s.reps, recorded: false, recordedAt: null, startedAt: null, duration: null, injurySite: '', injuryLevel: '', injuryMemo: '', injuryOpen: false }));
     }
     if (type === 'ウォームアップ') return [];
     return [emptySet(), emptySet(), emptySet()];
@@ -577,7 +587,7 @@ function renderS3Body(exMaster) {
 
   // Attach events
   body.querySelectorAll('.wa-record-btn').forEach(btn => {
-    btn.addEventListener('click', e => onRecordSet(e.currentTarget));
+    attachRecordBtnEvents(btn);
   });
   body.querySelectorAll('.wa-add-btn').forEach(btn => {
     btn.addEventListener('click', e => onAddSet(e.currentTarget));
@@ -629,13 +639,19 @@ function buildPrevBoxHtml(data, unit, hasSides) {
 function buildSetRowHtml(si, type, i, set, unit) {
   const isWarm = type === 'warmup';
   const label = setNumLabel(i, isWarm);
-  const recClass = set.recorded ? ' recorded' : '';
-  const recText = set.recorded ? '✓ 記録済' : '記録';
   const wVal = set.weight != null ? set.weight : '';
   const rVal = set.reps != null ? set.reps : '';
   const hasInjury = set.injurySite ? ' has-injury' : '';
   const injuryOpen = set.injuryOpen ? ' open' : '';
   const chevStyle = set.injuryOpen ? ' style="transform:rotate(180deg)"' : '';
+  let recClass, recText;
+  if (set.recorded) {
+    recClass = ' recorded'; recText = '✓ 記録済';
+  } else if (set.startedAt) {
+    recClass = ' started'; recText = '00:00';
+  } else {
+    recClass = ''; recText = '開始';
+  }
   return `<div class="wa-set-row" data-si="${si}" data-type="${type}" data-i="${i}">
     <span class="wa-set-num">${label}</span>
     <input class="wa-set-input weight-input" type="number" value="${wVal}" placeholder="-">
@@ -691,6 +707,34 @@ function syncS3InjuryState() {
   });
 }
 
+function attachRecordBtnEvents(btn) {
+  let longPressTimer = null;
+
+  const cancelLongPress = () => {
+    if (longPressTimer) { clearTimeout(longPressTimer); longPressTimer = null; }
+  };
+
+  const startLongPress = () => {
+    const si = parseInt(btn.dataset.si);
+    const type = btn.dataset.type;
+    const i = parseInt(btn.dataset.i);
+    const set = S.s3Sections[si][type][i];
+    if (set.recorded || set.startedAt) return;
+    longPressTimer = setTimeout(() => {
+      longPressTimer = null;
+      showConfirm('タイマーなしで記録', 'タイマーを使わずに記録しますか？', () => doRecordSet(btn, null));
+    }, 600);
+  };
+
+  btn.addEventListener('mousedown', startLongPress);
+  btn.addEventListener('mouseup', cancelLongPress);
+  btn.addEventListener('mouseleave', cancelLongPress);
+  btn.addEventListener('touchstart', e => { e.preventDefault(); startLongPress(); }, { passive: false });
+  btn.addEventListener('touchend', e => { e.preventDefault(); cancelLongPress(); onRecordSet(btn); });
+  btn.addEventListener('touchmove', cancelLongPress);
+  btn.addEventListener('click', () => { if (!longPressTimer) return; cancelLongPress(); onRecordSet(btn); });
+}
+
 function onRecordSet(btn) {
   const si = parseInt(btn.dataset.si);
   const type = btn.dataset.type;
@@ -701,7 +745,9 @@ function onRecordSet(btn) {
     showConfirm('記録を取り消す', 'このセットの記録を削除しますか？', () => {
       set.recorded = false;
       set.recordedAt = null;
-      btn.textContent = '記録';
+      set.startedAt = null;
+      set.duration = null;
+      btn.textContent = '開始';
       btn.classList.remove('recorded');
       const exMaster = S.exercises.find(e => e.name === S.session.exercises[S.currentExIdx].name);
       refreshIntervals(si, type, exMaster);
@@ -710,15 +756,31 @@ function onRecordSet(btn) {
     return;
   }
 
+  if (!set.startedAt) {
+    set.startedAt = Date.now();
+    btn.classList.add('started');
+    btn.textContent = '00:00';
+    return;
+  }
+
+  doRecordSet(btn, Math.round((Date.now() - set.startedAt) / 1000));
+}
+
+function doRecordSet(btn, duration) {
+  const si = parseInt(btn.dataset.si);
+  const type = btn.dataset.type;
+  const i = parseInt(btn.dataset.i);
+  const set = S.s3Sections[si][type][i];
+
   const row = btn.closest('.wa-set-row');
-  const weight = parseFloat(row.querySelector('.weight-input').value) || null;
-  const reps = parseFloat(row.querySelector('.reps-input').value) || null;
-  set.weight = weight;
-  set.reps = reps;
+  set.weight = parseFloat(row.querySelector('.weight-input').value) || null;
+  set.reps = parseFloat(row.querySelector('.reps-input').value) || null;
   set.recorded = true;
   set.recordedAt = Date.now();
-  btn.textContent = '✓ 記録済';
+  set.duration = duration;
+  btn.classList.remove('started');
   btn.classList.add('recorded');
+  btn.textContent = '✓ 記録済';
 
   const exMaster = S.exercises.find(e => e.name === S.session.exercises[S.currentExIdx].name);
   refreshIntervals(si, type, exMaster);
@@ -748,7 +810,7 @@ function refreshIntervals(si, type, exMaster) {
 function onAddSet(btn) {
   const si = parseInt(btn.dataset.si);
   const type = btn.dataset.type;
-  S.s3Sections[si][type].push({ weight: null, reps: null, recorded: false, recordedAt: null, injurySite: '', injuryLevel: '', injuryMemo: '', injuryOpen: false });
+  S.s3Sections[si][type].push({ weight: null, reps: null, recorded: false, recordedAt: null, startedAt: null, duration: null, injurySite: '', injuryLevel: '', injuryMemo: '', injuryOpen: false });
   const exMaster = S.exercises.find(e => e.name === S.session.exercises[S.currentExIdx].name);
   renderS3Body(exMaster);
   document.getElementById('s3-body').scrollTop = 9999;
@@ -772,6 +834,7 @@ function completeEx() {
         type: 'ウォームアップ', setNum: i + 1, side: sec.side,
         weight: set.weight, reps: set.reps, targetInterval,
         time: set.recordedAt ? timeFromMs(set.recordedAt) : timeNow(),
+        duration: set.duration != null ? set.duration : null,
         injurySite: set.injurySite || '', injuryLevel: set.injuryLevel || '', injuryMemo: set.injuryMemo || '',
         memo: i === 0 ? memo : '',
       });
@@ -782,6 +845,7 @@ function completeEx() {
         type: 'メイン', setNum: i + 1, side: sec.side,
         weight: set.weight, reps: set.reps, targetInterval,
         time: set.recordedAt ? timeFromMs(set.recordedAt) : timeNow(),
+        duration: set.duration != null ? set.duration : null,
         injurySite: set.injurySite || '', injuryLevel: set.injuryLevel || '', injuryMemo: set.injuryMemo || '',
         memo: i === 0 ? memo : '',
       });

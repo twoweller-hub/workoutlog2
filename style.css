@@ -516,6 +516,14 @@ body {
   white-space: nowrap;
 }
 .wa-record-btn:hover { opacity: 0.6; }
+.wa-record-btn.started {
+  background: #111318;
+  border-color: #d4f53c;
+  color: #d4f53c;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 16px;
+  letter-spacing: 1px;
+}
 .wa-record-btn.recorded {
   background: rgba(212,245,60,0.18);
   border-color: rgba(212,245,60,0.4);

@@ -496,10 +496,11 @@ function saveSets(d) {
     s.injuryMemo      || '',
     s.memo            || '',
     d.sessionId       || '',
-    d.exInstanceId    || ''
+    d.exInstanceId    || '',
+    s.duration != null ? s.duration : ''
   ]);
 
-  sheet.getRange(last + 1, 1, rows.length, 17).setValues(rows);
+  sheet.getRange(last + 1, 1, rows.length, 18).setValues(rows);
   return okRes();
 }
 
@@ -590,7 +591,8 @@ function updateExerciseRecords(d) {
       if (!originalData[key]) {
         originalData[key] = {
           time:           fmtTime(rows[i][2]),
-          targetInterval: rows[i][10]
+          targetInterval: rows[i][10],
+          duration:       rows[i][17] !== '' ? rows[i][17] : null
         };
       }
     }
@@ -637,7 +639,8 @@ function updateExerciseRecords(d) {
       s.injuryMemo        || '',
       s.memo              || '',
       d.sessionId         || '',
-      d.exInstanceId      || ''
+      d.exInstanceId      || '',
+      orig.duration != null ? orig.duration : ''
     ];
   });
 
@@ -646,7 +649,7 @@ function updateExerciseRecords(d) {
   if (targetRow <= sheet.getLastRow()) {
     sheet.insertRowsBefore(targetRow, newRows.length);
   }
-  sheet.getRange(targetRow, 1, newRows.length, 17).setValues(newRows);
+  sheet.getRange(targetRow, 1, newRows.length, 18).setValues(newRows);
   return okRes();
 }
 
