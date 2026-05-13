@@ -1329,9 +1329,9 @@ function openRecordEditModal(sessIdx, exName, exInstanceId) {
   const buildSide = side => ({
     side,
     warmup: sets.filter(s => s.setType === 'ウォームアップ' && s.side === side)
-                .map(s => ({ weight: s.weight, reps: s.reps, injurySite: s.injurySite || '', injuryLevel: s.injuryLevel || '', injuryMemo: s.injuryMemo || '', injuryOpen: !!(s.injurySite) })),
+                .map(s => ({ weight: s.weight, reps: s.reps, injurySite: s.injurySite || '', injuryLevel: s.injuryLevel || '', injuryMemo: s.injuryMemo || '', injuryOpen: !!(s.injurySite), memo: s.memo || '' })),
     main:   sets.filter(s => s.setType === 'メイン' && s.side === side)
-                .map(s => ({ weight: s.weight, reps: s.reps, injurySite: s.injurySite || '', injuryLevel: s.injuryLevel || '', injuryMemo: s.injuryMemo || '', injuryOpen: !!(s.injurySite) })),
+                .map(s => ({ weight: s.weight, reps: s.reps, injurySite: s.injurySite || '', injuryLevel: s.injuryLevel || '', injuryMemo: s.injuryMemo || '', injuryOpen: !!(s.injurySite), memo: s.memo || '' })),
   });
 
   const sections = hasSides ? [buildSide('右'), buildSide('左')] : [buildSide('')];
@@ -1343,7 +1343,6 @@ function openRecordEditModal(sessIdx, exName, exInstanceId) {
     menu:      sess.menu,
     sessionId: sess.sessionId,
     unit, hasSides, sections,
-    memo: sets.find(s => s.memo)?.memo || '',
   };
 
   document.getElementById('modal-rec-title').textContent = exName + 'を編集';
@@ -1353,7 +1352,7 @@ function openRecordEditModal(sessIdx, exName, exInstanceId) {
 }
 
 function renderRecordEditBody() {
-  const { sections, unit, hasSides, memo } = S.editingRecord;
+  const { sections, unit, hasSides } = S.editingRecord;
   const body = document.getElementById('modal-rec-body');
   let html = '';
 
@@ -1370,16 +1369,13 @@ function renderRecordEditBody() {
     if (si < sections.length - 1) html += '<div class="wa-divider"></div>';
   });
 
-  html += `<div class="wa-divider"></div>
-    <div class="wa-memo-label">メモ</div>
-    <textarea class="wa-modal-input" id="modal-rec-memo" rows="2" placeholder="自由記述">${esc(memo)}</textarea>`;
 
   body.innerHTML = html;
 
   body.querySelectorAll('.wa-add-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       syncRecordEditState();
-      S.editingRecord.sections[parseInt(btn.dataset.si)][btn.dataset.type].push({ weight: null, reps: null, injurySite: '', injuryLevel: '', injuryMemo: '', injuryOpen: false });
+      S.editingRecord.sections[parseInt(btn.dataset.si)][btn.dataset.type].push({ weight: null, reps: null, injurySite: '', injuryLevel: '', injuryMemo: '', injuryOpen: false, memo: '' });
       renderRecordEditBody();
     });
   });
@@ -1433,13 +1429,15 @@ function buildRecordSetRow(si, type, i, set, unit) {
         <textarea class="wa-memo-input injury-memo-input" rows="2" placeholder="怪我メモ（任意）">${esc(set.injuryMemo || '')}</textarea>
       </div>
     </div>
+    <div class="wa-set-memo">
+      <textarea class="wa-memo-input set-memo-input" rows="2" placeholder="メモ（任意）">${esc(set.memo || '')}</textarea>
+    </div>
   </div>`;
 }
 
 function syncRecordEditState() {
   const body = document.getElementById('modal-rec-body');
   if (!body || !S.editingRecord) return;
-  S.editingRecord.memo = document.getElementById('modal-rec-memo')?.value || '';
   S.editingRecord.sections.forEach((sec, si) => {
     ['warmup', 'main'].forEach(type => {
       sec[type].forEach((set, i) => {
@@ -1452,6 +1450,7 @@ function syncRecordEditState() {
         set.injurySite  = row.querySelector('.injury-site-input')?.value  || '';
         set.injuryLevel = row.querySelector('.injury-level-input')?.value || '';
         set.injuryMemo  = row.querySelector('.injury-memo-input')?.value  || '';
+        set.memo        = row.querySelector('.set-memo-input')?.value      || '';
         const injBody = row.querySelector('.wa-set-injury-body');
         set.injuryOpen  = injBody ? injBody.classList.contains('open') : false;
       });
@@ -1465,7 +1464,7 @@ async function saveRecordModal() {
   btn.textContent = '保存中…';
   btn.disabled = true;
   syncRecordEditState();
-  const { sections, exName, date, menu, sessionId, exInstanceId, memo } = S.editingRecord;
+  const { sections, exName, date, menu, sessionId, exInstanceId } = S.editingRecord;
 
   const sets = [];
   sections.forEach(sec => {
@@ -1473,7 +1472,7 @@ async function saveRecordModal() {
       sets.push({ type: 'ウォームアップ', setNum: i + 1, side: sec.side,
         weight: set.weight, reps: set.reps,
         injurySite: set.injurySite || '', injuryLevel: set.injuryLevel || '', injuryMemo: set.injuryMemo || '',
-        memo: i === 0 ? memo : '' });
+        memo: set.memo || '' });
     });
     sec.main.forEach((set, i) => {
       sets.push({ type: 'メイン', setNum: i + 1, side: sec.side,
@@ -1481,7 +1480,7 @@ async function saveRecordModal() {
         injurySite:  set.injurySite  || '',
         injuryLevel: set.injuryLevel || '',
         injuryMemo:  set.injuryMemo  || '',
-        memo: i === 0 ? memo : '' });
+        memo: set.memo || '' });
     });
   });
 

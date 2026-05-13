@@ -1,5 +1,22 @@
 # 開発ログ
 
+## 2026-05-13（18）
+
+### 編集モーダルのセット個別メモ対応・セット番号スタイル統一
+
+**編集モーダルのメモ対応（8箇所）**
+- `openRecordEditModal` `buildSide`: セットオブジェクトに `memo: s.memo || ''` を追加
+- `S.editingRecord`: 全体メモの残骸フィールド（`memo`）を削除
+- `renderRecordEditBody`: `memo` のdestructure削除、全体メモ textarea（`#modal-rec-memo`）を削除、セット追加時のオブジェクトに `memo: ''` を追加
+- `buildRecordSetRow`: `.wa-set-memo` div + `set-memo-input` textarea を追加
+- `syncRecordEditState`: `modal-rec-memo` 読み取り削除、per-set `set.memo` 読み取りを追加
+- `saveRecordModal`: `memo` のdestructure削除、`memo: i === 0 ? memo : ''` → `memo: set.memo || ''` に変更
+
+**セット番号スタイル統一（s3・編集モーダル共通）**
+- `.wa-set-num`: SP 20pt・黄緑（#d4f53c）・太字（700）に変更
+- PC用メディアクエリ: 28pt に変更
+- `style.css?v=49` → `v=50`、`app.js?v=35` → `v=36`、SW `v58` → `v59`
+
 ## 2026-05-13（17）
 
 ### s3履歴・履歴タブ種目のメモ改行表示を修正

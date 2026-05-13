@@ -485,7 +485,7 @@ body {
 }
 
 .wa-set-row { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; margin-bottom: 6px; }
-.wa-set-num { font-size: 11px; color: #b0b8c8; width: 24px; text-align: right; flex-shrink: 0; }
+.wa-set-num { font-size: 20pt; font-weight: 700; color: #d4f53c; width: auto; text-align: right; flex-shrink: 0; }
 .wa-set-input {
   font-family: 'Bebas Neue', sans-serif;
   font-size: 22px;
@@ -1418,7 +1418,7 @@ body {
 
   /* セット行 */
   .wa-set-row { gap: 10px; margin-bottom: 10px; }
-  .wa-set-num { font-size: 14px; width: 30px; }
+  .wa-set-num { font-size: 28pt; }
   .wa-set-input { font-size: 30px; width: 82px; padding: 10px 6px; }
   .wa-set-unit { font-size: 14px; width: 20px; }
   .wa-set-cross { font-size: 18px; }
