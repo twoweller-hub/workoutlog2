@@ -149,10 +149,14 @@ function showToast(msg, dur = 2000) {
   setTimeout(() => el.classList.remove('show'), dur);
 }
 
-function showConfirm(title, msg, cb) {
+function showConfirm(title, msg, cb, opts = {}) {
   document.getElementById('modal-confirm-title').textContent = title;
   document.getElementById('modal-confirm-msg').textContent = msg;
   S.confirmCb = cb;
+  const okBtn = document.getElementById('modal-confirm-ok');
+  okBtn.textContent = opts.okLabel || '削除する';
+  okBtn.style.background = opts.accent ? '#d4f53c' : '#ff4d3a';
+  okBtn.style.color = opts.accent ? '#111318' : '#fff';
   openModal('modal-confirm');
 }
 
@@ -709,6 +713,7 @@ function syncS3InjuryState() {
 
 function attachRecordBtnEvents(btn) {
   let longPressTimer = null;
+  let longPressFired = false;
 
   const cancelLongPress = () => {
     if (longPressTimer) { clearTimeout(longPressTimer); longPressTimer = null; }
@@ -720,9 +725,11 @@ function attachRecordBtnEvents(btn) {
     const i = parseInt(btn.dataset.i);
     const set = S.s3Sections[si][type][i];
     if (set.recorded || set.startedAt) return;
+    longPressFired = false;
     longPressTimer = setTimeout(() => {
       longPressTimer = null;
-      showConfirm('タイマーなしで記録', 'タイマーを使わずに記録しますか？', () => doRecordSet(btn, null));
+      longPressFired = true;
+      showConfirm('タイマーなしで記録', 'タイマーを使わずに記録しますか？', () => doRecordSet(btn, null), { okLabel: '記録する', accent: true });
     }, 600);
   };
 
@@ -730,9 +737,9 @@ function attachRecordBtnEvents(btn) {
   btn.addEventListener('mouseup', cancelLongPress);
   btn.addEventListener('mouseleave', cancelLongPress);
   btn.addEventListener('touchstart', e => { e.preventDefault(); startLongPress(); }, { passive: false });
-  btn.addEventListener('touchend', e => { e.preventDefault(); cancelLongPress(); onRecordSet(btn); });
+  btn.addEventListener('touchend', e => { e.preventDefault(); cancelLongPress(); if (!longPressFired) onRecordSet(btn); });
   btn.addEventListener('touchmove', cancelLongPress);
-  btn.addEventListener('click', () => { if (!longPressTimer) return; cancelLongPress(); onRecordSet(btn); });
+  btn.addEventListener('click', () => { if (longPressFired) { longPressFired = false; return; } onRecordSet(btn); });
 }
 
 function onRecordSet(btn) {
