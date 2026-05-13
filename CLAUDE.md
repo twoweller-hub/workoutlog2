@@ -248,4 +248,4 @@ const S = {
 
 ## Obsidianメモ
 
-ユーザーが「Obsidianにメモして」と言ったら `docs/SKILL.md` を読んでその手順に従う。
+ユーザーが「Obsidianにメモして」と言ったら `.claude/skills/obsidian_memo/SKILL.md` を読んでその手順に従う。

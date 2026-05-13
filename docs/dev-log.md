@@ -1,5 +1,13 @@
 # 開発ログ
 
+## 2026-05-13
+
+### SKILL.md の移動と gitignore・CLAUDE.md のパス更新
+
+- `docs/SKILL.md` → `.claude/skills/obsidian_memo/SKILL.md` に移動（ユーザー作業）
+- `.gitignore` のパスを更新
+- `CLAUDE.md` の Obsidian メモ参照パスを更新
+
 ## 2026-05-12（5）
 
 ### 日付軸履歴の開始時刻に「〜」を追加
