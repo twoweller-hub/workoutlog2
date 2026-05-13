@@ -1121,11 +1121,13 @@ function toggleExpandAll(btnId, listId, itemClass) {
 }
 
 function formatHistSets(sets, unit) {
-  const unitLabel = unit === '秒' ? '秒' : '';
   return sets.map(s => {
-    if (s.weight != null) return `${s.weight}kg×${s.reps}${unit === '秒' ? '秒' : ''}`;
-    if (s.reps != null) return `${s.reps}${unit === '秒' ? '秒' : '回'}`;
-    return '';
+    let str = '';
+    if (s.weight != null) str = `${s.weight}kg×${s.reps}${unit === '秒' ? '秒' : ''}`;
+    else if (s.reps != null) str = `${s.reps}${unit === '秒' ? '秒' : '回'}`;
+    else return '';
+    if (s.duration != null) str += ` （${pad2(Math.floor(s.duration / 60))}:${pad2(s.duration % 60)}）`;
+    return str;
   }).filter(Boolean).join(' / ');
 }
 

@@ -334,7 +334,7 @@ function getHistory(offset) {
   const recMap   = {};
 
   if (recLast >= 2) {
-    const recRows = recSheet.getRange(2, 1, recLast - 1, 17).getValues();
+    const recRows = recSheet.getRange(2, 1, recLast - 1, 18).getValues();
     recRows.forEach(r => {
       if (!r[0]) return;
       const d = fmtDate(r[1]);
@@ -356,7 +356,8 @@ function getHistory(offset) {
         injurySite:  String(r[11] || ''),
         injuryLevel: String(r[12] || ''),
         injuryMemo:  String(r[13] || ''),
-        memo:        String(r[14] || '')
+        memo:        String(r[14] || ''),
+        duration:    r[17] !== '' && r[17] != null ? Number(r[17]) : null
       });
     });
   }
@@ -380,7 +381,7 @@ function getExerciseHistory(exerciseName, offset) {
   const last     = sheet.getLastRow();
   if (last < 2) return { dates: [], hasMore: false };
 
-  const rows    = sheet.getRange(2, 1, last - 1, 17).getValues();
+  const rows    = sheet.getRange(2, 1, last - 1, 18).getValues();
   const today   = Utilities.formatDate(new Date(), 'Asia/Tokyo', 'yyyy-MM-dd');
   const entryMap = {};
 
@@ -401,7 +402,8 @@ function getExerciseHistory(exerciseName, offset) {
       injurySite:  String(r[11] || ''),
       injuryLevel: String(r[12] || ''),
       injuryMemo:  String(r[13] || ''),
-      memo:        String(r[14] || '')
+      memo:        String(r[14] || ''),
+      duration:    r[17] !== '' && r[17] != null ? Number(r[17]) : null
     });
   });
 

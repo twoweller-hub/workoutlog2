@@ -1,5 +1,14 @@
 # 開発ログ
 
+## 2026-05-13（8）
+
+### 履歴にセット所要時間を表示
+
+- GAS `getHistory` / `getExerciseHistory`: col18（duration）を読んでセットデータに含める
+- `formatHistSets`: duration があれば `（MM:SS）` をセット表示に追加
+- 日付・種目履歴ペイン、記録タブ右ペインに反映
+- `app.js?v=30` → `v=31`、SW `v49` → `v50`
+
 ## 2026-05-13（7）
 
 ### 計測中ボタン（00:00）のフォントサイズをBebas Neue用に調整
