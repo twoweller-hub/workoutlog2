@@ -392,7 +392,8 @@ function getExerciseHistory(exerciseName, offset) {
     const exInstanceId = String(r[16] || '');
     // exInstanceId があれば種目出現ごとに分離、なければ日付でまとめる（旧データ互換）
     const key = exInstanceId || d;
-    if (!entryMap[key]) entryMap[key] = { date: d, time, sets: [] };
+    const dur = r[17] !== '' && r[17] != null ? Number(r[17]) : null;
+    if (!entryMap[key]) entryMap[key] = { date: d, time, sets: [], firstDuration: dur };
     entryMap[key].sets.push({
       setType:     String(r[5] || ''),
       setNum:      Number(r[6] || 0),
@@ -403,7 +404,7 @@ function getExerciseHistory(exerciseName, offset) {
       injuryLevel: String(r[12] || ''),
       injuryMemo:  String(r[13] || ''),
       memo:        String(r[14] || ''),
-      duration:    r[17] !== '' && r[17] != null ? Number(r[17]) : null
+      duration:    dur
     });
     entryMap[key].lastTime = time;
   });
@@ -428,11 +429,14 @@ function getExerciseHistory(exerciseName, offset) {
         daysSincePrev = Math.round((thisMs - prevMs) / 86400000);
       }
       let exerciseElapsed = null;
-      if (entry.time && entry.lastTime && entry.time !== entry.lastTime) {
+      if (entry.time && entry.lastTime) {
         const sp = entry.time.split(':').map(Number);
         const ep = entry.lastTime.split(':').map(Number);
-        const diff = (ep[0] * 60 + ep[1]) - (sp[0] * 60 + sp[1]);
-        if (diff > 0) exerciseElapsed = diff;
+        const lastSec      = ep[0] * 3600 + ep[1] * 60;
+        const firstRecSec  = sp[0] * 3600 + sp[1] * 60;
+        const firstStartSec = entry.firstDuration != null ? firstRecSec - entry.firstDuration : firstRecSec;
+        const diffSec = lastSec - firstStartSec;
+        if (diffSec > 0) exerciseElapsed = Math.round(diffSec / 60);
       }
       return {
         date:          entry.date,
