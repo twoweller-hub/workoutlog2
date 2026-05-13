@@ -551,6 +551,7 @@ body {
 .wa-add-btn:hover { color: #eef0f4; }
 
 .wa-set-injury { width: 100%; padding-left: 30px; margin-top: -2px; margin-bottom: 2px; }
+.wa-set-memo { width: 100%; padding-left: 30px; margin-top: 4px; margin-bottom: 4px; }
 .wa-set-injury-toggle {
   display: flex; align-items: center; gap: 4px;
   background: none; border: none;
@@ -1202,9 +1203,6 @@ body {
 }
 .wa-expand-all-btn:hover { color: #eef0f4; }
 
-/* メモ欄を大きく */
-#ex-memo { rows: 4; min-height: 80px; font-size: 14px; }
-
 /* =====================
    デスクトップ レイアウト
 ===================== */
@@ -1357,8 +1355,6 @@ body {
     padding: 0 20px 12px 40px;
   }
   .s3-hist-stats { font-size: 12px; }
-  #ex-memo { min-height: 220px; font-size: 15px; }
-
   /* セクションラベル */
   .wa-section-label { font-size: 12px; }
 

@@ -1,5 +1,18 @@
 # 開発ログ
 
+## 2026-05-13（11）
+
+### s3画面：メモ欄を各セット個別に変更
+
+- 従来: 画面下部の単一 `#ex-memo` textarea（メインの①セットのみに保存）
+- 変更後: 各セット行の怪我セクションの下に rows=2 の `set-memo-input` textarea を追加
+- `buildSetRowHtml()` に `.wa-set-memo` div + textarea を追加
+- `buildInjuryMemoHtml()` を削除（グローバルメモ欄廃止）
+- `syncS3InjuryState()` で `set.memo` も同期するよう拡張
+- `completeEx()`: `memo: i === 0 ? memo : ''` → `memo: set.memo || ''`（全セット個別メモ対応）
+- `emptySet()` / `buildSets()` / `onAddSet()` の push にも `memo: ''` 追加
+- `style.css?v=45` → `v=46`、`app.js?v=31` → `v=32`、SW `v52` → `v53`
+
 ## 2026-05-13（10）
 
 ### PC記録ボタンのフォントサイズ調整

@@ -518,11 +518,11 @@ function initS3Sections(exMaster) {
   const hasSides = exMaster?.hasSides || false;
   const data = S.s3ExData;
 
-  const emptySet = () => ({ weight: null, reps: null, recorded: false, recordedAt: null, startedAt: null, duration: null, injurySite: '', injuryLevel: '', injuryMemo: '', injuryOpen: false });
+  const emptySet = () => ({ weight: null, reps: null, recorded: false, recordedAt: null, startedAt: null, duration: null, injurySite: '', injuryLevel: '', injuryMemo: '', injuryOpen: false, memo: '' });
   const buildSets = (type, sideFilter) => {
     const prev = data?.lastSets?.filter(s => s.type === type && (sideFilter === '' ? true : s.side === sideFilter)) || [];
     if (prev.length > 0) {
-      return prev.map(s => ({ weight: s.weight, reps: s.reps, recorded: false, recordedAt: null, startedAt: null, duration: null, injurySite: '', injuryLevel: '', injuryMemo: '', injuryOpen: false }));
+      return prev.map(s => ({ weight: s.weight, reps: s.reps, recorded: false, recordedAt: null, startedAt: null, duration: null, injurySite: '', injuryLevel: '', injuryMemo: '', injuryOpen: false, memo: '' }));
     }
     if (type === 'ウォームアップ') return [];
     return [emptySet(), emptySet(), emptySet()];
@@ -548,7 +548,6 @@ function renderS3Body(exMaster) {
   const curInterval = document.getElementById('s3-interval');
   if (curInterval) S.s3Interval = parseInt(curInterval.value) || S.s3Interval;
   syncS3InjuryState();
-  const savedMemo = document.getElementById('ex-memo')?.value ?? '';
 
   let html = `<div class="wa-interval-in-body">
     <span class="wa-interval-label">インターバル（秒）</span>
@@ -584,10 +583,7 @@ function renderS3Body(exMaster) {
     if (si < S.s3Sections.length - 1) html += '<div class="wa-divider"></div>';
   });
 
-  html += buildInjuryMemoHtml();
   body.innerHTML = html;
-
-  if (savedMemo) document.getElementById('ex-memo').value = savedMemo;
 
   // Attach events
   body.querySelectorAll('.wa-record-btn').forEach(btn => {
@@ -682,13 +678,9 @@ function buildSetRowHtml(si, type, i, set, unit) {
         <textarea class="wa-memo-input injury-memo-input" rows="2" placeholder="怪我メモ（任意）">${esc(set.injuryMemo || '')}</textarea>
       </div>
     </div>
-  </div>`;
-}
-
-function buildInjuryMemoHtml() {
-  return `<div class="wa-divider"></div>
-  <div><div class="wa-memo-label">メモ</div>
-    <textarea class="wa-memo-input" id="ex-memo" rows="4" placeholder="自由記述"></textarea>
+    <div class="wa-set-memo">
+      <textarea class="wa-memo-input set-memo-input" rows="2" placeholder="メモ（任意）">${esc(set.memo || '')}</textarea>
+    </div>
   </div>`;
 }
 
@@ -701,11 +693,13 @@ function syncS3InjuryState() {
         const row = body.querySelector(`.wa-set-row[data-si="${si}"][data-type="${type}"][data-i="${i}"]`);
         if (!row) return;
         const injBody = row.querySelector('.wa-set-injury-body');
-        if (!injBody) return;
-        set.injurySite  = row.querySelector('.injury-site-input')?.value  || '';
-        set.injuryLevel = row.querySelector('.injury-level-input')?.value || '';
-        set.injuryMemo  = row.querySelector('.injury-memo-input')?.value  || '';
-        set.injuryOpen  = injBody.classList.contains('open');
+        if (injBody) {
+          set.injurySite  = row.querySelector('.injury-site-input')?.value  || '';
+          set.injuryLevel = row.querySelector('.injury-level-input')?.value || '';
+          set.injuryMemo  = row.querySelector('.injury-memo-input')?.value  || '';
+          set.injuryOpen  = injBody.classList.contains('open');
+        }
+        set.memo = row.querySelector('.set-memo-input')?.value || '';
       });
     });
   });
@@ -817,7 +811,7 @@ function refreshIntervals(si, type, exMaster) {
 function onAddSet(btn) {
   const si = parseInt(btn.dataset.si);
   const type = btn.dataset.type;
-  S.s3Sections[si][type].push({ weight: null, reps: null, recorded: false, recordedAt: null, startedAt: null, duration: null, injurySite: '', injuryLevel: '', injuryMemo: '', injuryOpen: false });
+  S.s3Sections[si][type].push({ weight: null, reps: null, recorded: false, recordedAt: null, startedAt: null, duration: null, injurySite: '', injuryLevel: '', injuryMemo: '', injuryOpen: false, memo: '' });
   const exMaster = S.exercises.find(e => e.name === S.session.exercises[S.currentExIdx].name);
   renderS3Body(exMaster);
   document.getElementById('s3-body').scrollTop = 9999;
@@ -828,7 +822,6 @@ function completeEx() {
   const exMaster = S.exercises.find(e => e.name === ex.name);
   const unit = exMaster?.unit || '回';
   const targetInterval = parseInt(document.getElementById('s3-interval').value) || 0;
-  const memo = document.getElementById('ex-memo')?.value || '';
   const today = todayStr();
 
   syncS3InjuryState();
@@ -843,7 +836,7 @@ function completeEx() {
         time: set.recordedAt ? timeFromMs(set.recordedAt) : timeNow(),
         duration: set.duration != null ? set.duration : null,
         injurySite: set.injurySite || '', injuryLevel: set.injuryLevel || '', injuryMemo: set.injuryMemo || '',
-        memo: i === 0 ? memo : '',
+        memo: set.memo || '',
       });
     });
     sec.main.forEach((set, i) => {
@@ -854,7 +847,7 @@ function completeEx() {
         time: set.recordedAt ? timeFromMs(set.recordedAt) : timeNow(),
         duration: set.duration != null ? set.duration : null,
         injurySite: set.injurySite || '', injuryLevel: set.injuryLevel || '', injuryMemo: set.injuryMemo || '',
-        memo: i === 0 ? memo : '',
+        memo: set.memo || '',
       });
     });
   });
