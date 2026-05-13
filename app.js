@@ -638,7 +638,7 @@ function buildPrevBoxHtml(data, unit, hasSides) {
 
 function buildSetRowHtml(si, type, i, set, unit) {
   const isWarm = type === 'warmup';
-  const label = setNumLabel(i, isWarm);
+  const label = `<span class="wa-set-prefix">${isWarm ? '準' : ''}</span>${setNumLabel(i, false)}`;
   const wVal = set.weight != null ? set.weight : '';
   const rVal = set.reps != null ? set.reps : '';
   const hasInjury = set.injurySite ? ' has-injury' : '';
@@ -1397,7 +1397,7 @@ function renderRecordEditBody() {
 
 function buildRecordSetRow(si, type, i, set, unit) {
   const isWarm = type === 'warmup';
-  const label  = setNumLabel(i, isWarm);
+  const label  = `<span class="wa-set-prefix">${isWarm ? '準' : ''}</span>${setNumLabel(i, false)}`;
   const wVal   = set.weight != null ? set.weight : '';
   const rVal   = set.reps   != null ? set.reps   : '';
   const hasInjury = set.injurySite ? ' has-injury' : '';

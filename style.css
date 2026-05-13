@@ -485,7 +485,8 @@ body {
 }
 
 .wa-set-row { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; margin-bottom: 6px; }
-.wa-set-num { font-size: 20px; font-weight: 700; color: #d4f53c; width: auto; text-align: right; flex-shrink: 0; }
+.wa-set-num { font-size: 20px; font-weight: 700; color: #d4f53c; display: inline-flex; align-items: center; flex-shrink: 0; }
+.wa-set-prefix { display: inline-block; width: 1em; }
 .wa-set-input {
   font-family: 'Bebas Neue', sans-serif;
   font-size: 22px;
