@@ -14,6 +14,7 @@ const S = {
   currentExIdx: null,
   timerInterval: null,
   timerStart: null,
+  currentExStartTime: null,
   s3ExData: null,      // result of getExerciseData
   s3ExCache: {},       // {exerciseName: getExerciseData result} — cache within a session
   s3Sections: [],      // [{side, warmup:[{weight,reps,recorded,recordedAt}], main:[...]}]
@@ -413,6 +414,11 @@ function updateTimer() {
   if (el) el.textContent = val;
   const el3 = document.getElementById('s3-timer');
   if (el3) el3.textContent = val;
+  const elEx = document.getElementById('s3-ex-timer');
+  if (elEx && S.currentExStartTime) {
+    const exSec = Math.floor((Date.now() - S.currentExStartTime) / 1000);
+    elEx.textContent = `${pad2(Math.floor(exSec / 60))}:${pad2(exSec % 60)}`;
+  }
 }
 
 function renderS2() {
@@ -468,7 +474,7 @@ async function enterEx(idx) {
 
   document.getElementById('s3-title').textContent = ex.name;
   document.getElementById('s3-date').textContent = todayDisplay();
-  document.getElementById('s3-start-label').textContent = `（${S.session.startTime}開始）`;
+  S.currentExStartTime = Date.now();
   S.s3Interval = interval;
 
   showRecordScreen('s3');

@@ -373,7 +373,7 @@ body {
   flex-shrink: 0;
 }
 .wa-timer-label { font-size: 11px; color: #b0b8c8; letter-spacing: 1px; }
-.wa-start-time-label { font-size: 11px; color: #b0b8c8; }
+.wa-timer-sublabel { font-size: 11px; color: #b0b8c8; }
 .wa-timer-group { display: flex; align-items: center; gap: 8px; }
 .wa-timer-val {
   font-family: 'Bebas Neue', sans-serif;

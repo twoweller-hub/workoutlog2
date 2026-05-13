@@ -1,5 +1,15 @@
 # 開発ログ
 
+## 2026-05-13（2）
+
+### S3に種目経過時間タイマーを追加
+
+- S3のタイマー表示を「経過時間 全体 XX:XX 種目 XX:XX」形式に変更
+- `S.currentExStartTime` を追加、`enterEx()` で種目遷移時にリセット
+- `updateTimer()` で `s3-ex-timer` も更新
+- `s3-start-label`（開始時刻表示）を削除
+- `style.css?v=38` → `v=39`、`app.js?v=27` → `v=28`、SW `v43` → `v44`
+
 ## 2026-05-13
 
 ### SKILL.md の移動と gitignore・CLAUDE.md のパス更新
