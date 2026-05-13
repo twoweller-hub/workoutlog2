@@ -1111,12 +1111,9 @@ function toggleExpandAll(btnId, listId, itemClass) {
 
 function formatHistSets(sets, unit) {
   return sets.map(s => {
-    let str = '';
-    if (s.weight != null) str = `${s.weight}kg×${s.reps}${unit === '秒' ? '秒' : ''}`;
-    else if (s.reps != null) str = `${s.reps}${unit === '秒' ? '秒' : '回'}`;
-    else return '';
-    if (s.duration != null) str += ` （${pad2(Math.floor(s.duration / 60))}:${pad2(s.duration % 60)}）`;
-    return str;
+    if (s.weight != null) return `${s.weight}kg×${s.reps}${unit === '秒' ? '秒' : ''}`;
+    if (s.reps != null) return `${s.reps}${unit === '秒' ? '秒' : '回'}`;
+    return '';
   }).filter(Boolean).join(' / ');
 }
 
@@ -1234,7 +1231,7 @@ function appendExHistItems(dates, unit, container, idPrefix) {
     div.className = 'wa-ex-hist-item';
     if (idPrefix) div.id = idPrefix + (d.exInstanceId || d.date);
     const timeStr = d.time ? ` ${d.time}〜` : '';
-    const elapsedHtml = d.exerciseElapsed > 0 ? ` <span class="wa-hist-elapsed">（経過${d.exerciseElapsed}分）</span>` : '';
+    const elapsedHtml = d.exerciseElapsed > 0 ? ` <span class="wa-hist-elapsed">（${d.exerciseElapsed}分）</span>` : '';
     const daysSinceHtml = d.daysSincePrev != null ? `<div class="wa-hist-days-since">前回から${d.daysSincePrev}日</div>` : '';
     div.innerHTML = `<div class="wa-ex-hist-header">
         <div class="wa-ex-hist-date">${esc(dateLabel(d.date) + timeStr)}</div>
