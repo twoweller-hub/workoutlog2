@@ -1421,7 +1421,7 @@ body {
   .wa-set-input { font-size: 30px; width: 82px; padding: 10px 6px; }
   .wa-set-unit { font-size: 14px; width: 20px; }
   .wa-set-cross { font-size: 18px; }
-  .wa-record-btn { flex: none; width: 120px; font-size: 18px; padding: 12px 8px; }
+  .wa-record-btn { flex: none; width: 120px; font-size: 16px; padding: 12px 8px; }
   .wa-record-btn.started { font-size: 24px; }
   .wa-side-section-label { font-size: 15px; margin: 14px 0 8px; }
   .wa-add-btn { font-size: 14px; }
