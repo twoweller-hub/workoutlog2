@@ -1340,7 +1340,7 @@ body {
 
   /* 記録3: 2カラム */
   .s3-content-wrap { flex-direction: row; }
-  .s3-main-col { flex: 0 0 500px; border-right: 1px solid #2e3244; padding: 20px 20px 12px; }
+  .s3-main-col { flex: 0 0 550px; border-right: 1px solid #2e3244; padding: 20px 20px 12px; }
   .s3-hist-panel {
     flex: 1;
     border-top: none;
