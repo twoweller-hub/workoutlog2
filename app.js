@@ -1084,22 +1084,18 @@ function renderHistoryDate(sessions, clear) {
 function buildSessionExRows(sess, sessId, sessIdx) {
   const exes = sess.exercises || [];
   return exes.map(({ name, exInstanceId, sets }) => {
-    const warmSets = sets.filter(s => s.setType === 'ウォームアップ');
     const mainSets = sets.filter(s => s.setType === 'メイン');
     const unit = S.exercises.find(e => e.name === name)?.unit || '回';
     const mainLine = formatHistSets(mainSets, unit);
-    const warmLine = warmSets.length ? 'ウォームアップ: ' + formatHistSets(warmSets, unit) : '';
     const injuries = sets.filter(s => s.injurySite).map(s => `${setNumLabel(s.setNum - 1, s.setType === 'ウォームアップ')}${s.injurySite}・${s.injuryLevel}${s.injuryMemo ? '：' + s.injuryMemo : ''}`).join('\n');
-    const memo = sets.find(s => s.memo)?.memo || '';
     return `<div class="wa-ex-row">
       <div class="wa-ex-row-header">
         <div class="wa-ex-row-name" data-name="${esc(name)}">${esc(name)}</div>
         <button class="wa-ex-row-edit" data-sess-idx="${sessIdx}" data-name="${esc(name)}" data-ex-instance-id="${esc(exInstanceId || '')}">編集</button>
       </div>
-      ${warmLine ? `<div class="wa-ex-row-warm">${esc(warmLine)}</div>` : ''}
       ${mainLine ? `<div class="wa-ex-row-main">${esc(mainLine)}</div>` : ''}
+      ${buildIndividualSetLines(sets, unit)}
       ${injuries ? `<div class="wa-ex-row-injury">${esc(injuries)}</div>` : ''}
-      ${memo ? `<div class="wa-ex-row-memo">${esc(memo)}</div>` : ''}
     </div>`;
   }).join('');
 }
@@ -1122,6 +1118,20 @@ function formatHistSets(sets, unit) {
     if (s.duration != null) str += ` （${pad2(Math.floor(s.duration / 60))}:${pad2(s.duration % 60)}）`;
     return str;
   }).filter(Boolean).join(' / ');
+}
+
+function buildIndividualSetLines(sets, unit) {
+  return sets.map(s => {
+    const isWarm = s.setType === 'ウォームアップ';
+    const label = setNumLabel(s.setNum - 1, isWarm) + (s.side ? s.side : '');
+    let mid = '';
+    if (s.weight != null) mid = `${s.weight}kg×${s.reps}${unit === '秒' ? '秒' : ''}`;
+    else if (s.reps != null) mid = `${s.reps}${unit === '秒' ? '秒' : '回'}`;
+    else return '';
+    if (s.duration != null) mid += ` / ${pad2(Math.floor(s.duration / 60))}:${pad2(s.duration % 60)}`;
+    const memoHtml = s.memo ? `<span class="wa-set-line-memo">：${esc(s.memo)}</span>` : '';
+    return `<div class="wa-hist-set-line">${esc(label + mid)}${memoHtml}</div>`;
+  }).filter(Boolean).join('');
 }
 
 function calcDuration(start, end) {
@@ -1218,24 +1228,23 @@ async function loadHistExDetail() {
 function appendExHistItems(dates, unit, container, idPrefix) {
   dates.forEach(d => {
     const mainSets = d.sets.filter(s => s.setType === 'メイン');
-    const warmSets = d.sets.filter(s => s.setType === 'ウォームアップ');
     const mainLine = formatHistSets(mainSets, unit);
-    const warmLine = warmSets.length ? 'ウォームアップ: ' + formatHistSets(warmSets, unit) : '';
     const injuries = d.sets.filter(s => s.injurySite).map(s => `${setNumLabel(s.setNum - 1, s.setType === 'ウォームアップ')}${s.injurySite}・${s.injuryLevel}${s.injuryMemo ? '：' + s.injuryMemo : ''}`).join('\n');
-    const memo = d.sets.find(s => s.memo)?.memo || '';
     const div = document.createElement('div');
     div.className = 'wa-ex-hist-item';
     if (idPrefix) div.id = idPrefix + (d.exInstanceId || d.date);
     const timeStr = d.time ? ` ${d.time}〜` : '';
+    const elapsedHtml = d.exerciseElapsed > 0 ? ` <span class="wa-hist-elapsed">（経過${d.exerciseElapsed}分）</span>` : '';
+    const daysSinceHtml = d.daysSincePrev != null ? `<div class="wa-hist-days-since">前回から${d.daysSincePrev}日</div>` : '';
     div.innerHTML = `<div class="wa-ex-hist-header">
         <div class="wa-ex-hist-date">${esc(dateLabel(d.date) + timeStr)}</div>
-        <div class="wa-ex-hist-sets">${esc(mainLine)}</div>
+        <div class="wa-ex-hist-sets">${esc(mainLine)}${elapsedHtml}</div>
         <div class="wa-ex-hist-chev">▼</div>
       </div>
       <div class="wa-ex-hist-body">
-        ${warmLine ? `<div class="wa-ex-hist-detail">${esc(warmLine)}</div>` : ''}
+        ${daysSinceHtml}
+        ${buildIndividualSetLines(d.sets, unit)}
         ${injuries ? `<div class="wa-ex-hist-injury">${esc(injuries)}</div>` : ''}
-        ${memo ? `<div class="wa-ex-hist-memo">${esc(memo)}</div>` : ''}
       </div>`;
     div.querySelector('.wa-ex-hist-header').addEventListener('click', () => div.classList.toggle('expanded'));
     container.appendChild(div);

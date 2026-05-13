@@ -405,6 +405,7 @@ function getExerciseHistory(exerciseName, offset) {
       memo:        String(r[14] || ''),
       duration:    r[17] !== '' && r[17] != null ? Number(r[17]) : null
     });
+    entryMap[key].lastTime = time;
   });
 
   const sorted  = Object.keys(entryMap).sort((a, b) => {
@@ -417,12 +418,31 @@ function getExerciseHistory(exerciseName, offset) {
   const todayMs = new Date(today).getTime();
 
   return {
-    dates: paged.map(key => ({
-      date:   entryMap[key].date,
-      time:   entryMap[key].time,
-      daysAgo: Math.round((todayMs - new Date(entryMap[key].date).getTime()) / 86400000),
-      sets:   entryMap[key].sets
-    })),
+    dates: paged.map((key, idx) => {
+      const entry = entryMap[key];
+      const prevKey = sorted[offset + idx + 1];
+      let daysSincePrev = null;
+      if (prevKey) {
+        const thisMs = new Date(entry.date).getTime();
+        const prevMs = new Date(entryMap[prevKey].date).getTime();
+        daysSincePrev = Math.round((thisMs - prevMs) / 86400000);
+      }
+      let exerciseElapsed = null;
+      if (entry.time && entry.lastTime && entry.time !== entry.lastTime) {
+        const sp = entry.time.split(':').map(Number);
+        const ep = entry.lastTime.split(':').map(Number);
+        const diff = (ep[0] * 60 + ep[1]) - (sp[0] * 60 + sp[1]);
+        if (diff > 0) exerciseElapsed = diff;
+      }
+      return {
+        date:          entry.date,
+        time:          entry.time,
+        daysAgo:       Math.round((todayMs - new Date(entry.date).getTime()) / 86400000),
+        daysSincePrev,
+        exerciseElapsed,
+        sets:          entry.sets
+      };
+    }),
     hasMore
   };
 }

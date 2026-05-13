@@ -851,6 +851,11 @@ body {
 .wa-ex-hist-detail { font-size: 12px; color: #b0b8c8; margin-bottom: 4px; }
 .wa-ex-hist-injury { font-size: 11px; color: #ff9f40; margin-bottom: 4px; white-space: pre-wrap; }
 .wa-ex-hist-memo { font-size: 11px; color: #9ba3b5; white-space: pre-wrap; }
+.wa-hist-days-since { font-size: 11px; color: #b0b8c8; margin-bottom: 6px; }
+.wa-hist-elapsed { font-size: 11px; color: #b0b8c8; }
+.wa-hist-set-line { font-size: 12px; color: #c8d0dc; margin-bottom: 2px; }
+.wa-set-line-memo { color: #9ba3b5; }
+.wa-ex-row .wa-hist-set-line { font-size: 12px; }
 
 /* もっと見るボタン */
 .wa-more-btn {
