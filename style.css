@@ -1422,7 +1422,7 @@ body {
   .wa-side-section-label { font-size: 15px; margin: 14px 0 8px; }
   .wa-add-btn { font-size: 14px; }
   .wa-interval-input { font-size: 22px; width: 62px; }
-  .wa-set-injury { padding-left: 40px; }
+  .wa-set-injury, .wa-set-memo { padding-left: 40px; }
   .wa-set-injury-toggle { font-size: 13px; }
 }
 
