@@ -854,7 +854,7 @@ body {
 .wa-hist-days-since { font-size: 11px; color: #b0b8c8; margin-bottom: 6px; }
 .wa-hist-elapsed { font-size: 11px; color: #b0b8c8; }
 .wa-hist-set-line { font-size: 12px; color: #c8d0dc; margin-bottom: 2px; }
-.wa-set-line-memo { color: #9ba3b5; }
+.wa-set-line-memo { color: #9ba3b5; white-space: pre-wrap; }
 .wa-ex-row .wa-hist-set-line { font-size: 12px; }
 
 /* もっと見るボタン */

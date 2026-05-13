@@ -1,5 +1,13 @@
 # 開発ログ
 
+## 2026-05-13（17）
+
+### s3履歴・履歴タブ種目のメモ改行表示を修正
+
+- `buildIndividualSetLines` のメモ表示は `.wa-set-line-memo` span にインライン埋め込みされているが、`white-space: pre-wrap` が未設定で改行が消えていた
+- `.wa-set-line-memo` に `white-space: pre-wrap` を追加
+- `style.css?v=48` → `v=49`、SW `v57` → `v58`
+
 ## 2026-05-13（16）
 
 ### 種目経過時間の計算を正確化
