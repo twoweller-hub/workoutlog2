@@ -1,5 +1,19 @@
 # 開発ログ
 
+## 2026-05-14（24）
+
+### セット入力をカード化・怪我/メモの左端を重量入力に揃える
+
+- セット行をカード化（`#s3-body .wa-set-row`に `background: #1c1f2a; border-radius: 10px; padding`）
+- HTMLを `.wa-set-row > .wa-set-num + .wa-set-body > (.wa-set-main-row / .wa-set-injury / .wa-set-memo)` に組み替え
+- `.wa-set-body { flex: 1 }` により怪我・メモがセット番号列を除いた領域に自動的に揃う
+- カード内入力欄・textarea・selectの背景を `#1c1f2a` → `#111318`（沈み込み効果）に変更
+- カードにボーダーなし・入力欄ボーダーあり（B案）
+- `buildSetRowHtml` / `buildRecordSetRow` 両方更新
+- PCメディアクエリで `#s3-body .wa-set-row` のpadding・margin、`.wa-set-main-row` のgapを調整
+- `.wa-set-injury, .wa-set-memo` の `padding-left` 撤廃（グリッド構造で解決）
+- `style.css?v=54` → `v=55`、`app.js?v=38` → `v=39`、SW `v64` → `v65`
+
 ## 2026-05-14（23）
 
 ### 履歴のメモ欄が重量・回数が空白のセットで表示されないバグを修正

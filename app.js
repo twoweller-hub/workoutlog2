@@ -654,32 +654,36 @@ function buildSetRowHtml(si, type, i, set, unit) {
   }
   return `<div class="wa-set-row" data-si="${si}" data-type="${type}" data-i="${i}">
     <span class="wa-set-num">${label}</span>
-    <input class="wa-set-input weight-input" type="number" value="${wVal}" placeholder="-">
-    <span class="wa-set-unit">kg</span>
-    <span class="wa-set-cross">×</span>
-    <input class="wa-set-input reps-input" type="number" value="${rVal}" placeholder="-">
-    <span class="wa-set-unit">${unit === '秒' ? '秒' : '回'}</span>
-    <button class="wa-record-btn${recClass}" data-si="${si}" data-type="${type}" data-i="${i}">${recText}</button>
-    <div class="wa-set-injury">
-      <button type="button" class="wa-set-injury-toggle${hasInjury}">🩹 怪我<span class="wa-set-injury-chev"${chevStyle}>▼</span></button>
-      <div class="wa-set-injury-body${injuryOpen}">
-        <div class="wa-injury-row">
-          <select class="wa-injury-select injury-site-input">
-            <option value="">部位</option>
-            ${S.injurySites.map(s => `<option${s === set.injurySite ? ' selected' : ''}>${esc(s)}</option>`).join('')}
-          </select>
-          <select class="wa-injury-select injury-level-input">
-            <option value="">程度</option>
-            <option${set.injuryLevel === '違和感' ? ' selected' : ''}>違和感</option>
-            <option${set.injuryLevel === '支障あり' ? ' selected' : ''}>支障あり</option>
-            <option${set.injuryLevel === '中断レベル' ? ' selected' : ''}>中断レベル</option>
-          </select>
-        </div>
-        <textarea class="wa-memo-input injury-memo-input" rows="2" placeholder="怪我メモ（任意）">${esc(set.injuryMemo || '')}</textarea>
+    <div class="wa-set-body">
+      <div class="wa-set-main-row">
+        <input class="wa-set-input weight-input" type="number" value="${wVal}" placeholder="-">
+        <span class="wa-set-unit">kg</span>
+        <span class="wa-set-cross">×</span>
+        <input class="wa-set-input reps-input" type="number" value="${rVal}" placeholder="-">
+        <span class="wa-set-unit">${unit === '秒' ? '秒' : '回'}</span>
+        <button class="wa-record-btn${recClass}" data-si="${si}" data-type="${type}" data-i="${i}">${recText}</button>
       </div>
-    </div>
-    <div class="wa-set-memo">
-      <textarea class="wa-memo-input set-memo-input" rows="2" placeholder="メモ（任意）">${esc(set.memo || '')}</textarea>
+      <div class="wa-set-injury">
+        <button type="button" class="wa-set-injury-toggle${hasInjury}">🩹 怪我<span class="wa-set-injury-chev"${chevStyle}>▼</span></button>
+        <div class="wa-set-injury-body${injuryOpen}">
+          <div class="wa-injury-row">
+            <select class="wa-injury-select injury-site-input">
+              <option value="">部位</option>
+              ${S.injurySites.map(s => `<option${s === set.injurySite ? ' selected' : ''}>${esc(s)}</option>`).join('')}
+            </select>
+            <select class="wa-injury-select injury-level-input">
+              <option value="">程度</option>
+              <option${set.injuryLevel === '違和感' ? ' selected' : ''}>違和感</option>
+              <option${set.injuryLevel === '支障あり' ? ' selected' : ''}>支障あり</option>
+              <option${set.injuryLevel === '中断レベル' ? ' selected' : ''}>中断レベル</option>
+            </select>
+          </div>
+          <textarea class="wa-memo-input injury-memo-input" rows="2" placeholder="怪我メモ（任意）">${esc(set.injuryMemo || '')}</textarea>
+        </div>
+      </div>
+      <div class="wa-set-memo">
+        <textarea class="wa-memo-input set-memo-input" rows="2" placeholder="メモ（任意）">${esc(set.memo || '')}</textarea>
+      </div>
     </div>
   </div>`;
 }
@@ -1405,32 +1409,36 @@ function buildRecordSetRow(si, type, i, set, unit) {
   const chevStyle = set.injuryOpen ? ' style="transform:rotate(180deg)"' : '';
   return `<div class="wa-set-row" data-si="${si}" data-type="${type}" data-i="${i}">
     <span class="wa-set-num">${label}</span>
-    <input class="wa-set-input weight-input" type="number" value="${wVal}" placeholder="-">
-    <span class="wa-set-unit">kg</span>
-    <span class="wa-set-cross">×</span>
-    <input class="wa-set-input reps-input" type="number" value="${rVal}" placeholder="-">
-    <span class="wa-set-unit">${unit === '秒' ? '秒' : '回'}</span>
-    <button class="wa-rec-del-btn" data-si="${si}" data-type="${type}" data-i="${i}">✕</button>
-    <div class="wa-set-injury">
-      <button type="button" class="wa-set-injury-toggle${hasInjury}">🩹 怪我<span class="wa-set-injury-chev"${chevStyle}>▼</span></button>
-      <div class="wa-set-injury-body${injuryOpen}">
-        <div class="wa-injury-row">
-          <select class="wa-injury-select injury-site-input">
-            <option value="">部位</option>
-            ${S.injurySites.map(s => `<option${s === set.injurySite ? ' selected' : ''}>${esc(s)}</option>`).join('')}
-          </select>
-          <select class="wa-injury-select injury-level-input">
-            <option value="">程度</option>
-            <option${set.injuryLevel === '違和感' ? ' selected' : ''}>違和感</option>
-            <option${set.injuryLevel === '支障あり' ? ' selected' : ''}>支障あり</option>
-            <option${set.injuryLevel === '中断レベル' ? ' selected' : ''}>中断レベル</option>
-          </select>
-        </div>
-        <textarea class="wa-memo-input injury-memo-input" rows="2" placeholder="怪我メモ（任意）">${esc(set.injuryMemo || '')}</textarea>
+    <div class="wa-set-body">
+      <div class="wa-set-main-row">
+        <input class="wa-set-input weight-input" type="number" value="${wVal}" placeholder="-">
+        <span class="wa-set-unit">kg</span>
+        <span class="wa-set-cross">×</span>
+        <input class="wa-set-input reps-input" type="number" value="${rVal}" placeholder="-">
+        <span class="wa-set-unit">${unit === '秒' ? '秒' : '回'}</span>
+        <button class="wa-rec-del-btn" data-si="${si}" data-type="${type}" data-i="${i}">✕</button>
       </div>
-    </div>
-    <div class="wa-set-memo">
-      <textarea class="wa-memo-input set-memo-input" rows="2" placeholder="メモ（任意）">${esc(set.memo || '')}</textarea>
+      <div class="wa-set-injury">
+        <button type="button" class="wa-set-injury-toggle${hasInjury}">🩹 怪我<span class="wa-set-injury-chev"${chevStyle}>▼</span></button>
+        <div class="wa-set-injury-body${injuryOpen}">
+          <div class="wa-injury-row">
+            <select class="wa-injury-select injury-site-input">
+              <option value="">部位</option>
+              ${S.injurySites.map(s => `<option${s === set.injurySite ? ' selected' : ''}>${esc(s)}</option>`).join('')}
+            </select>
+            <select class="wa-injury-select injury-level-input">
+              <option value="">程度</option>
+              <option${set.injuryLevel === '違和感' ? ' selected' : ''}>違和感</option>
+              <option${set.injuryLevel === '支障あり' ? ' selected' : ''}>支障あり</option>
+              <option${set.injuryLevel === '中断レベル' ? ' selected' : ''}>中断レベル</option>
+            </select>
+          </div>
+          <textarea class="wa-memo-input injury-memo-input" rows="2" placeholder="怪我メモ（任意）">${esc(set.injuryMemo || '')}</textarea>
+        </div>
+      </div>
+      <div class="wa-set-memo">
+        <textarea class="wa-memo-input set-memo-input" rows="2" placeholder="メモ（任意）">${esc(set.memo || '')}</textarea>
+      </div>
     </div>
   </div>`;
 }
