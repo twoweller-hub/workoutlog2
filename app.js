@@ -1124,7 +1124,7 @@ function buildIndividualSetLines(sets, unit) {
     let mid = '';
     if (s.weight != null) mid = `${s.weight}kg×${s.reps}${unit === '秒' ? '秒' : ''}`;
     else if (s.reps != null) mid = `${s.reps}${unit === '秒' ? '秒' : '回'}`;
-    else return '';
+    if (!mid && !s.memo) return '';
     if (s.duration != null) mid += `（${pad2(Math.floor(s.duration / 60))}:${pad2(s.duration % 60)}）`;
     const memoHtml = s.memo ? `<span class="wa-set-line-memo">：${esc(s.memo)}</span>` : '';
     return `<div class="wa-hist-set-line">${esc(label + mid)}${memoHtml}</div>`;
