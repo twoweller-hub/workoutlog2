@@ -601,6 +601,13 @@ function renderS3Body(exMaster) {
   });
 
   updateCompleteBtn();
+  updatePulseBtn();
+}
+
+function updatePulseBtn() {
+  document.querySelectorAll('#s3-body .wa-record-btn.pulse').forEach(b => b.classList.remove('pulse'));
+  const next = document.querySelector('#s3-body .wa-record-btn:not(.started):not(.recorded)');
+  if (next) next.classList.add('pulse');
 }
 
 function updateCompleteBtn() {
@@ -757,12 +764,14 @@ function onRecordSet(btn) {
       const exMaster = S.exercises.find(e => e.name === S.session.exercises[S.currentExIdx].name);
       refreshIntervals(si, type, exMaster);
       updateCompleteBtn();
+      updatePulseBtn();
     });
     return;
   }
 
   if (!set.startedAt) {
     set.startedAt = Date.now();
+    btn.classList.remove('pulse');
     btn.classList.add('started');
     btn.textContent = '00:00';
     return;
@@ -790,6 +799,7 @@ function doRecordSet(btn, duration) {
   const exMaster = S.exercises.find(e => e.name === S.session.exercises[S.currentExIdx].name);
   refreshIntervals(si, type, exMaster);
   updateCompleteBtn();
+  updatePulseBtn();
 }
 
 function refreshIntervals(si, type, exMaster) {
