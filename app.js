@@ -605,8 +605,13 @@ function renderS3Body(exMaster) {
 }
 
 function updatePulseBtn() {
-  document.querySelectorAll('#s3-body .wa-record-btn.pulse').forEach(b => b.classList.remove('pulse'));
-  const next = document.querySelector('#s3-body .wa-record-btn:not(.started):not(.recorded)');
+  const body = document.getElementById('s3-body');
+  if (!body) return;
+  body.querySelectorAll('.wa-record-btn.pulse').forEach(b => b.classList.remove('pulse'));
+  const all = [...body.querySelectorAll('.wa-record-btn')];
+  let lastRecordedIdx = -1;
+  all.forEach((btn, idx) => { if (btn.classList.contains('recorded')) lastRecordedIdx = idx; });
+  const next = all.slice(lastRecordedIdx + 1).find(btn => !btn.classList.contains('started') && !btn.classList.contains('recorded'));
   if (next) next.classList.add('pulse');
 }
 
