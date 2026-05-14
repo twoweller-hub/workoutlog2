@@ -724,6 +724,8 @@ function syncS3InjuryState() {
 function attachRecordBtnEvents(btn) {
   let longPressTimer = null;
   let longPressFired = false;
+  let touchStartX = 0;
+  let touchStartY = 0;
 
   const cancelLongPress = () => {
     if (longPressTimer) { clearTimeout(longPressTimer); longPressTimer = null; }
@@ -746,9 +748,19 @@ function attachRecordBtnEvents(btn) {
   btn.addEventListener('mousedown', startLongPress);
   btn.addEventListener('mouseup', cancelLongPress);
   btn.addEventListener('mouseleave', cancelLongPress);
-  btn.addEventListener('touchstart', e => { e.preventDefault(); startLongPress(); }, { passive: false });
+  btn.addEventListener('touchstart', e => {
+    e.preventDefault();
+    touchStartX = e.touches[0].clientX;
+    touchStartY = e.touches[0].clientY;
+    startLongPress();
+  }, { passive: false });
   btn.addEventListener('touchend', e => { e.preventDefault(); cancelLongPress(); if (!longPressFired) onRecordSet(btn); });
-  btn.addEventListener('touchmove', cancelLongPress);
+  btn.addEventListener('touchmove', e => {
+    const dx = e.touches[0].clientX - touchStartX;
+    const dy = e.touches[0].clientY - touchStartY;
+    if (dx * dx + dy * dy > 100) cancelLongPress();
+  });
+  btn.addEventListener('touchcancel', cancelLongPress);
   btn.addEventListener('click', () => { if (longPressFired) { longPressFired = false; return; } onRecordSet(btn); });
 }
 
