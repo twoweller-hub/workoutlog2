@@ -1,5 +1,21 @@
 # 開発ログ
 
+## 2026-05-15（29）
+
+### 過去データ整形スクリプト（transform_v2.py）修正・CSV再生成
+
+- **app.js・api.gs・dev-log.md を精査**し、現行 records シートが実際は 18 列（CLAUDE.md の記載は古く 16 列）であることを確認
+  - col 17: `exInstanceId`（種目インスタンスID、2026-05-12 追加）
+  - col 18: `duration`（所要時間・秒、2026-05-13 追加）
+- `transform_v2.py` に以下の修正を反映して `records_v2.csv` / `sessions_v2.csv` を再生成
+  1. `exInstanceId`（空欄）と `duration`（空欄）を 2 列追加 → 18 列に対応
+  2. `_clean_seg` にメモ先頭の重量ラベル除去を追加（`11kg : テンポよく。` → `テンポよく。`）
+  3. `怪我程度` → `怪我レベル`（GAS の列名に合わせた修正）
+- 残る 23 件の重量ラベル付きメモは意図的に維持（複数重量を比較する多重量ノートであり、weight コンテキストが必要）
+- 生成結果: records_v2.csv 14,221 行・18 列、sessions_v2.csv 817 行・9 列
+- 旧データの `exInstanceId` は空 → GAS の `sessionId＋種目名` フォールバックで正常動作
+- 旧データの `duration` は空 → UI の null チェックで非表示になるため問題なし
+
 ## 2026-05-14（28）
 
 ### Android（Galaxy S25）で長押しが効かないバグを修正
