@@ -1264,6 +1264,8 @@ function appendExHistItems(dates, unit, container, idPrefix) {
     const timeStr = d.time ? ` ${d.time}〜` : '';
     const elapsedHtml = d.exerciseElapsed > 0 ? ` <span class="wa-hist-elapsed">（${d.exerciseElapsed}分）</span>` : '';
     const daysSinceHtml = d.daysSincePrev != null ? `<div class="wa-hist-days-since">前回から${d.daysSincePrev}日</div>` : '';
+    const firstMainInterval = d.sets.find(s => s.setType === 'メイン')?.targetInterval ?? null;
+    const intervalHtml = firstMainInterval != null ? `<div class="wa-hist-interval">インターバル：${firstMainInterval}秒</div>` : '';
     div.innerHTML = `<div class="wa-ex-hist-header">
         <div class="wa-ex-hist-date">${esc(dateLabel(d.date) + timeStr)}</div>
         <div class="wa-ex-hist-sets">${esc(mainLine)}${elapsedHtml}</div>
@@ -1271,6 +1273,7 @@ function appendExHistItems(dates, unit, container, idPrefix) {
       </div>
       <div class="wa-ex-hist-body">
         ${daysSinceHtml}
+        ${intervalHtml}
         ${buildIndividualSetLines(d.sets, unit)}
         ${injuries ? `<div class="wa-ex-hist-injury">${esc(injuries)}</div>` : ''}
       </div>`;

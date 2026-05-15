@@ -395,16 +395,17 @@ function getExerciseHistory(exerciseName, offset) {
     const dur = r[17] !== '' && r[17] != null ? Number(r[17]) : null;
     if (!entryMap[key]) entryMap[key] = { date: d, time, sets: [], firstDuration: dur };
     entryMap[key].sets.push({
-      setType:     String(r[5] || ''),
-      setNum:      Number(r[6] || 0),
-      side:        String(r[7] || ''),
-      weight:      r[8] !== '' ? Number(r[8]) : null,
-      reps:        r[9] !== '' ? Number(r[9]) : null,
-      injurySite:  String(r[11] || ''),
-      injuryLevel: String(r[12] || ''),
-      injuryMemo:  String(r[13] || ''),
-      memo:        String(r[14] || ''),
-      duration:    dur
+      setType:        String(r[5] || ''),
+      setNum:         Number(r[6] || 0),
+      side:           String(r[7] || ''),
+      weight:         r[8] !== '' ? Number(r[8]) : null,
+      reps:           r[9] !== '' ? Number(r[9]) : null,
+      targetInterval: r[10] !== '' && r[10] != null ? Number(r[10]) : null,
+      injurySite:     String(r[11] || ''),
+      injuryLevel:    String(r[12] || ''),
+      injuryMemo:     String(r[13] || ''),
+      memo:           String(r[14] || ''),
+      duration:       dur
     });
     entryMap[key].lastTime = time;
   });

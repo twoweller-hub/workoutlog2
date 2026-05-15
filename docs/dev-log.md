@@ -1,5 +1,18 @@
 # 開発ログ
 
+## 2026-05-15（33）
+
+### 種目履歴にインターバルを表示
+
+- s3右ペイン・履歴タブの種目履歴（`appendExHistItems`）に、当時のインターバルを表示
+- **データソースは記録シートの col K（目標インターバル）**
+  - 種目シートの `defaultInterval`（現在値）ではなく、記録時点の値を使用するため
+  - インターバルを変更した場合も過去の記録には当時の値が正確に表示される
+- `getExerciseHistory`（GAS）: `sets` の各オブジェクトに `targetInterval` フィールドを追加（col K, index 10）
+- `appendExHistItems`（app.js）: メインの1セット目の `targetInterval` を取り出し、`<div class="wa-hist-interval">インターバル：N秒</div>` を body に追加
+- style.css: `.wa-hist-interval` スタイル追加（`wa-hist-days-since` の下に配置）
+- キャッシュバスター: `style.css?v=58`・`app.js?v=43`・SW `workoutlog2-v70`
+
 ## 2026-05-15（32）
 
 ### 過去データ整形スクリプト（transform_v2.py）種目統合・除外の修正
