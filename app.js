@@ -787,11 +787,15 @@ function onRecordSet(btn) {
   }
 
   if (!set.startedAt) {
-    document.querySelectorAll('.wa-record-btn.started').forEach(prev => {
-      const psi = parseInt(prev.dataset.si), ptype = prev.dataset.type, pi = parseInt(prev.dataset.i);
-      if (S.s3Sections[psi]?.[ptype]?.[pi]) S.s3Sections[psi][ptype][pi].startedAt = null;
-      prev.classList.remove('started');
-      prev.textContent = '開始';
+    S.s3Sections.forEach((sec, psi) => {
+      ['warmup', 'main'].forEach(ptype => {
+        (sec[ptype] || []).forEach((pset, pi) => {
+          if (!pset.startedAt) return;
+          pset.startedAt = null;
+          const prevBtn = document.querySelector(`.wa-record-btn[data-si="${psi}"][data-type="${ptype}"][data-i="${pi}"]`);
+          if (prevBtn) { prevBtn.classList.remove('started'); prevBtn.textContent = '開始'; }
+        });
+      });
     });
     set.startedAt = Date.now();
     btn.classList.remove('pulse');
