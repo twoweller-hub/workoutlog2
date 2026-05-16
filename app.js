@@ -787,6 +787,12 @@ function onRecordSet(btn) {
   }
 
   if (!set.startedAt) {
+    document.querySelectorAll('#s3-body .wa-record-btn.started').forEach(prev => {
+      const psi = parseInt(prev.dataset.si), ptype = prev.dataset.type, pi = parseInt(prev.dataset.i);
+      S.s3Sections[psi][ptype][pi].startedAt = null;
+      prev.classList.remove('started');
+      prev.textContent = '開始';
+    });
     set.startedAt = Date.now();
     btn.classList.remove('pulse');
     btn.classList.add('started');
