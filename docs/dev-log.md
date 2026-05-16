@@ -2,11 +2,10 @@
 
 ## 2026-05-16（35）
 
-### 開始ボタンのパルスに scale アニメーションを追加
+### 開始ボタンのパルスから scale アニメーションを削除
 
-- `@keyframes wa-btn-pulse` に `transform: scale(1) → scale(1.08)` を追加
-- グロー拡大と同期してボタン自体がふわっと膨らむ効果
-- キャッシュバスター: `style.css?v=60`・SW `workoutlog2-v72`
+- scale アニメーションを削除、グロー（40px）のみに戻す
+- キャッシュバスター: `style.css?v=61`・SW `workoutlog2-v73`
 
 ## 2026-05-16（34）
 
