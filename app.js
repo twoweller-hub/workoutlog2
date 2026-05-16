@@ -787,6 +787,7 @@ function onRecordSet(btn) {
   }
 
   if (!set.startedAt) {
+    // 他の started ボタン（緑点滅）をリセット
     S.s3Sections.forEach((sec, psi) => {
       ['warmup', 'main'].forEach(ptype => {
         (sec[ptype] || []).forEach((pset, pi) => {
@@ -797,6 +798,8 @@ function onRecordSet(btn) {
         });
       });
     });
+    // 他の pulse ボタン（オレンジ点滅）もすべて消す
+    document.getElementById('s3-body')?.querySelectorAll('.wa-record-btn.pulse').forEach(b => b.classList.remove('pulse'));
     set.startedAt = Date.now();
     btn.classList.remove('pulse');
     btn.classList.add('started');
