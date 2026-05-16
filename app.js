@@ -791,7 +791,7 @@ function onRecordSet(btn) {
     S.s3Sections.forEach((sec, psi) => {
       ['warmup', 'main'].forEach(ptype => {
         (sec[ptype] || []).forEach((pset, pi) => {
-          if (!pset.startedAt) return;
+          if (!pset.startedAt || pset.recorded) return;
           pset.startedAt = null;
           const prevBtn = document.querySelector(`.wa-record-btn[data-si="${psi}"][data-type="${ptype}"][data-i="${pi}"]`);
           if (prevBtn) { prevBtn.classList.remove('started'); prevBtn.textContent = '開始'; }
