@@ -1,5 +1,14 @@
 # 開発ログ
 
+## 2026-05-16（36）
+
+### カウント中ボタン（started）にも点滅アニメーションを追加
+
+- `@keyframes wa-btn-started-pulse` を追加：「開始」パルスと同じ感じで色を黄緑（`#d4f53c`）に変えたグロー
+- `.wa-record-btn.started` に `position: relative; z-index: 1; animation: wa-btn-started-pulse 0.5s ease-in-out infinite` を追加
+- 「開始」パルス（`wa-btn-pulse`）もユーザーが手動調整：`0%→100%` の片道アニメーションに変更・brightness を 1.35→1.9 に強化
+- キャッシュバスター: `style.css?v=62`・SW `workoutlog2-v74`
+
 ## 2026-05-16（35）
 
 ### 開始ボタンのパルスから scale アニメーションを削除
