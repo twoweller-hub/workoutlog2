@@ -548,7 +548,7 @@ body {
   color: #111318;
   position: relative;
   z-index: 1;
-  animation: wa-btn-pulse 0.9s ease-in-out infinite;
+  animation: wa-btn-pulse 0.5s ease-in-out infinite;
 }
 
 .wa-interval-auto { font-size: 10px; color: #7a8394; margin: -4px 0 4px 0; padding-left: 12px; }
