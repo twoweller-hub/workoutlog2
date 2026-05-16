@@ -1,5 +1,13 @@
 # 開発ログ
 
+## 2026-05-16（34）
+
+### 開始ボタンのパルスグローを拡大
+
+- `@keyframes wa-btn-pulse` の box-shadow 広がりを 9px → 40px に拡大
+- `.wa-record-btn.pulse` に `position: relative; z-index: 1` を追加（グローが隣接セット行の下に隠れないよう対処）
+- キャッシュバスター: `style.css?v=59`・SW `workoutlog2-v71`
+
 ## 2026-05-15（33）
 
 ### 種目履歴にインターバルを表示
