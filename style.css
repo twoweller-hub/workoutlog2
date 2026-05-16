@@ -489,7 +489,7 @@ body {
 .wa-set-prefix { display: inline-block; width: 1em; }
 .wa-set-body { flex: 1; min-width: 0; }
 .wa-set-main-row { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
-#s3-body .wa-set-row { background: #1c1f2a; border: 2px solid transparent; border-radius: 10px; padding: 10px 12px; margin-bottom: 8px; }
+#s3-body .wa-set-row { background: #1c1f2a; border: 1px solid transparent; border-radius: 10px; padding: 10px 12px; margin-bottom: 8px; }
 #s3-body .wa-set-row:has(.wa-record-btn.pulse),
 #s3-body .wa-set-row:has(.wa-record-btn.started) { border-color: #d4f53c; }
 .wa-set-input {
