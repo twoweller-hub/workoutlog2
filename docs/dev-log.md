@@ -1,5 +1,14 @@
 # 開発ログ
 
+## 2026-05-16（37）
+
+### 点滅中カードに黄緑ボーダーを追加
+
+- `#s3-body .wa-set-row` に `border: 2px solid transparent` をベースとして追加（レイアウトずれ防止）
+- `:has(.wa-record-btn.pulse)` と `:has(.wa-record-btn.started)` の条件で `border-color: #d4f53c` に切り替え
+- 「開始」点滅中・「0:00」カウント中のカード枠が黄緑2pxで光る
+- キャッシュバスター: `style.css?v=63`・SW `workoutlog2-v75`
+
 ## 2026-05-16（36）
 
 ### カウント中ボタン（started）にも点滅アニメーションを追加
