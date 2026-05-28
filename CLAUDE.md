@@ -227,6 +227,9 @@ const S = {
 - `app.js` 変更時 → `index.html` の `app.js?vN` を +1、`sw.js` の `CACHE` 名を +1
 - 両方変更時 → 両方 +1、`CACHE` 名は1回だけ +1
 
+**`manifest.webmanifest` を変更したコミットにも `sw.js` の `CACHE` 名 +1 を含める。**
+- manifest はキャッシュ優先配信のため、SW バージョンを上げないと変更が端末に反映されない
+
 ## 分析チャート
 
 - Chart.js 4.4.0 を CDN から読み込み
