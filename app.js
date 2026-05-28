@@ -951,6 +951,7 @@ function goFinish() {
   document.getElementById('finish-ex-count').innerHTML = `${doneExes.length}<em>種目</em>`;
   document.getElementById('finish-set-count').innerHTML = `${totalSets}<em>セット</em>`;
   document.getElementById('finish-obsidian').value = buildObsidianText(doneExes, S.session.menuDisplay, S.session.startTime, endTime, totalMin);
+  document.querySelector('.wa-obsidian-wrap').classList.add('pulsing');
   document.querySelectorAll('.wa-choice-btn').forEach(b => b.classList.remove('selected'));
 
   const btn = document.getElementById('btn-save-session');
@@ -2028,6 +2029,7 @@ function setupEventListeners() {
     const ta = document.getElementById('finish-obsidian');
     const btn = document.getElementById('btn-copy-obsidian');
     navigator.clipboard.writeText(ta.value).then(() => {
+      document.querySelector('.wa-obsidian-wrap').classList.remove('pulsing');
       btn.textContent = 'コピー済み✓';
       setTimeout(() => { btn.textContent = 'コピー'; }, 1500);
     }).catch(() => { ta.select(); document.execCommand('copy'); });

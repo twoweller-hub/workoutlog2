@@ -657,7 +657,17 @@ body {
   letter-spacing: 1px;
   margin-top: 6px;
 }
+@keyframes obsidian-glow {
+  0%   { box-shadow: 0 0 0 0 rgba(212, 245, 60, 0.7); }
+  100% { box-shadow: 0 0 0 18px rgba(212, 245, 60, 0); }
+}
 .wa-obsidian-wrap { margin-bottom: 20px; }
+.wa-obsidian-wrap.pulsing {
+  border: 1px solid #d4f53c;
+  border-radius: 10px;
+  padding: 10px;
+  animation: obsidian-glow 1s ease-in-out infinite;
+}
 .wa-obsidian-header {
   display: flex;
   justify-content: space-between;

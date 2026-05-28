@@ -1,5 +1,15 @@
 # 開発ログ
 
+## 2026-05-28（42）
+
+### 終了画面：Obsidianコピー枠を点滅強調
+
+- トレーニング完了画面の `.wa-obsidian-wrap` 全体を黄緑ボーダー＋グローで点滅させ、コピー欄を目立たせる
+- `goFinish()` でテキストセット後に `.pulsing` クラスを付与
+- コピーボタン押下後に `.pulsing` を除去してアニメーション停止
+- `@keyframes obsidian-glow`（box-shadow 0→18px）と `.wa-obsidian-wrap.pulsing` を追加
+- キャッシュバスター: `style.css?v=64`・`app.js?v=50`・SW `workoutlog2-v83`
+
 ## 2026-05-28（41）
 
 ### manifest 変更時の SW キャッシュバスター漏れを修正
