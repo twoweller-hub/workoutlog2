@@ -142,6 +142,14 @@ function esc(str) {
   return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
 
+function parseMemo(str) {
+  if (!str) return '';
+  return esc(str)
+    .replace(/==(.+?)==/g, '<mark class="memo-hl">$1</mark>')
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/~~(.+?)~~/g, '<s>$1</s>');
+}
+
 function showToast(msg, dur = 2000) {
   const el = document.getElementById('toast');
   el.textContent = msg;
@@ -642,7 +650,7 @@ function buildPrevBoxHtml(data, unit, hasSides) {
   const isToday = data.daysSinceLast === 0;
   const prevLabel = isToday ? '本日' : '前回';
   return `<div class="wa-prev-box">
-    ${data.lastMemo ? `<div class="wa-prev-label">${prevLabel}のメモ</div><div class="wa-prev-memo">${esc(data.lastMemo)}</div>` : ''}
+    ${data.lastMemo ? `<div class="wa-prev-label">${prevLabel}のメモ</div><div class="wa-prev-memo">${parseMemo(data.lastMemo)}</div>` : ''}
     <div class="wa-prev-sets">${prevLabel} ${esc(dateLabel(data.lastDate))}: ${esc(setsLine)}</div>
     <div class="wa-prev-stats">累計 ${data.totalMainSets}セット　前回から${data.daysSinceLast}日</div>
   </div>`;
@@ -1100,7 +1108,7 @@ function renderHistoryDate(sessions, clear) {
           ${sess.condition ? `<div>コンディション：<span>${esc(sess.condition)}</span></div>` : ''}
           ${sess.satisfaction ? `<div>満足度：<span>${esc(sess.satisfaction)}</span></div>` : ''}
         </div>` : ''}
-        ${sess.comment ? `<div class="wa-session-feeling">${esc(sess.comment)}</div>` : ''}
+        ${sess.comment ? `<div class="wa-session-feeling">${parseMemo(sess.comment)}</div>` : ''}
         ${buildSessionExRows(sess, id, idx)}
       <button class="wa-session-edit-btn" data-sess-idx="${idx}">セッションを編集</button>
       </div>`;
@@ -1128,7 +1136,10 @@ function buildSessionExRows(sess, sessId, sessIdx) {
     const mainSets = sets.filter(s => s.setType === 'メイン');
     const unit = S.exercises.find(e => e.name === name)?.unit || '回';
     const mainLine = formatHistSets(mainSets, unit);
-    const injuries = sets.filter(s => s.injurySite).map(s => `${setNumLabel(s.setNum - 1, s.setType === 'ウォームアップ')}${s.injurySite}・${s.injuryLevel}${s.injuryMemo ? '：' + s.injuryMemo : ''}`).join('\n');
+    const injuries = sets.filter(s => s.injurySite).map(s => {
+      const base = esc(`${setNumLabel(s.setNum - 1, s.setType === 'ウォームアップ')}${s.injurySite}・${s.injuryLevel}`);
+      return base + (s.injuryMemo ? `：${parseMemo(s.injuryMemo)}` : '');
+    }).join('<br>');
     return `<div class="wa-ex-row">
       <div class="wa-ex-row-header">
         <div class="wa-ex-row-name" data-name="${esc(name)}">${esc(name)}</div>
@@ -1136,7 +1147,7 @@ function buildSessionExRows(sess, sessId, sessIdx) {
       </div>
       ${mainLine ? `<div class="wa-ex-row-main">${esc(mainLine)}</div>` : ''}
       ${buildIndividualSetLines(sets, unit)}
-      ${injuries ? `<div class="wa-ex-row-injury">${esc(injuries)}</div>` : ''}
+      ${injuries ? `<div class="wa-ex-row-injury">${injuries}</div>` : ''}
     </div>`;
   }).join('');
 }
@@ -1167,7 +1178,7 @@ function buildIndividualSetLines(sets, unit) {
     else if (s.reps != null) mid = `${s.reps}${unit === '秒' ? '秒' : '回'}`;
     if (!mid && !s.memo) return '';
     if (s.duration != null) mid += `（${pad2(Math.floor(s.duration / 60))}:${pad2(s.duration % 60)}）`;
-    const memoHtml = s.memo ? `<span class="wa-set-line-memo">：${esc(s.memo)}</span>` : '';
+    const memoHtml = s.memo ? `<span class="wa-set-line-memo">：${parseMemo(s.memo)}</span>` : '';
     return `<div class="wa-hist-set-line">${esc(label + mid)}${memoHtml}</div>`;
   }).filter(Boolean).join('');
 }
@@ -1267,7 +1278,10 @@ function appendExHistItems(dates, unit, container, idPrefix) {
   dates.forEach(d => {
     const mainSets = d.sets.filter(s => s.setType === 'メイン');
     const mainLine = formatHistSets(mainSets, unit);
-    const injuries = d.sets.filter(s => s.injurySite).map(s => `${setNumLabel(s.setNum - 1, s.setType === 'ウォームアップ')}${s.injurySite}・${s.injuryLevel}${s.injuryMemo ? '：' + s.injuryMemo : ''}`).join('\n');
+    const injuries = d.sets.filter(s => s.injurySite).map(s => {
+      const base = esc(`${setNumLabel(s.setNum - 1, s.setType === 'ウォームアップ')}${s.injurySite}・${s.injuryLevel}`);
+      return base + (s.injuryMemo ? `：${parseMemo(s.injuryMemo)}` : '');
+    }).join('<br>');
     const div = document.createElement('div');
     div.className = 'wa-ex-hist-item';
     if (idPrefix) div.id = idPrefix + (d.exInstanceId || d.date);
@@ -1285,7 +1299,7 @@ function appendExHistItems(dates, unit, container, idPrefix) {
         ${daysSinceHtml}
         ${intervalHtml}
         ${buildIndividualSetLines(d.sets, unit)}
-        ${injuries ? `<div class="wa-ex-hist-injury">${esc(injuries)}</div>` : ''}
+        ${injuries ? `<div class="wa-ex-hist-injury">${injuries}</div>` : ''}
       </div>`;
     div.querySelector('.wa-ex-hist-header').addEventListener('click', () => div.classList.toggle('expanded'));
     container.appendChild(div);
