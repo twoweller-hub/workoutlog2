@@ -1,5 +1,14 @@
 # 開発ログ
 
+## 2026-05-28（40）
+
+### manifest の icons purpose を any/maskable に分離（PWA アイコン変更ダイアログ対策）
+
+- Galaxy S25 で「新しいアイコンを確認」ダイアログが度々表示される問題を修正
+- `"purpose": "any maskable"` を1エントリに混在させると Chrome on Android がアイコン変更と誤検知しやすい
+- `any` と `maskable` を別エントリに分離（PWA ベストプラクティス）
+- `manifest.webmanifest` のみ変更。アプリ動作・アイコン見た目に変化なし
+
 ## 2026-05-16（39）
 
 ### 「開始」押下時の点滅リセット処理をDOMクラスベースに整理（最終版）
