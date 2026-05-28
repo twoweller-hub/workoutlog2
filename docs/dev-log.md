@@ -1,5 +1,12 @@
 # 開発ログ
 
+## 2026-05-28（41）
+
+### manifest 変更時の SW キャッシュバスター漏れを修正
+
+- manifest.webmanifest はキャッシュ優先配信のため、（40）のコミットで SW キャッシュ名を上げ忘れていた
+- SW `workoutlog2-v81` → `v82` に更新
+
 ## 2026-05-28（40）
 
 ### manifest の icons purpose を any/maskable に分離（PWA アイコン変更ダイアログ対策）
@@ -7,7 +14,7 @@
 - Galaxy S25 で「新しいアイコンを確認」ダイアログが度々表示される問題を修正
 - `"purpose": "any maskable"` を1エントリに混在させると Chrome on Android がアイコン変更と誤検知しやすい
 - `any` と `maskable` を別エントリに分離（PWA ベストプラクティス）
-- `manifest.webmanifest` のみ変更。アプリ動作・アイコン見た目に変化なし
+- `manifest.webmanifest` のみ変更。SW キャッシュ名の更新が必要だったが漏れていた（→41で修正）
 
 ## 2026-05-16（39）
 
