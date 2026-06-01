@@ -520,8 +520,8 @@ function saveSets(d) {
     s.targetInterval != null ? s.targetInterval : '',
     s.injurySite      || '',
     s.injuryLevel     || '',
-    s.injuryMemo      || '',
-    s.memo            || '',
+    safeCell(s.injuryMemo),
+    safeCell(s.memo),
     d.sessionId       || '',
     d.exInstanceId    || '',
     s.duration != null ? s.duration : ''
@@ -553,7 +553,7 @@ function saveSession(d) {
     d.endTime      || '',
     d.condition    || '',
     d.satisfaction || '',
-    d.comment      || '',
+    safeCell(d.comment),
     d.sessionId    || ''
   ]);
   return okRes();
@@ -570,7 +570,7 @@ function updateSession(d) {
     sheet.getRange(i + 1, 6, 1, 3).setValues([[
       d.condition    || '',
       d.satisfaction || '',
-      d.comment      || ''
+      safeCell(d.comment)
     ]]);
     break;
   }
@@ -663,8 +663,8 @@ function updateExerciseRecords(d) {
       orig.targetInterval ?? '',
       s.injurySite        || '',
       s.injuryLevel       || '',
-      s.injuryMemo        || '',
-      s.memo              || '',
+      safeCell(s.injuryMemo),
+      safeCell(s.memo),
       d.sessionId         || '',
       d.exInstanceId      || '',
       orig.duration != null ? orig.duration : ''
@@ -837,6 +837,11 @@ function okRes() {
   return ContentService
     .createTextOutput(JSON.stringify({ ok: true }))
     .setMimeType(ContentService.MimeType.JSON);
+}
+
+// = で始まる文字列はSheetsが数式と解釈するためアポストロフィでエスケープ
+function safeCell(val) {
+  return (typeof val === 'string' && val.startsWith('=')) ? "'" + val : (val || '');
 }
 
 function errorRes(msg) {
