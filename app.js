@@ -1162,11 +1162,15 @@ function toggleExpandAll(btnId, listId, itemClass) {
 }
 
 function formatHistSets(sets, unit) {
+  const circled = ['①','②','③','④','⑤','⑥','⑦','⑧','⑨','⑩'];
+  let idx = 0;
   return sets.map(s => {
-    if (s.weight != null) return `${s.weight}kg×${s.reps}${unit === '秒' ? '秒' : ''}`;
-    if (s.reps != null) return `${s.reps}${unit === '秒' ? '秒' : '回'}`;
-    return '';
-  }).filter(Boolean).join(' / ');
+    let val = '';
+    if (s.weight != null) val = `${s.weight}kg×${s.reps}${unit === '秒' ? '秒' : ''}`;
+    else if (s.reps != null) val = `${s.reps}${unit === '秒' ? '秒' : '回'}`;
+    if (!val) return '';
+    return (circled[idx++] || `${idx}`) + val;
+  }).filter(Boolean).join(' ');
 }
 
 function buildIndividualSetLines(sets, unit) {
