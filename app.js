@@ -875,12 +875,16 @@ function completeEx() {
   syncS3InjuryState();
 
   const sets = [];
-  S.s3Sections.forEach(sec => {
+  const s3Body = document.getElementById('s3-body');
+  S.s3Sections.forEach((sec, si) => {
     sec.warmup.forEach((set, i) => {
       if (!set.recorded) return;
+      const row = s3Body?.querySelector(`.wa-set-row[data-si="${si}"][data-type="warmup"][data-i="${i}"]`);
+      const weight = row ? (parseFloat(row.querySelector('.weight-input').value) || null) : set.weight;
+      const reps   = row ? (parseFloat(row.querySelector('.reps-input').value)  || null) : set.reps;
       sets.push({
         type: 'ウォームアップ', setNum: i + 1, side: sec.side,
-        weight: set.weight, reps: set.reps, targetInterval,
+        weight, reps, targetInterval,
         time: set.recordedAt ? timeFromMs(set.recordedAt) : timeNow(),
         duration: set.duration != null ? set.duration : null,
         injurySite: set.injurySite || '', injuryLevel: set.injuryLevel || '', injuryMemo: set.injuryMemo || '',
@@ -889,9 +893,12 @@ function completeEx() {
     });
     sec.main.forEach((set, i) => {
       if (!set.recorded) return;
+      const row = s3Body?.querySelector(`.wa-set-row[data-si="${si}"][data-type="main"][data-i="${i}"]`);
+      const weight = row ? (parseFloat(row.querySelector('.weight-input').value) || null) : set.weight;
+      const reps   = row ? (parseFloat(row.querySelector('.reps-input').value)  || null) : set.reps;
       sets.push({
         type: 'メイン', setNum: i + 1, side: sec.side,
-        weight: set.weight, reps: set.reps, targetInterval,
+        weight, reps, targetInterval,
         time: set.recordedAt ? timeFromMs(set.recordedAt) : timeNow(),
         duration: set.duration != null ? set.duration : null,
         injurySite: set.injurySite || '', injuryLevel: set.injuryLevel || '', injuryMemo: set.injuryMemo || '',
