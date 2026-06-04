@@ -239,31 +239,39 @@ function getExerciseData(exerciseName) {
   const last  = sheet.getLastRow();
   if (last < 2) return { lastDate: null, lastSets: [], lastMemo: '', totalMainSets: 0, daysSinceLast: null };
 
-  const rows  = sheet.getRange(2, 1, last - 1, 15).getValues();
+  const rows  = sheet.getRange(2, 1, last - 1, 18).getValues();
   const today = Utilities.formatDate(new Date(), 'Asia/Tokyo', 'yyyy-MM-dd');
   let lastDate      = null;
+  let lastSessionId = null;
   let totalMainSets = 0;
   const exRows      = [];
 
   rows.forEach(r => {
     if (!r[0] || String(r[4]) !== exerciseName) return;
-    const d = fmtDate(r[1]);
+    const d   = fmtDate(r[1]);
+    const sid = String(r[15] || '');
     if (String(r[5]) === 'メイン') totalMainSets++;
-    if (!lastDate || d > lastDate) lastDate = d;
+    if (!lastDate || d > lastDate || (d === lastDate && sid && (!lastSessionId || sid > lastSessionId))) {
+      lastDate      = d;
+      lastSessionId = sid;
+    }
     exRows.push({
-      date:    d,
-      setType: String(r[5]),
-      setNum:  Number(r[6]),
-      side:    String(r[7] || ''),
-      weight:  r[8] !== '' ? Number(r[8]) : null,
-      reps:    r[9] !== '' ? Number(r[9]) : null,
-      memo:    String(r[14] || '')
+      date:      d,
+      sessionId: sid,
+      setType:   String(r[5]),
+      setNum:    Number(r[6]),
+      side:      String(r[7] || ''),
+      weight:    r[8] !== '' ? Number(r[8]) : null,
+      reps:      r[9] !== '' ? Number(r[9]) : null,
+      memo:      String(r[14] || '')
     });
   });
 
   if (!lastDate) return { lastDate: null, lastSets: [], lastMemo: '', totalMainSets: 0, daysSinceLast: null };
 
-  const lastRecs     = exRows.filter(r => r.date === lastDate);
+  const lastRecs     = lastSessionId
+    ? exRows.filter(r => r.sessionId === lastSessionId)
+    : exRows.filter(r => r.date === lastDate);
   const lastSets     = lastRecs.map(r => ({ type: r.setType, setNum: r.setNum, side: r.side, weight: r.weight, reps: r.reps }));
   const lastMemo     = (lastRecs.find(r => r.memo) || {}).memo || '';
   const daysSinceLast= Math.round((new Date(today).getTime() - new Date(lastDate).getTime()) / 86400000);
