@@ -859,6 +859,18 @@ function refreshIntervals(si, type, exMaster) {
 function onAddSet(btn) {
   const si = parseInt(btn.dataset.si);
   const type = btn.dataset.type;
+  const s3Body = document.getElementById('s3-body');
+  S.s3Sections.forEach((sec, secIdx) => {
+    ['warmup', 'main'].forEach(t => {
+      sec[t].forEach((set, i) => {
+        const row = s3Body?.querySelector(`.wa-set-row[data-si="${secIdx}"][data-type="${t}"][data-i="${i}"]`);
+        if (row) {
+          set.weight = parseFloat(row.querySelector('.weight-input').value) || null;
+          set.reps = parseFloat(row.querySelector('.reps-input').value) || null;
+        }
+      });
+    });
+  });
   S.s3Sections[si][type].push({ weight: null, reps: null, recorded: false, recordedAt: null, startedAt: null, duration: null, injurySite: '', injuryLevel: '', injuryMemo: '', injuryOpen: false, memo: '' });
   const exMaster = S.exercises.find(e => e.name === S.session.exercises[S.currentExIdx].name);
   renderS3Body(exMaster);
