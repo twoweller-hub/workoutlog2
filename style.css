@@ -1511,3 +1511,48 @@ body {
   text-align: center;
 }
 
+/* ===== 怪我タブ ===== */
+.injury-view { display: none; }
+.injury-view.active { display: block; }
+
+.injury-site-group {
+  margin-bottom: 10px;
+}
+.injury-site-label {
+  font-size: 13px;
+  font-weight: 700;
+  color: #d4f53c;
+  margin-bottom: 4px;
+}
+
+.injury-rec-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px;
+  padding: 4px 0;
+  border-bottom: 1px solid #2e3244;
+  font-size: 13px;
+  color: #b0b8c8;
+}
+.injury-rec-row:last-child { border-bottom: none; }
+.injury-rec-date { color: #b0b8c8; flex-shrink: 0; }
+.injury-rec-ex   { color: #fff; font-weight: 500; }
+.injury-rec-set  { color: #b0b8c8; flex-shrink: 0; }
+.injury-rec-level { color: #ff9f40; flex-shrink: 0; }
+.injury-rec-memo  { width: 100%; color: #b0b8c8; font-size: 12px; padding-left: 2px; }
+
+.injury-site-card {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  border-bottom: 1px solid #2e3244;
+  cursor: pointer;
+}
+.injury-site-card:last-child { border-bottom: none; }
+.injury-site-card:active { background: #2e3244; }
+.injury-site-card-name { flex: 1; font-size: 15px; color: #fff; font-weight: 500; }
+.injury-site-card-meta { font-size: 12px; color: #b0b8c8; }
+.injury-site-card-chev { color: #b0b8c8; font-size: 12px; }
+

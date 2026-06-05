@@ -10,7 +10,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=66">
+<link rel="stylesheet" href="style.css?v=67">
 </head>
 <body>
 <div id="app">
@@ -25,6 +25,10 @@
     <div class="wa-nav-item" data-tab="history">
       <div class="wa-nav-icon">📋</div>
       <div class="wa-nav-label">履歴</div>
+    </div>
+    <div class="wa-nav-item" data-tab="injury">
+      <div class="wa-nav-icon">🩹</div>
+      <div class="wa-nav-label">怪我</div>
     </div>
     <div class="wa-nav-item" data-tab="analysis">
       <div class="wa-nav-icon">📊</div>
@@ -286,6 +290,34 @@
       </div>
     </div><!-- /tab-history -->
 
+    <!-- ===== 怪我タブ ===== -->
+    <div id="tab-injury" class="tab-pane">
+      <div class="wa-header">
+        <div class="wa-header-row"><div class="wa-app-title">INJURY</div></div>
+      </div>
+      <div class="wa-subtab-bar">
+        <button class="wa-subtab active" id="injury-tab-date" data-view="injury-date-view">日付</button>
+        <button class="wa-subtab" id="injury-tab-site" data-view="injury-site-view">部位</button>
+      </div>
+      <div class="wa-body" id="injury-body">
+        <!-- 日付ビュー -->
+        <div id="injury-date-view" class="injury-view active">
+          <div id="injury-date-list"></div>
+        </div>
+        <!-- 部位ビュー -->
+        <div id="injury-site-view" class="injury-view">
+          <div id="injury-site-list-view">
+            <div id="injury-site-list"></div>
+          </div>
+          <div id="injury-site-detail-view" style="display:none">
+            <button class="wa-back-to" id="btn-injury-site-back">◀ <span>部位一覧に戻る</span></button>
+            <div class="wa-ex-hist-title" id="injury-site-detail-title"></div>
+            <div id="injury-site-detail-list"></div>
+          </div>
+        </div>
+      </div>
+    </div><!-- /tab-injury -->
+
     <!-- ===== 分析タブ ===== -->
     <div id="tab-analysis" class="tab-pane">
       <div class="wa-header">
@@ -442,6 +474,10 @@
     <div class="wa-nav-item" data-tab="history">
       <div class="wa-nav-icon">📋</div>
       <div class="wa-nav-label">履歴</div>
+    </div>
+    <div class="wa-nav-item" data-tab="injury">
+      <div class="wa-nav-icon">🩹</div>
+      <div class="wa-nav-label">怪我</div>
     </div>
     <div class="wa-nav-item" data-tab="analysis">
       <div class="wa-nav-icon">📊</div>
@@ -605,6 +641,6 @@
     navigator.serviceWorker.register('/workoutlog2/sw.js');
   }
 </script>
-<script src="app.js?v=54"></script>
+<script src="app.js?v=55"></script>
 </body>
 </html>

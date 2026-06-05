@@ -1,5 +1,17 @@
 # 開発ログ
 
+## 2026-06-05（50）
+
+### 怪我タブ フェーズ1（閲覧のみ）実装
+
+- ナビバーに「怪我」タブを追加（記録→履歴→**怪我**→分析→設定）
+- GAS: `getInjuryHistory` アクションを追加。記録シートから `injurySite`（col 12）が空でない行を全件取得し、日付降順のフラット配列で返す
+- 日付ビュー: 日付カードを展開すると部位グループ→セット行の2段構造で表示
+- 部位ビュー: 怪我部位一覧→タップで詳細（その部位の全記録を新しい順）の2段構造
+- `S` に `injuryRecords: null`、`injuryView: 'date'` を追加
+- `switchInjuryTab` は `#tab-injury` スコープで `.wa-subtab` を切り替え（履歴タブとの競合回避のため、ビュークラスは `injury-view` を使用）
+- `app.js?v=55`・`style.css?v=67`・SW `workoutlog2-v89`
+
 ## 2026-06-04（49）
 
 ### GAS: getExerciseData の lastSets を最新session_idで特定するよう修正

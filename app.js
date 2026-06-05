@@ -44,6 +44,8 @@ const S = {
   editingSession: null,
   editingRecord: null,
   confirmCb: null,
+  injuryRecords: null,
+  injuryView: 'date',
 };
 
 // =====================================================================
@@ -212,6 +214,7 @@ function showTab(tab) {
   });
 
   if (tab === 'history' && S.histDateItems.length === 0) loadHistoryDate();
+  if (tab === 'injury' && !S.injuryRecords) loadInjuryHistory();
   if (tab === 'analysis' && !S.analysisExList) loadAnalysisExList();
   if (tab === 'settings') { renderSettingsEx(); renderSettingsMenu(); renderSettingsInjury(); updateSettingsTopCounts(); }
 }
@@ -1653,6 +1656,114 @@ function switchHistTab(view) {
 }
 
 // =====================================================================
+//  怪我タブ
+// =====================================================================
+async function loadInjuryHistory() {
+  document.getElementById('injury-date-list').innerHTML = '<div class="loading-msg">読み込み中…</div>';
+  document.getElementById('injury-site-list').innerHTML = '<div class="loading-msg">読み込み中…</div>';
+  try {
+    const data = await gasGet({ action: 'getInjuryHistory' });
+    S.injuryRecords = data.records || [];
+    renderInjuryDate();
+    renderInjurySite();
+  } catch {
+    document.getElementById('injury-date-list').innerHTML = '<div class="loading-msg">読み込み失敗</div>';
+    document.getElementById('injury-site-list').innerHTML = '<div class="loading-msg">読み込み失敗</div>';
+  }
+}
+
+function renderInjuryDate() {
+  const list = document.getElementById('injury-date-list');
+  if (!S.injuryRecords || S.injuryRecords.length === 0) {
+    list.innerHTML = '<div class="loading-msg">怪我の記録がありません</div>';
+    return;
+  }
+  const dates = [...new Set(S.injuryRecords.map(r => r.date))];
+  list.innerHTML = '';
+  dates.forEach(date => {
+    const recs = S.injuryRecords.filter(r => r.date === date);
+    const bySite = {};
+    recs.forEach(r => {
+      if (!bySite[r.injurySite]) bySite[r.injurySite] = [];
+      bySite[r.injurySite].push(r);
+    });
+    const div = document.createElement('div');
+    div.className = 'wa-session-item';
+    div.innerHTML = `<div class="wa-session-header">
+        <div class="wa-session-date">${esc(dateLabel(date))}</div>
+        <div class="wa-session-chev">▼</div>
+      </div>
+      <div class="wa-session-body">
+        ${Object.keys(bySite).map(site => `
+          <div class="injury-site-group">
+            <div class="injury-site-label">${esc(site)}</div>
+            ${bySite[site].map(r => injuryRecRowHtml(r, false)).join('')}
+          </div>`).join('')}
+      </div>`;
+    div.querySelector('.wa-session-header').addEventListener('click', () => div.classList.toggle('expanded'));
+    list.appendChild(div);
+  });
+}
+
+function renderInjurySite() {
+  const list = document.getElementById('injury-site-list');
+  if (!S.injuryRecords) { list.innerHTML = ''; return; }
+  const sitesWithRecs = new Set(S.injuryRecords.map(r => r.injurySite));
+  const ordered = [
+    ...S.injurySites.filter(s => sitesWithRecs.has(s)),
+    ...[...sitesWithRecs].filter(s => !S.injurySites.includes(s))
+  ];
+  if (ordered.length === 0) {
+    list.innerHTML = '<div class="loading-msg">怪我の記録がありません</div>';
+    return;
+  }
+  list.innerHTML = ordered.map(site => {
+    const count = S.injuryRecords.filter(r => r.injurySite === site).length;
+    return `<div class="injury-site-card" data-site="${esc(site)}">
+      <div class="injury-site-card-name">${esc(site)}</div>
+      <div class="injury-site-card-meta">${count}件</div>
+      <div class="injury-site-card-chev">▶</div>
+    </div>`;
+  }).join('');
+  list.querySelectorAll('.injury-site-card').forEach(card => {
+    card.addEventListener('click', () => showInjurySiteDetail(card.dataset.site));
+  });
+}
+
+function showInjurySiteDetail(site) {
+  document.getElementById('injury-site-list-view').style.display = 'none';
+  document.getElementById('injury-site-detail-view').style.display = '';
+  document.getElementById('injury-site-detail-title').textContent = site;
+  const recs = S.injuryRecords.filter(r => r.injurySite === site);
+  document.getElementById('injury-site-detail-list').innerHTML =
+    recs.map(r => injuryRecRowHtml(r, true)).join('');
+}
+
+function backFromInjurySiteDetail() {
+  document.getElementById('injury-site-list-view').style.display = '';
+  document.getElementById('injury-site-detail-view').style.display = 'none';
+}
+
+function injuryRecRowHtml(r, showDate) {
+  const setLabel = setNumLabel(r.setNum - 1, r.setType === 'ウォームアップ');
+  return `<div class="injury-rec-row">
+    ${showDate ? `<span class="injury-rec-date">${esc(dateLabel(r.date))}</span>` : ''}
+    <span class="injury-rec-ex">${esc(r.exercise)}</span>
+    <span class="injury-rec-set">${esc(setLabel)}</span>
+    <span class="injury-rec-level">${esc(r.injuryLevel)}</span>
+    ${r.injuryMemo ? `<div class="injury-rec-memo">${parseMemo(r.injuryMemo)}</div>` : ''}
+  </div>`;
+}
+
+function switchInjuryTab(view) {
+  document.querySelectorAll('#tab-injury .wa-subtab').forEach(t => t.classList.remove('active'));
+  document.getElementById('injury-tab-' + (view === 'injury-date-view' ? 'date' : 'site')).classList.add('active');
+  document.querySelectorAll('.injury-view').forEach(v => v.classList.remove('active'));
+  document.getElementById(view).classList.add('active');
+  S.injuryView = view === 'injury-date-view' ? 'date' : 'site';
+}
+
+// =====================================================================
 //  分析タブ
 // =====================================================================
 async function loadAnalysisExList() {
@@ -2090,6 +2201,11 @@ function setupEventListeners() {
   document.getElementById('hist-ex-search').addEventListener('input', function () {
     if (S.histExWithLastDate) renderHistExList(S.histExWithLastDate.exercises, this.value);
   });
+
+  // --- 怪我タブ ---
+  document.getElementById('injury-tab-date').addEventListener('click', () => switchInjuryTab('injury-date-view'));
+  document.getElementById('injury-tab-site').addEventListener('click', () => switchInjuryTab('injury-site-view'));
+  document.getElementById('btn-injury-site-back').addEventListener('click', backFromInjurySiteDetail);
 
   // --- 分析タブ ---
   document.getElementById('analysis-search').addEventListener('input', function () {

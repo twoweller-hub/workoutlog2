@@ -34,6 +34,8 @@ function doGet(e) {
         data = getExerciseHistory(e.parameter.exercise, parseInt(e.parameter.offset || '0')); break;
       case 'getAnalysisData':
         data = getAnalysisData(e.parameter.exercise); break;
+      case 'getInjuryHistory':
+        data = getInjuryHistory(); break;
       default:
         data = { error: 'Unknown action: ' + action };
     }
@@ -458,6 +460,37 @@ function getExerciseHistory(exerciseName, offset) {
     }),
     hasMore
   };
+}
+
+// ============================================================
+//  怪我履歴取得
+// ============================================================
+function getInjuryHistory() {
+  const ss    = SpreadsheetApp.openById(SPREADSHEET_ID);
+  const sheet = ss.getSheetByName(SHEET_RECORDS);
+  const last  = sheet.getLastRow();
+  if (last < 2) return { records: [] };
+
+  const rows    = sheet.getRange(2, 1, last - 1, 16).getValues();
+  const records = [];
+
+  rows.forEach(r => {
+    if (!r[0] || !String(r[11])) return;
+    records.push({
+      date:        fmtDate(r[1]),
+      sessionId:   String(r[15] || ''),
+      exercise:    String(r[4] || ''),
+      setType:     String(r[5] || ''),
+      setNum:      Number(r[6] || 0),
+      side:        String(r[7] || ''),
+      injurySite:  String(r[11]),
+      injuryLevel: String(r[12] || ''),
+      injuryMemo:  String(r[13] || '')
+    });
+  });
+
+  records.sort((a, b) => b.date.localeCompare(a.date));
+  return { records };
 }
 
 // ============================================================
