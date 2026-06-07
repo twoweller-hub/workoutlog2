@@ -2205,6 +2205,7 @@ function setupEventListeners() {
   // --- 怪我タブ ---
   document.getElementById('injury-tab-date').addEventListener('click', () => switchInjuryTab('injury-date-view'));
   document.getElementById('injury-tab-site').addEventListener('click', () => switchInjuryTab('injury-site-view'));
+  document.getElementById('btn-injury-date-expand-all').addEventListener('click', () => toggleExpandAll('btn-injury-date-expand-all', 'injury-date-list', 'wa-session-item'));
   document.getElementById('btn-injury-site-back').addEventListener('click', backFromInjurySiteDetail);
 
   // --- 分析タブ ---

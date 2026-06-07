@@ -1,5 +1,14 @@
 # 開発ログ
 
+## 2026-06-07（51）
+
+### 怪我タブ 日付ビューに「すべて開く」ボタンを追加
+
+- `index.html`: `#injury-date-view` 内に `wa-expand-all-row` + `#btn-injury-date-expand-all` を追加
+- `app.js`: 既存の `toggleExpandAll` を流用したイベントリスナーを追加
+- アイテムクラス `wa-session-item`・リストID `injury-date-list` は履歴タブの日付ビューと共通
+- `app.js?v=56`・SW `workoutlog2-v90`
+
 ## 2026-06-05（50）
 
 ### 怪我タブ フェーズ1（閲覧のみ）実装
