@@ -1,5 +1,16 @@
 # 開発ログ
 
+## 2026-06-07（57）
+
+### 怪我タブ 部位ビューのカードスタイルを日付ビューに揃え・「すべて開く」を追加
+
+- `.injury-site-card` を全周ボーダー＋角丸12px＋margin-bottom: 8px のカードスタイルに変更（`wa-session-item` と統一）
+- `.injury-site-card-header` に `background: #1c1f2a` を追加（`wa-session-header` と統一）
+- 展開時に `border-color: rgba(212,245,60,0.3)` で黄緑ボーダーに変化
+- `index.html`：部位ビューに `#btn-injury-site-expand-all` を追加
+- `app.js`：`toggleExpandAll` を使ったイベントリスナーを追加（itemClass: `injury-site-card`）
+- `style.css?v=72`・`app.js?v=61`・SW `workoutlog2-v96`
+
 ## 2026-06-07（56）
 
 ### 怪我タブ 部位ビューをアコーディオン化（STEP 1）

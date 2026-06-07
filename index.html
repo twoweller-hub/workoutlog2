@@ -10,7 +10,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=71">
+<link rel="stylesheet" href="style.css?v=72">
 </head>
 <body>
 <div id="app">
@@ -309,6 +309,9 @@
         </div>
         <!-- 部位ビュー -->
         <div id="injury-site-view" class="injury-view">
+          <div class="wa-expand-all-row">
+            <button class="wa-expand-all-btn" id="btn-injury-site-expand-all">すべて開く▼</button>
+          </div>
           <div id="injury-site-list"></div>
         </div>
       </div>
@@ -637,6 +640,6 @@
     navigator.serviceWorker.register('/workoutlog2/sw.js');
   }
 </script>
-<script src="app.js?v=60"></script>
+<script src="app.js?v=61"></script>
 </body>
 </html>

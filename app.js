@@ -2210,6 +2210,7 @@ function setupEventListeners() {
   document.getElementById('injury-tab-date').addEventListener('click', () => switchInjuryTab('injury-date-view'));
   document.getElementById('injury-tab-site').addEventListener('click', () => switchInjuryTab('injury-site-view'));
   document.getElementById('btn-injury-date-expand-all').addEventListener('click', () => toggleExpandAll('btn-injury-date-expand-all', 'injury-date-list', 'wa-session-item'));
+  document.getElementById('btn-injury-site-expand-all').addEventListener('click', () => toggleExpandAll('btn-injury-site-expand-all', 'injury-site-list', 'injury-site-card'));
 
   // --- 分析タブ ---
   document.getElementById('analysis-search').addEventListener('input', function () {
