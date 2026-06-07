@@ -1721,39 +1721,31 @@ function renderInjurySite() {
     list.innerHTML = '<div class="loading-msg">怪我の記録がありません</div>';
     return;
   }
-  list.innerHTML = ordered.map(site => {
-    const count = S.injuryRecords.filter(r => r.injurySite === site).length;
-    return `<div class="injury-site-card" data-site="${esc(site)}">
-      <div class="injury-site-card-name">${esc(site)}</div>
-      <div class="injury-site-card-meta">${count}件</div>
-      <div class="injury-site-card-chev">▶</div>
-    </div>`;
-  }).join('');
-  list.querySelectorAll('.injury-site-card').forEach(card => {
-    card.addEventListener('click', () => showInjurySiteDetail(card.dataset.site));
-  });
-}
-
-function showInjurySiteDetail(site) {
-  document.getElementById('injury-site-list-view').style.display = 'none';
-  document.getElementById('injury-site-detail-view').style.display = '';
-  document.getElementById('injury-site-detail-title').textContent = site;
-  const recs = S.injuryRecords.filter(r => r.injurySite === site);
-  const dates = [...new Set(recs.map(r => r.date))];
-  document.getElementById('injury-site-detail-list').innerHTML = dates.map(date => {
-    const rows = recs.filter(r => r.date === date);
-    return `<div class="injury-site-group">
-      <div class="injury-site-label">${esc(dateLabel(date))}</div>
-      <div class="injury-rec-rows">
-        ${rows.map(r => injuryRecRowHtml(r, false)).join('')}
+  list.innerHTML = '';
+  ordered.forEach(site => {
+    const recs = S.injuryRecords.filter(r => r.injurySite === site);
+    const dates = [...new Set(recs.map(r => r.date))];
+    const bodyHtml = dates.map(date => {
+      const rows = recs.filter(r => r.date === date);
+      return `<div class="injury-site-group">
+        <div class="injury-site-label">${esc(dateLabel(date))}</div>
+        <div class="injury-rec-rows">
+          ${rows.map(r => injuryRecRowHtml(r, false)).join('')}
+        </div>
+      </div>`;
+    }).join('');
+    const card = document.createElement('div');
+    card.className = 'injury-site-card';
+    card.innerHTML = `
+      <div class="injury-site-card-header">
+        <div class="injury-site-card-name">${esc(site)}</div>
+        <div class="injury-site-card-meta">${recs.length}件</div>
+        <div class="injury-site-card-chev">▼</div>
       </div>
-    </div>`;
-  }).join('');
-}
-
-function backFromInjurySiteDetail() {
-  document.getElementById('injury-site-list-view').style.display = '';
-  document.getElementById('injury-site-detail-view').style.display = 'none';
+      <div class="injury-site-card-body">${bodyHtml}</div>`;
+    card.querySelector('.injury-site-card-header').addEventListener('click', () => card.classList.toggle('expanded'));
+    list.appendChild(card);
+  });
 }
 
 function injuryRecRowHtml(r, showDate) {
@@ -2218,7 +2210,6 @@ function setupEventListeners() {
   document.getElementById('injury-tab-date').addEventListener('click', () => switchInjuryTab('injury-date-view'));
   document.getElementById('injury-tab-site').addEventListener('click', () => switchInjuryTab('injury-site-view'));
   document.getElementById('btn-injury-date-expand-all').addEventListener('click', () => toggleExpandAll('btn-injury-date-expand-all', 'injury-date-list', 'wa-session-item'));
-  document.getElementById('btn-injury-site-back').addEventListener('click', backFromInjurySiteDetail);
 
   // --- 分析タブ ---
   document.getElementById('analysis-search').addEventListener('input', function () {

@@ -1,5 +1,18 @@
 # 開発ログ
 
+## 2026-06-07（56）
+
+### 怪我タブ 部位ビューをアコーディオン化（STEP 1）
+
+- `renderInjurySite()` をドリルダウン → アコーディオン方式に書き換え
+  - ヘッダー（部位名・件数・▼）タップで展開/折りたたみ
+  - 展開時は前セッション（55）で実装した日付グループ化をそのまま流用
+- `showInjurySiteDetail()` / `backFromInjurySiteDetail()` を削除
+- `btn-injury-site-back` のイベントリスナーを削除
+- `index.html`：`#injury-site-detail-view`・`#btn-injury-site-back`・`#injury-site-list-view` ラッパーを削除
+- `style.css`：`.injury-site-card-header` / `.injury-site-card-body` / expanded スタイルを追加、ドリルダウン用スタイルを削除
+- `style.css?v=71`・`app.js?v=60`・SW `workoutlog2-v95`
+
 ## 2026-06-07（55）
 
 ### 怪我タブ 部位詳細画面を日付グループ化に変更
