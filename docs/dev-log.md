@@ -1,5 +1,15 @@
 # 開発ログ
 
+## 2026-06-07（55）
+
+### 怪我タブ 部位詳細画面を日付グループ化に変更
+
+- `showInjurySiteDetail()` の描画を flat list → 日付ごとのグループ表示に変更
+- 日付ビューと同じ `.injury-site-group` / `.injury-site-label` / `.injury-rec-rows` 構造を流用
+- 各行は `showDate=false` で描画（日付はグループヘッダーに表示済みのため）
+- CSS 変更なし
+- `app.js?v=59`・SW `workoutlog2-v94`
+
 ## 2026-06-07（54）
 
 ### 怪我タブ 日付ビューの左ボーダー位置を修正・グループ間余白を拡大

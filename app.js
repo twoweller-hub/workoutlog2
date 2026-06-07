@@ -1739,8 +1739,16 @@ function showInjurySiteDetail(site) {
   document.getElementById('injury-site-detail-view').style.display = '';
   document.getElementById('injury-site-detail-title').textContent = site;
   const recs = S.injuryRecords.filter(r => r.injurySite === site);
-  document.getElementById('injury-site-detail-list').innerHTML =
-    recs.map(r => injuryRecRowHtml(r, true)).join('');
+  const dates = [...new Set(recs.map(r => r.date))];
+  document.getElementById('injury-site-detail-list').innerHTML = dates.map(date => {
+    const rows = recs.filter(r => r.date === date);
+    return `<div class="injury-site-group">
+      <div class="injury-site-label">${esc(dateLabel(date))}</div>
+      <div class="injury-rec-rows">
+        ${rows.map(r => injuryRecRowHtml(r, false)).join('')}
+      </div>
+    </div>`;
+  }).join('');
 }
 
 function backFromInjurySiteDetail() {

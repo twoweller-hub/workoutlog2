@@ -1,4 +1,4 @@
-const CACHE = 'workoutlog2-v93';
+const CACHE = 'workoutlog2-v94';
 const URLS = [
   '/workoutlog2/',
   '/workoutlog2/index.html',
