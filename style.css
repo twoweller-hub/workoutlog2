@@ -1517,7 +1517,9 @@ body {
 .injury-view.active { display: block; }
 
 .injury-site-group {
-  margin-bottom: 10px;
+  margin-bottom: 16px;
+}
+.injury-rec-rows {
   border-left: 3px solid rgba(212, 245, 60, 0.25);
   padding-left: 10px;
 }

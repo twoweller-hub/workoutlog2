@@ -1699,7 +1699,9 @@ function renderInjuryDate() {
         ${Object.keys(bySite).map(site => `
           <div class="injury-site-group">
             <div class="injury-site-label">${esc(site)}</div>
-            ${bySite[site].map(r => injuryRecRowHtml(r, false)).join('')}
+            <div class="injury-rec-rows">
+              ${bySite[site].map(r => injuryRecRowHtml(r, false)).join('')}
+            </div>
           </div>`).join('')}
       </div>`;
     div.querySelector('.wa-session-header').addEventListener('click', () => div.classList.toggle('expanded'));
