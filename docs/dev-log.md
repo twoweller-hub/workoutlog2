@@ -1,5 +1,15 @@
 # 開発ログ
 
+## 2026-06-07（53）
+
+### 怪我タブ 日付ビューの部位グループに左ボーダーアクセントを追加
+
+- `.injury-site-group` に `border-left: 3px solid rgba(212, 245, 60, 0.25)` + `padding-left: 10px` を追加
+- `.injury-rec-row` の `border-bottom` を削除し、`padding` を `4px` → `6px` に増やして行間を確保
+- `.injury-rec-row:last-child` の `border-bottom: none` ルールも削除
+- 部位ラベルと同色（黄緑）の薄い縦線でグループを括ることで、行間横罫の誤読を解消
+- `style.css?v=69`・SW `workoutlog2-v92`
+
 ## 2026-06-07（52）
 
 ### 怪我タブ 日付ビューの閉じた状態に部位名を表示

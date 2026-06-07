@@ -1518,6 +1518,8 @@ body {
 
 .injury-site-group {
   margin-bottom: 10px;
+  border-left: 3px solid rgba(212, 245, 60, 0.25);
+  padding-left: 10px;
 }
 .injury-site-label {
   font-size: 13px;
@@ -1531,12 +1533,10 @@ body {
   flex-wrap: wrap;
   align-items: baseline;
   gap: 6px;
-  padding: 4px 0;
-  border-bottom: 1px solid #2e3244;
+  padding: 6px 0;
   font-size: 13px;
   color: #b0b8c8;
 }
-.injury-rec-row:last-child { border-bottom: none; }
 .injury-rec-date { color: #b0b8c8; flex-shrink: 0; }
 .injury-rec-ex   { color: #fff; font-weight: 500; }
 .injury-rec-set  { color: #b0b8c8; flex-shrink: 0; }
