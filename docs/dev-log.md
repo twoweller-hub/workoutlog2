@@ -1,5 +1,13 @@
 # 開発ログ
 
+## 2026-06-07（52）
+
+### 怪我タブ 日付ビューの閉じた状態に部位名を表示
+
+- `renderInjuryDate()` のヘッダーに `Object.keys(bySite)` を `・` 区切りで並べた `.injury-date-sites` を追加
+- `.injury-date-sites`: `flex: 1`・`color: #b0b8c8`・`font-size: 12px`（日付とシェブロンの間に収まる）
+- `style.css?v=68`・`app.js?v=57`・SW `workoutlog2-v91`
+
 ## 2026-06-07（51）
 
 ### 怪我タブ 日付ビューに「すべて開く」ボタンを追加

@@ -1687,10 +1687,12 @@ function renderInjuryDate() {
       if (!bySite[r.injurySite]) bySite[r.injurySite] = [];
       bySite[r.injurySite].push(r);
     });
+    const sites = Object.keys(bySite).map(s => esc(s)).join('・');
     const div = document.createElement('div');
     div.className = 'wa-session-item';
     div.innerHTML = `<div class="wa-session-header">
         <div class="wa-session-date">${esc(dateLabel(date))}</div>
+        <div class="injury-date-sites">${sites}</div>
         <div class="wa-session-chev">▼</div>
       </div>
       <div class="wa-session-body">
