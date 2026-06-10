@@ -1449,6 +1449,8 @@ body {
     padding: 0 20px 12px 40px;
   }
   .s3-hist-stats { font-size: 12px; }
+  /* 種目履歴・怪我ペインの見出し行を同じ高さに揃える（タブ切替時のズレ防止） */
+  .s3-hist-stats-row { min-height: 46px; }
   /* s3 右エリア・怪我パネル（PC narrow） */
   .s3-right-area {
     flex: 1;
@@ -1678,7 +1680,5 @@ body {
   .s3-hist-panel { border-right: 1px solid #2e3244; }
   .s3-hist-panel.pc-hidden { display: flex !important; }
   .s3-injury-panel { display: flex !important; flex: 1; }
-  /* 種目履歴の見出し行と怪我パネルのサブタブ行の高さを揃える */
-  .s3-hist-stats-row { min-height: 46px; }
 }
 
