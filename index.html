@@ -10,7 +10,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=72">
+<link rel="stylesheet" href="style.css?v=73">
 </head>
 <body>
 <div id="app">
@@ -155,19 +155,39 @@
         </div>
         <div class="s3-content-wrap">
           <div class="wa-body s3-main-col" id="s3-body" style="padding:12px 16px"></div>
-          <div class="s3-hist-panel" id="s3-hist-panel">
-            <div class="s3-hist-toggle" id="s3-hist-toggle">
-              <span class="s3-hist-toggle-label">履歴</span>
-              <span class="s3-hist-chev" id="s3-hist-chev">▼</span>
+          <div class="s3-right-area" id="s3-right-area">
+            <div class="s3-right-tabs">
+              <button class="s3-right-tab active" id="s3-tab-hist">履歴</button>
+              <button class="s3-right-tab" id="s3-tab-injury">怪我</button>
             </div>
-            <div class="s3-hist-panel-body" id="s3-hist-panel-body">
-              <div class="s3-hist-stats-row">
-                <div class="s3-hist-stats" id="s3-hist-stats"></div>
-                <button class="wa-expand-all-btn" id="btn-s3-expand-all">すべて開く▼</button>
+            <div class="s3-hist-panel" id="s3-hist-panel">
+              <div class="s3-hist-toggle" id="s3-hist-toggle">
+                <span class="s3-hist-toggle-label">HISTORY</span>
+                <span class="s3-hist-chev" id="s3-hist-chev">▼</span>
               </div>
-              <div id="s3-hist-list"></div>
-              <div id="s3-hist-more-wrap" style="display:none; text-align:center; padding:8px 0 4px">
-                <button class="wa-more-btn" id="btn-s3-hist-more">もっと見る</button>
+              <div class="s3-hist-panel-body" id="s3-hist-panel-body">
+                <div class="s3-hist-stats-row">
+                  <div class="s3-hist-stats" id="s3-hist-stats"></div>
+                  <button class="wa-expand-all-btn" id="btn-s3-expand-all">すべて開く▼</button>
+                </div>
+                <div id="s3-hist-list"></div>
+                <div id="s3-hist-more-wrap" style="display:none; text-align:center; padding:8px 0 4px">
+                  <button class="wa-more-btn" id="btn-s3-hist-more">もっと見る</button>
+                </div>
+              </div>
+            </div>
+            <div class="s3-injury-panel" id="s3-injury-panel">
+              <div class="s3-injury-toggle" id="s3-injury-toggle">
+                <span class="s3-hist-toggle-label">INJURY</span>
+                <span class="s3-injury-chev" id="s3-injury-chev">▼</span>
+              </div>
+              <div class="s3-injury-panel-body" id="s3-injury-panel-body">
+                <div class="s3-injury-subtabs">
+                  <button class="s3-injury-subtab active" id="s3-injury-tab-date">日付</button>
+                  <button class="s3-injury-subtab" id="s3-injury-tab-site">部位</button>
+                </div>
+                <div id="s3-injury-date-list"></div>
+                <div id="s3-injury-site-list" style="display:none"></div>
               </div>
             </div>
           </div>
@@ -640,6 +660,6 @@
     navigator.serviceWorker.register('/workoutlog2/sw.js');
   }
 </script>
-<script src="app.js?v=61"></script>
+<script src="app.js?v=62"></script>
 </body>
 </html>

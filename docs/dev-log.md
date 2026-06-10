@@ -1,5 +1,25 @@
 # 開発ログ
 
+## 2026-06-10（58）
+
+### s3怪我ペイン追加（STEP 2）
+
+- `index.html`：`s3-content-wrap` 内の `s3-hist-panel` を `s3-right-area` でラップし、`s3-injury-panel` を追加
+  - `s3-right-tabs`（[履歴][怪我]タブ）を `s3-right-area` の先頭に追加（PC narrow用）
+  - `s3-injury-panel`：SP用トグル（INJURY▼）+ 日付/部位サブタブ + `s3-injury-date-list` / `s3-injury-site-list`
+- `style.css`：SP・PC narrow・PC wide（≥1600px）の3段階レイアウトを実装
+  - SP：`s3-injury-panel` をアコーディオントグルとして表示（`s3-hist-panel` と同じ構造）
+  - PC narrow（640px〜1600px）：`s3-right-tabs` でヒストリー/怪我を切り替え。`pc-hidden` / `pc-active` クラスでパネル表示制御
+  - PC wide（≥1600px）：`#app max-width: 1900px`、`s3-right-area` が3カラム目として横並びに展開
+- `app.js`：
+  - `renderInjuryDate(container = null)` / `renderInjurySite(container = null)` にコンテナ引数を追加（怪我タブとs3ペインを共通関数で描画）
+  - `loadS3Injury()`：`S.injuryRecords` キャッシュがあれば即描画、なければ `getInjuryHistory` を呼んで怪我タブにも反映
+  - `switchS3RightTab(tab)` / `switchS3InjuryTab(view)`：タブ切り替え関数を追加
+  - `enterEx()`：PC（≥640px）で `loadS3Hist()` と `loadS3Injury()` を両方呼ぶよう変更
+  - `resetS3HistPanel()`：種目遷移時に怪我パネルの `.open` クラスもリセット
+  - イベントリスナー追加：`s3-tab-hist/injury`・`s3-injury-toggle`・`s3-injury-tab-date/site`
+- `style.css?v=73`・`app.js?v=62`・SW `workoutlog2-v97`
+
 ## 2026-06-07（57）
 
 ### 怪我タブ 部位ビューのカードスタイルを日付ビューに揃え・「すべて開く」を追加

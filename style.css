@@ -1247,6 +1247,57 @@ body {
 .wa-expand-all-btn:hover { color: #eef0f4; }
 
 /* =====================
+   s3 右エリア・怪我パネル（SP）
+===================== */
+.s3-right-area { display: flex; flex-direction: column; flex-shrink: 0; }
+.s3-right-tabs { display: none; }
+.s3-injury-panel {
+  flex-shrink: 0;
+  border-top: 1px solid #2e3244;
+  background: #111318;
+}
+.s3-injury-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 17px 16px;
+  cursor: pointer;
+  user-select: none;
+}
+.s3-injury-chev { color: #b0b8c8; font-size: 10px; transition: transform 0.2s; }
+.s3-injury-panel.open .s3-injury-chev { transform: rotate(180deg); }
+.s3-injury-panel-body {
+  display: none;
+  overflow-y: auto;
+  max-height: 38vh;
+  padding: 4px 16px 12px;
+  -webkit-overflow-scrolling: touch;
+}
+.s3-injury-panel.open .s3-injury-panel-body { display: block; }
+.s3-injury-subtabs {
+  display: flex;
+  gap: 6px;
+  padding: 8px 0 10px;
+  border-bottom: 1px solid #2e3244;
+  margin-bottom: 8px;
+}
+.s3-injury-subtab {
+  background: none;
+  border: 1px solid #2e3244;
+  border-radius: 4px;
+  color: #b0b8c8;
+  font-size: 12px;
+  padding: 4px 12px;
+  cursor: pointer;
+}
+.s3-injury-subtab.active {
+  background: #d4f53c;
+  border-color: #d4f53c;
+  color: #111318;
+  font-weight: 700;
+}
+
+/* =====================
    デスクトップ レイアウト
 ===================== */
 @media (min-width: 640px) {
@@ -1387,7 +1438,7 @@ body {
     flex-direction: column;
     overflow: hidden;
   }
-  .s3-hist-toggle { cursor: default; padding: 16px 20px 8px 40px; }
+  .s3-hist-toggle { display: none; }
   .s3-hist-chev { display: none; }
   .s3-hist-panel-body {
     display: flex !important;
@@ -1398,6 +1449,52 @@ body {
     padding: 0 20px 12px 40px;
   }
   .s3-hist-stats { font-size: 12px; }
+  /* s3 右エリア・怪我パネル（PC narrow） */
+  .s3-right-area {
+    flex: 1;
+    flex-shrink: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    min-width: 0;
+  }
+  .s3-right-tabs {
+    display: flex;
+    flex-shrink: 0;
+    border-bottom: 1px solid #2e3244;
+  }
+  .s3-right-tab {
+    flex: 1;
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    padding: 10px;
+    color: #b0b8c8;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    cursor: pointer;
+  }
+  .s3-right-tab.active { color: #d4f53c; border-bottom-color: #d4f53c; }
+  .s3-hist-panel.pc-hidden { display: none; }
+  .s3-injury-panel {
+    display: none;
+    flex: 1;
+    border-top: none;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .s3-injury-panel.pc-active { display: flex; }
+  .s3-injury-toggle { display: none; }
+  .s3-injury-panel-body {
+    display: flex !important;
+    flex-direction: column;
+    flex: 1;
+    overflow-y: auto;
+    max-height: none;
+    padding: 0 20px 12px 40px;
+  }
   /* セクションラベル */
   .wa-section-label { font-size: 12px; }
 
@@ -1563,4 +1660,16 @@ body {
 .injury-site-card.expanded .injury-site-card-chev { transform: rotate(180deg); }
 .injury-site-card-body { display: none; padding: 4px 14px 12px; background: #161920; }
 .injury-site-card.expanded .injury-site-card-body { display: block; }
+
+/* =====================
+   PC 広い画面: 3カラム
+===================== */
+@media (min-width: 1600px) {
+  #app { max-width: 1900px; }
+  .s3-right-area { flex-direction: row; }
+  .s3-right-tabs { display: none; }
+  .s3-hist-panel { border-right: 1px solid #2e3244; }
+  .s3-hist-panel.pc-hidden { display: flex !important; }
+  .s3-injury-panel { display: flex !important; flex: 1; }
+}
 

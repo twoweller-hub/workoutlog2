@@ -522,7 +522,7 @@ async function enterEx(idx) {
   renderS3Body(exMaster);
   updateS3HistStats();
   resetS3HistPanel();
-  if (window.innerWidth >= 640) loadS3Hist();
+  if (window.innerWidth >= 640) { loadS3Hist(); loadS3Injury(); }
 }
 
 function initS3Sections(exMaster) {
@@ -1358,6 +1358,8 @@ function resetS3HistPanel() {
   if (moreWrap) moreWrap.style.display = 'none';
   const panel = document.getElementById('s3-hist-panel');
   if (panel) panel.classList.remove('open');
+  const injuryPanel = document.getElementById('s3-injury-panel');
+  if (injuryPanel) injuryPanel.classList.remove('open');
 }
 
 async function loadS3Hist(append = false) {
@@ -1672,8 +1674,44 @@ async function loadInjuryHistory() {
   }
 }
 
-function renderInjuryDate() {
-  const list = document.getElementById('injury-date-list');
+function loadS3Injury() {
+  const dateList = document.getElementById('s3-injury-date-list');
+  if (!dateList) return;
+  if (S.injuryRecords !== null) {
+    renderInjuryDate(dateList);
+    renderInjurySite(document.getElementById('s3-injury-site-list'));
+    return;
+  }
+  dateList.innerHTML = '<div class="loading-msg">読み込み中…</div>';
+  gasGet({ action: 'getInjuryHistory' }).then(data => {
+    S.injuryRecords = data.records || [];
+    renderInjuryDate();
+    renderInjurySite();
+    renderInjuryDate(dateList);
+    renderInjurySite(document.getElementById('s3-injury-site-list'));
+  }).catch(() => {
+    dateList.innerHTML = '<div class="loading-msg">読み込み失敗</div>';
+  });
+}
+
+function switchS3RightTab(tab) {
+  const isHist = tab === 'hist';
+  document.getElementById('s3-tab-hist').classList.toggle('active', isHist);
+  document.getElementById('s3-tab-injury').classList.toggle('active', !isHist);
+  document.getElementById('s3-hist-panel').classList.toggle('pc-hidden', !isHist);
+  document.getElementById('s3-injury-panel').classList.toggle('pc-active', !isHist);
+}
+
+function switchS3InjuryTab(view) {
+  const isDate = view === 'date';
+  document.getElementById('s3-injury-tab-date').classList.toggle('active', isDate);
+  document.getElementById('s3-injury-tab-site').classList.toggle('active', !isDate);
+  document.getElementById('s3-injury-date-list').style.display = isDate ? '' : 'none';
+  document.getElementById('s3-injury-site-list').style.display = isDate ? 'none' : '';
+}
+
+function renderInjuryDate(container = null) {
+  const list = container || document.getElementById('injury-date-list');
   if (!S.injuryRecords || S.injuryRecords.length === 0) {
     list.innerHTML = '<div class="loading-msg">怪我の記録がありません</div>';
     return;
@@ -1709,8 +1747,8 @@ function renderInjuryDate() {
   });
 }
 
-function renderInjurySite() {
-  const list = document.getElementById('injury-site-list');
+function renderInjurySite(container = null) {
+  const list = container || document.getElementById('injury-site-list');
   if (!S.injuryRecords) { list.innerHTML = ''; return; }
   const sitesWithRecs = new Set(S.injuryRecords.map(r => r.injurySite));
   const ordered = [
@@ -2174,6 +2212,15 @@ function setupEventListeners() {
   });
   document.getElementById('btn-s3-hist-more').addEventListener('click', () => loadS3Hist(true));
   document.getElementById('btn-s3-expand-all').addEventListener('click', () => toggleExpandAll('btn-s3-expand-all', 's3-hist-list', 'wa-ex-hist-item'));
+  document.getElementById('s3-tab-hist').addEventListener('click', () => switchS3RightTab('hist'));
+  document.getElementById('s3-tab-injury').addEventListener('click', () => { switchS3RightTab('injury'); loadS3Injury(); });
+  document.getElementById('s3-injury-toggle').addEventListener('click', () => {
+    if (window.innerWidth >= 640) return;
+    document.getElementById('s3-injury-panel').classList.toggle('open');
+    loadS3Injury();
+  });
+  document.getElementById('s3-injury-tab-date').addEventListener('click', () => switchS3InjuryTab('date'));
+  document.getElementById('s3-injury-tab-site').addEventListener('click', () => switchS3InjuryTab('site'));
 
   document.getElementById('btn-finish-back').addEventListener('click', () => showRecordScreen('s2'));
   document.getElementById('btn-save-session').addEventListener('click', saveSession);
