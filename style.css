@@ -1661,6 +1661,13 @@ body {
 .injury-site-card-body { display: none; padding: 4px 14px 12px; background: #161920; }
 .injury-site-card.expanded .injury-site-card-body { display: block; }
 
+/* s3怪我ペイン：種目履歴カードに合わせてサイズ統一 */
+#s3-injury-panel .wa-session-header { padding: 12px 14px; }
+#s3-injury-panel .wa-session-date { font-size: 13px; }
+#s3-injury-panel .injury-site-card-header { padding: 12px 14px; }
+#s3-injury-panel .injury-site-card-name { font-size: 13px; font-weight: 700; }
+#s3-injury-panel .injury-site-card-body { padding: 10px 14px 12px; }
+
 /* =====================
    PC 広い画面: 3カラム
 ===================== */

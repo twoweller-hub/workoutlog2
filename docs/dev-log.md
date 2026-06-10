@@ -1,5 +1,15 @@
 # 開発ログ
 
+## 2026-06-10（60）
+
+### s3怪我ペイン：カード・文字サイズを種目履歴に統一
+
+- `#s3-injury-panel` スコープで5つの上書きルールを追加
+  - 日付ビュー（`wa-session-item`）：PC拡大（`padding: 15px 18px`・`font-size: 15px`）を `12px 14px`・`13px` に抑制
+  - 部位ビュー（`injury-site-card`）：ヘッダーpadding `12px 16px` → `12px 14px`、部位名 `15px weight:500` → `13px weight:700`、ボディ上padding `4px` → `10px`
+- 怪我タブの既存カードスタイルは変更なし
+- `style.css?v=74`・SW `workoutlog2-v99`
+
 ## 2026-06-10（59）
 
 ### s3怪我ペイン「すべて開く」ボタンを追加
