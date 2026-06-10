@@ -1,5 +1,16 @@
 # 開発ログ
 
+## 2026-06-10（59）
+
+### s3怪我ペイン「すべて開く」ボタンを追加
+
+- `index.html`：`s3-injury-subtabs` に `btn-s3-injury-expand-all` ボタンを追加（`margin-left:auto` で右寄せ）
+- `app.js`：ボタンクリック時に現在アクティブなサブタブ（日付/部位）を判定し `toggleExpandAll` を呼び分け
+  - 日付ビュー: `s3-injury-date-list` / `wa-session-item`
+  - 部位ビュー: `s3-injury-site-list` / `injury-site-card`
+- `switchS3InjuryTab()` 内でサブタブ切り替え時にボタンテキストを「すべて開く▼」にリセット
+- `app.js?v=63`・SW `workoutlog2-v98`
+
 ## 2026-06-10（58）
 
 ### s3怪我ペイン追加（STEP 2）

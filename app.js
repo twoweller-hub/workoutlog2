@@ -1708,6 +1708,8 @@ function switchS3InjuryTab(view) {
   document.getElementById('s3-injury-tab-site').classList.toggle('active', !isDate);
   document.getElementById('s3-injury-date-list').style.display = isDate ? '' : 'none';
   document.getElementById('s3-injury-site-list').style.display = isDate ? 'none' : '';
+  const expandBtn = document.getElementById('btn-s3-injury-expand-all');
+  if (expandBtn) expandBtn.textContent = 'すべて開く▼';
 }
 
 function renderInjuryDate(container = null) {
@@ -2221,6 +2223,11 @@ function setupEventListeners() {
   });
   document.getElementById('s3-injury-tab-date').addEventListener('click', () => switchS3InjuryTab('date'));
   document.getElementById('s3-injury-tab-site').addEventListener('click', () => switchS3InjuryTab('site'));
+  document.getElementById('btn-s3-injury-expand-all').addEventListener('click', () => {
+    const isDate = document.getElementById('s3-injury-tab-date').classList.contains('active');
+    if (isDate) toggleExpandAll('btn-s3-injury-expand-all', 's3-injury-date-list', 'wa-session-item');
+    else toggleExpandAll('btn-s3-injury-expand-all', 's3-injury-site-list', 'injury-site-card');
+  });
 
   document.getElementById('btn-finish-back').addEventListener('click', () => showRecordScreen('s2'));
   document.getElementById('btn-save-session').addEventListener('click', saveSession);
