@@ -1678,5 +1678,7 @@ body {
   .s3-hist-panel { border-right: 1px solid #2e3244; }
   .s3-hist-panel.pc-hidden { display: flex !important; }
   .s3-injury-panel { display: flex !important; flex: 1; }
+  /* 種目履歴の見出し行と怪我パネルのサブタブ行の高さを揃える */
+  .s3-hist-stats-row { min-height: 46px; }
 }
 
