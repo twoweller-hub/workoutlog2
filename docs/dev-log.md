@@ -1,5 +1,19 @@
 # 開発ログ
 
+## 2026-06-28（63）
+
+### 履歴タブ：単発複数種目セッションの見出し表示改善
+
+- 単発セッションで2種目以上行った場合の見出し表示を改善
+  - 1種目：従来通り種目名のみ
+  - 2種目以上：`N種目：種目A・種目B・…` 形式で表示
+  - 長くて溢れる場合はCSSで `…` に切る
+- `app.js`：`renderHistoryDate` 内 `menuLabel` 生成ロジックを変更（1118行目）
+- `style.css`：`.wa-session-menu` に `min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis` を追加
+  - `min-width:0` は flexbox で ellipsis を効かせるための必須指定
+  - 怪我の日付ビューは `injury-date-sites` クラスを使っており影響なし
+- `app.js?v=64`・`style.css?v=77`・SW `workoutlog2-v102`
+
 ## 2026-06-10（62）
 
 ### s3ペイン見出し高さ統一をPC narrow（2ペイン）にも適用

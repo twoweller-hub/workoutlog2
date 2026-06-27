@@ -1115,7 +1115,12 @@ function renderHistoryDate(sessions, clear) {
     const idx = clear ? rawIdx : S.histDateItems.length - sessions.length + rawIdx;
     const id = 'sess-' + idx;
     const dur = calcDuration(sess.startTime, sess.endTime);
-    const menuLabel = sess.menu ? menuDisplay(sess.menu) : (sess.exercises?.[0]?.name || '');
+    const exes = sess.exercises || [];
+    const menuLabel = sess.menu
+      ? menuDisplay(sess.menu)
+      : exes.length >= 2
+        ? `${exes.length}種目：${exes.map(e => e.name).join('・')}`
+        : (exes[0]?.name || '');
     const div = document.createElement('div');
     div.className = 'wa-session-item';
     div.id = id;
